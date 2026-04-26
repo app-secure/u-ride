@@ -1,13 +1,12 @@
 import { EnvironmentInjector, Injectable, inject, runInInjectionContext } from '@angular/core';
 import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import {
   Auth,
+  authState,
   User,
   UserCredential,
-  authState,
-  createUserWithEmailAndPassword,
-  sendEmailVerification,
   signInWithEmailAndPassword,
   signInWithRedirect,
   getRedirectResult,
@@ -42,20 +41,13 @@ export class AuthService {
     const normalized = payload.email.trim().toLowerCase();
     this.assertInstitutionEmail(normalized);
 
-    const cred = await createUserWithEmailAndPassword(this.auth, normalized, payload.password);
+    const cred = await signInWithEmailAndPassword(this.auth, normalized, payload.password);
+    
     if (cred.user) {
-      const displayName = `${payload.firstName}`.trim() + ' ' + `${payload.lastName}`.trim();
-      try {
-        await updateProfile(cred.user, { displayName: displayName.trim() });
-      } catch {
-        // No bloquea el registro si falla el displayName en Auth.
-      }
-
-      await sendEmailVerification(cred.user);
       try {
         await this.users.ensureUserDoc(cred.user);
         await this.users.updateProfile(cred.user.uid, {
-          displayName: displayName.trim(),
+          displayName: `${payload.firstName.trim()} ${payload.lastName.trim()}`,
           career: payload.career.trim(),
           zone: payload.zone.trim(),
           phone: payload.phone.trim(),
@@ -84,27 +76,33 @@ export class AuthService {
   }
 
   async loginWithMicrosoft(): Promise<'done'> {
-    const provider = this.buildMicrosoftProvider();
+    // FLUJO NATIVO (Android / iOS)
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const result = await FirebaseAuthentication.signInWithMicrosoft();
+        if (result.user) {
+          await this.users.ensureUserDoc(result.user as any);
+          return 'done';
+        }
+        throw new Error('NATIVE_LOGIN_FAILED');
+      } catch (error) {
+        console.error('[AuthService] Error nativo:', error);
+        throw error;
+      }
+    }
 
-    // Usamos signInWithPopup tanto en Web como en Móvil.
-    // En Capacitor, esto abre un Chrome Custom Tab o SFSafariView
-    // que devuelve el control a la app automáticamente al terminar.
+    // FLUJO WEB (Navegador)
+    const provider = this.buildMicrosoftProvider();
     try {
       const cred = await signInWithPopup(this.auth, provider);
       await this.finalizeMicrosoftLogin(cred);
       return 'done';
     } catch (error: any) {
-      console.error('[AuthService.loginWithMicrosoft] Error:', error);
-      // Si el popup falla (ej. bloqueado), podrías intentar redirect como último recurso,
-      // pero normalmente Popup es lo más estable en Capacitor moderno.
+      console.error('[AuthService] Error web:', error);
       throw error;
     }
   }
 
-  /**
-   * Completa el flujo de Microsoft si venimos de un redirect.
-   * Devuelve true si se procesó un resultado (usuario autenticado).
-   */
   async completeMicrosoftRedirectIfNeeded(): Promise<boolean> {
     if (!Capacitor.isNativePlatform()) return false;
 
@@ -135,7 +133,6 @@ export class AuthService {
   private async finalizeMicrosoftLogin(cred: UserCredential): Promise<void> {
     const domain = environment.institutionEmailDomain?.trim().toLowerCase();
 
-    // Verificamos si el correo devuelto por Microsoft es del dominio de la U
     const email = cred.user.email?.trim().toLowerCase();
     if (email && domain && !email.endsWith(`@${domain}`)) {
       await signOut(this.auth);
