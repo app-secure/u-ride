@@ -1,0 +1,224 @@
+.uride-content {
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+.center-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Avoid top clipping on small screens */
+  align-items: center;
+  min-height: 100%;
+  padding-top: 24px;
+  padding-bottom: 16px;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.login-header {
+  ion-toolbar {
+    --padding-start: 16px;
+    --padding-end: 16px;
+  }
+}
+
+.login-header-title {
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.1;
+  color: var(--ion-color-light);
+}
+
+.login-header-subtitle {
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ion-color-light);
+  opacity: 0.9;
+  margin-top: 2px;
+}
+
+/* Header Branding */
+.header-brand {
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+}
+
+.header-logo {
+  height: 28px;
+  width: auto;
+  margin-right: 12px;
+}
+
+.header-title {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.5px;
+  color: var(--ion-text-color);
+}
+
+.hero-section {
+  text-align: center;
+  margin-top: 0px;
+  margin-bottom: 24px;
+}
+
+.hero-logo {
+  width: auto;
+  max-width: 140px;
+  height: auto;
+  object-fit: contain;
+  margin-bottom: 0px;
+  margin-top: 0px;
+}
+
+.hero-title {
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 1.1;
+  color: var(--ion-color-dark);
+  margin-top: 0px;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+}
+
+.hero-subtitle {
+  font-size: 14px;
+  color: var(--ion-color-medium);
+  line-height: 1.5;
+}
+
+.form-section {
+  margin-bottom: 0px;
+}
+
+.submit-button {
+  margin-top: 24px;
+  height: 52px;
+  --border-radius: 9999px;
+  font-size: 16px;
+  font-weight: 600;
+  --background: var(--ion-color-dark);
+  --color: var(--ion-color-light);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 24px 0;
+  
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  span {
+    padding: 0 16px;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+.btn-microsoft {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: white;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  border-radius: 9999px; /* Igual que el de entrar */
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  ion-icon {
+    font-size: 20px;
+    color: #00a4ef;
+  }
+  
+  &:hover:not(:disabled) {
+    background: #f8fafc;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.toggle-password-button {
+  --padding-start: 0px;
+  --padding-end: 0px;
+  --padding-top: 0px;
+  --padding-bottom: 0px;
+  --color: var(--ion-color-primary);
+  height: 40px;
+  min-height: 40px;
+  width: 44px;
+  min-width: 44px;
+  margin: 0;
+  align-self: center;
+}
+
+.toggle-password-button ion-icon {
+  font-size: 22px;
+}
+
+.auth-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.auth-footer-text {
+  color: var(--ion-color-medium);
+  font-size: 14px;
+}
+
+.register-link {
+  font-size: 14px;
+  font-weight: 700;
+  height: auto;
+  --padding-start: 4px;
+  --padding-end: 4px;
+  margin: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  opacity: 0;
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-color-scheme: dark) {
+
+  .hero-title,
+  .header-title {
+    color: #ffffff;
+  }
+
+  /* El login ya no usa card/contenedor; solo ajustamos textos en dark mode */
+}

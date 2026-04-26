@@ -1,0 +1,164 @@
+@import "@ionic/angular/css/core.css";
+
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+@import "@ionic/angular/css/palettes/dark.system.css";
+
+@import "leaflet/dist/leaflet.css";
+
+ion-button {
+  --border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  --box-shadow: none;
+}
+
+ion-item.ion-valid {
+  --highlight-color-valid: var(--ion-color-success);
+}
+
+ion-item.ion-invalid {
+  --highlight-color-invalid: var(--ion-color-danger);
+}
+
+ion-item {
+  --border-radius: 8px;
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  margin-bottom: 12px;
+  --background: var(--ion-item-background);
+  --border-color: var(--ion-item-border-color) !important;
+  --border-style: solid;
+  --border-width: 1px;
+  box-shadow: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  ion-item {
+    border: 1px solid #1f2937;
+  }
+}
+
+ion-card {
+  border-radius: 12px;
+  box-shadow: none;
+  border: 1px solid var(--ion-item-border-color);
+  background: var(--ion-card-background);
+}
+
+@media (prefers-color-scheme: dark) {
+  ion-card {
+    border: 1px solid #1f2937;
+  }
+}
+
+.text-gradient {
+  color: var(--ion-color-tertiary);
+  font-weight: 700;
+}
+
+.uride-input-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.uride-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 8px;
+  margin-left: 4px;
+  letter-spacing: -0.2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .uride-label {
+    color: #f3f4f6;
+  }
+}
+
+.uride-input-item {
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  --background: #f9fafb;
+  --border-color: #d1d5db !important;
+  --border-style: solid;
+  --border-width: 1px;
+  --inner-border-width: 0 !important;
+  --highlight-color-focused: transparent !important;
+  margin-bottom: 0;
+  box-shadow: none;
+  transition: all 0.2s ease;
+}
+
+.uride-input-item.item-has-focus,
+.uride-input-item.ion-focused,
+.uride-input-item:focus-within {
+  --border-color: #3b82f6 !important;
+  --border-width: 2px !important;
+}
+
+.uride-input-item.ion-invalid.ion-touched {
+  --border-color: var(--ion-color-danger) !important;
+  --border-width: 1px;
+}
+
+.uride-input-item ion-icon[slot="start"] {
+  color: var(--ion-color-warning) !important;
+  margin-right: 12px;
+  opacity: 1;
+}
+
+.uride-input-item ion-input {
+  font-size: 15px !important;
+  font-weight: 500;
+  --placeholder-color: #9ca3af;
+  --placeholder-font-weight: 400;
+  outline: none !important;
+
+  /* Elimina el asqueroso fondo azul de autocompletado de Chrome/Edge */
+  &::part(native):-webkit-autofill,
+  &::part(native):-webkit-autofill:hover, 
+  &::part(native):-webkit-autofill:focus, 
+  &::part(native):-webkit-autofill:active{
+    -webkit-box-shadow: 0 0 0 100px #f9fafb inset !important;
+    -webkit-text-fill-color: #111827 !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .uride-input-item {
+    --background: #111827;
+    --border-color: #374151 !important;
+  }
+}
+
+.error-message {
+  color: var(--ion-color-danger);
+  font-size: 13px;
+  margin-top: 4px;
+  margin-left: 8px;
+  display: block;
+}
+
+/* Custom Popover for Selectors */
+.wide-popover {
+  --width: 400px;
+  --min-width: 320px;
+  --max-width: 90vw;
+}

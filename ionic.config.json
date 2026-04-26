@@ -1,0 +1,7 @@
+{
+  "name": "u-ride",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

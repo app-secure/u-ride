@@ -1,0 +1,32 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>{{ title }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()" aria-label="Cerrar">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="picker-content">
+  <div class="search-row">
+    <ion-searchbar
+      placeholder="Buscar dirección"
+      [value]="queryValue"
+      (ionInput)="onQueryInput($event)"
+      inputmode="search"
+      debounce="0"
+    ></ion-searchbar>
+  </div>
+
+  <div class="picked-text" *ngIf="picked">
+    {{ picked.label }}
+  </div>
+
+  <div #mapEl class="picker-map" aria-label="Mapa para seleccionar ubicación"></div>
+
+  <div class="actions">
+    <ion-button expand="block" (click)="confirm()">Confirmar ubicación</ion-button>
+  </div>
+</ion-content>

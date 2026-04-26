@@ -1,0 +1,149 @@
+<ion-header class="register-header">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button color="light" defaultHref="/auth/login" text="" icon="chevron-back-outline"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="register-header-title">U-Ride</div>
+      <div class="register-header-subtitle">Registro</div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding uride-content">
+  <div class="center-container">
+    <div class="hero-section fade-in-up" style="animation-delay: 0.1s">
+      <h2 class="hero-title">Tu campus,<br />tu movilidad.</h2>
+      <img src="assets/logo-uride.png" class="hero-logo" alt="U-Ride Logo" />
+      <p class="hero-subtitle">
+        Crea tu cuenta institucional y únete a la red de transporte exclusiva de
+        la Universidad.
+      </p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="registration-form">
+      <div class="form-section fade-in-up" style="animation-delay: 0.2s">
+        <h3 class="section-title">Información Personal</h3>
+
+        <div class="uride-input-group">
+          <label class="uride-label">Nombres:</label>
+          <ion-item class="uride-input-item">
+            <ion-input autocomplete="given-name" formControlName="firstName" placeholder="Ej: Cristian"></ion-input>
+          </ion-item>
+          <span class="error-message fade-in-up"
+            *ngIf="form.get('firstName')?.invalid && form.get('firstName')?.touched">Campo obligatorio</span>
+        </div>
+
+        <div class="uride-input-group">
+          <label class="uride-label">Apellidos:</label>
+          <ion-item class="uride-input-item">
+            <ion-input autocomplete="family-name" formControlName="lastName" placeholder="Ej: Jurado"></ion-input>
+          </ion-item>
+          <span class="error-message fade-in-up"
+            *ngIf="form.get('lastName')?.invalid && form.get('lastName')?.touched">Campo obligatorio</span>
+        </div>
+      </div>
+
+      <div class="form-section fade-in-up" style="animation-delay: 0.3s">
+        <h3 class="section-title">Cuenta Universitaria:</h3>
+
+        <div class="uride-input-group">
+          <label class="uride-label">Correo institucional:</label>
+          <ion-item class="uride-input-item">
+            <ion-input inputmode="email" autocomplete="email" formControlName="email"
+              placeholder="tu.nombre@{{ domain }}"></ion-input>
+          </ion-item>
+          <span class="error-message fade-in-up"
+            *ngIf="form.get('email')?.invalid && form.get('email')?.touched">Formato de correo incorrecto</span>
+        </div>
+
+        <div class="uride-input-group">
+          <label class="uride-label">Contraseña:</label>
+          <ion-item class="uride-input-item">
+            <ion-input [type]="showPassword ? 'text' : 'password'" autocomplete="new-password" formControlName="password"
+              placeholder="Mínimo 6 caracteres"></ion-input>
+            <ion-button class="toggle-password-button" fill="clear" slot="end" color="primary" (click)="togglePassword()" type="button" tabindex="-1">
+              <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-item>
+          <span class="error-message fade-in-up"
+            *ngIf="form.get('password')?.invalid && form.get('password')?.touched">Es necesaria una contraseña
+            válida</span>
+        </div>
+
+        <div class="uride-input-group">
+          <label class="uride-label">Confirmar contraseña:</label>
+          <ion-item class="uride-input-item">
+            <ion-input [type]="showPassword2 ? 'text' : 'password'" autocomplete="new-password" formControlName="password2"
+              placeholder="Repite tu contraseña"></ion-input>
+            <ion-button class="toggle-password-button" fill="clear" slot="end" color="primary" (click)="togglePassword2()" type="button" tabindex="-1">
+              <ion-icon [name]="showPassword2 ? 'eye-off-outline' : 'eye-outline'" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-item>
+          <span class="error-message fade-in-up"
+            *ngIf="form.get('password2')?.invalid && form.get('password2')?.touched">Las contraseñas no coinciden</span>
+        </div>
+      </div>
+
+      <div class="form-section fade-in-up" style="animation-delay: 0.4s">
+        <h3 class="section-title">Detalles</h3>
+
+        <div class="uride-input-group">
+          <label class="uride-label">Carrera u Ocupación:</label>
+          <ion-item class="uride-input-item">
+            <ion-input autocomplete="organization-title" formControlName="career"
+              placeholder="Ej: Ingeniería de Software"></ion-input>
+          </ion-item>
+          <span class="error-message fade-in-up" *ngIf="form.get('career')?.invalid && form.get('career')?.touched">
+            Campo obligatorio
+          </span>
+        </div>
+
+        <div class="uride-input-group">
+          <label class="uride-label">Teléfono móvil:</label>
+          <ion-item class="uride-input-item">
+            <ion-input inputmode="tel" autocomplete="tel" formControlName="phone" placeholder="10 dígitos"></ion-input>
+          </ion-item>
+          <span class="error-message fade-in-up" *ngIf="form.get('phone')?.invalid && form.get('phone')?.touched">El
+            celular debe ser válido</span>
+        </div>
+
+        <div class="uride-input-group">
+          <label class="uride-label">Dirección:</label>
+          <ion-item class="uride-input-item">
+            <ion-input autocomplete="street-address" formControlName="zone" placeholder="Ej: La Floresta"></ion-input>
+          </ion-item>
+          <span class="error-message fade-in-up" *ngIf="form.get('zone')?.invalid && form.get('zone')?.touched">Campo
+            obligatorio</span>
+        </div>
+      </div>
+
+      <div class="actions-section fade-in-up" style="animation-delay: 0.5s">
+        <ion-item lines="none" class="terms-item">
+          <ion-checkbox mode="ios" color="tertiary" slot="start" class="terms-checkbox"></ion-checkbox>
+          <ion-label class="terms-label ion-text-wrap">
+            Acepto los <span class="text-tertiary">Términos de Servicio</span> y
+            la <span class="text-tertiary">Política de Privacidad</span> de
+            U-Ride.
+          </ion-label>
+        </ion-item>
+
+        <ion-button type="submit" expand="block" [disabled]="loading || form.invalid" class="submit-button">
+          <ion-icon name="arrow-forward" slot="end" *ngIf="!loading"></ion-icon>
+          <ion-spinner *ngIf="loading" name="dots" slot="start"></ion-spinner>
+          Crear cuenta
+        </ion-button>
+
+        <div class="auth-footer">
+          <span class="auth-footer-text">¿Ya perteneces a U-Ride?</span>
+          <ion-button fill="clear" color="tertiary" type="button" (click)="goToLogin()" class="login-link">
+            Inicia Sesión
+          </ion-button>
+        </div>
+      </div>
+    </form>
+
+    <ion-loading [isOpen]="loading" message="Creando tu cuenta institucional..." spinner="crescent"
+      cssClass="uride-loading"></ion-loading>
+  </div>
+</ion-content>

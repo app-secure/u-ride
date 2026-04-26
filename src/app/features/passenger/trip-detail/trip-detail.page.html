@@ -1,0 +1,244 @@
+<ion-content [fullscreen]="true" class="map-content">
+  <div class="map-full" #mapEl aria-label="Mapa del viaje"></div>
+
+  <ion-modal [isOpen]="isModalOpen" [initialBreakpoint]="0.32" [breakpoints]="[0.18, 0.32, 0.6, 0.9]" [handle]="true"
+    [showBackdrop]="false" [backdropDismiss]="false" (didPresent)="onSheetChanged()"
+    (ionBreakpointDidChange)="onSheetChanged()">
+    <ng-template>
+      <ion-content class="sheet-content">
+        <div class="sheet-inner modern-sheet">
+          <ion-spinner *ngIf="!trip" name="crescent" class="loading-spinner"></ion-spinner>
+
+          <ng-container *ngIf="trip">
+            <!-- Back button + separator -->
+            <div class="sheet-back-row">
+              <button class="sheet-back-btn" (click)="goBack()">
+                <ion-icon name="arrow-back-outline"></ion-icon>
+                <span>Volver</span>
+              </button>
+              <div class="sheet-back-divider"></div>
+            </div>
+
+            <!-- Header: Driver Info & Status -->
+            <div class="trip-header-section">
+              <div class="driver-profile-large">
+                <div class="avatar-box">
+                  <ion-icon name="person"></ion-icon>
+                </div>
+                <div class="driver-info">
+                  <h2>{{ trip.driverName }}</h2>
+                  <span class="rating-badge"
+                    *ngIf="driverProfile && driverProfile.ratingCount && driverProfile.ratingCount > 0">
+                    <ion-icon name="star"></ion-icon> {{ driverRating | number:'1.1-1' }}
+                  </span>
+                  <span class="rating-badge new-driver" *ngIf="!driverProfile || !driverProfile.ratingCount">
+                    <ion-icon name="star-outline"></ion-icon> Nuevo conductor
+                  </span>
+                </div>
+              </div>
+
+              <div class="status-and-price">
+                <div class="status-badge" [ngClass]="trip.status">
+                  {{ trip.status === 'open' ? 'Abierto' : (trip.status === 'completed' ? 'Completado' : trip.status) }}
+                </div>
+                <div class="trip-price-tag" *ngIf="trip.price != null">
+                  <span class="currency">$</span>{{ trip.price | number:'1.2-2' }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Route name -->
+            <div class="trip-route-title" *ngIf="trip.routeName">
+              <ion-icon name="map-outline"></ion-icon>
+              <span>{{ trip.routeName }}</span>
+            </div>
+
+            <!-- Route details -->
+            <div class="route-details-card">
+              <div class="route-timeline">
+                <div class="timeline-point origin">
+                  <div class="dot"></div>
+                  <div class="info">
+                    <span class="label">Origen</span>
+                    <span class="value">{{ trip.originZone }}</span>
+                  </div>
+                </div>
+                <div class="timeline-line"></div>
+                <div class="timeline-point destination">
+                  <div class="dot"></div>
+                  <div class="info">
+                    <span class="label">Destino</span>
+                    <span class="value">{{ trip.destinationZone }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="trip-meta-info">
+                <div class="meta-item">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span>{{ trip.departureAt | date:'mediumDate':'':'es-EC' }}</span>
+                </div>
+                <div class="meta-item">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span>{{ trip.departureAt | date:'shortTime':'':'es-EC' }}</span>
+                </div>
+                <div class="meta-item">
+                  <ion-icon name="people-outline"></ion-icon>
+                  <span>{{ trip.seatsAvailable }} cupos</span>
+                </div>
+              </div>
+
+              <!-- Vehicle info -->
+              <div class="vehicle-info" *ngIf="trip.vehicleInfo">
+                <h4>Vehículo</h4>
+                <div class="vehicle-details">
+                  <div class="v-item">
+                    <ion-icon name="car-outline"></ion-icon>
+                    <span>{{ trip.vehicleInfo.brand }} {{ trip.vehicleInfo.model }}</span>
+                  </div>
+                  <div class="v-item">
+                    <ion-icon name="barcode-outline"></ion-icon>
+                    <span>{{ trip.vehicleInfo.plate }}</span>
+                  </div>
+                  <div class="v-item">
+                    <ion-icon name="color-palette-outline"></ion-icon>
+                    <span>{{ trip.vehicleInfo.color }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="notes-section" *ngIf="trip.notes">
+              <h3>Notas del conductor</h3>
+              <p>{{ trip.notes }}</p>
+            </div>
+
+            <!-- Rules -->
+            <div class="rules-section">
+              <h3>Reglas del viaje</h3>
+              <p class="rules-subtitle">Debes aceptarlas antes de confirmar.</p>
+              <ul class="rules-list">
+                <li *ngFor="let r of (trip.ruleTexts?.length ? trip.ruleTexts : defaultRuleTexts)">
+                  <ion-icon name="checkmark-circle"></ion-icon> {{ r }}
+                </li>
+              </ul>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+              <!-- Sin solicitud: mostrar botón -->
+              <button class="btn-primary" *ngIf="!isDriver && myRequestStatus === 'none'" (click)="openPaymentModal()">
+                Solicitar unirme
+              </button>
+
+              <!-- Solicitud enviada, esperando respuesta -->
+              <div class="pending-message" *ngIf="!isDriver && myRequestStatus === 'pending'">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>Solicitud enviada — pendiente de confirmación</span>
+              </div>
+
+              <!-- Aceptado por el conductor -->
+              <div class="accepted-message" *ngIf="!isDriver && isAcceptedPassenger">
+                <ion-icon name="checkmark-circle" color="success"></ion-icon>
+                <span>Usted ya está aceptado en este viaje</span>
+              </div>
+
+              <button class="btn-warning" *ngIf="canRateDriver && !ratedDriver" (click)="rateDriver()">
+                Calificar conductor/a
+              </button>
+
+              <button class="btn-outline" style="border-color: #ef4444; color: #ef4444;"
+                *ngIf="canRateDriver && !reportedDriver" (click)="reportDriver()">
+                <ion-icon name="warning" slot="start"></ion-icon> Reportar conductor/a
+              </button>
+
+              <div class="feedback-done" *ngIf="canRateDriver && (ratedDriver || reportedDriver)"
+                style="margin-bottom: 12px; display: flex; gap: 8px;">
+                <span *ngIf="ratedDriver"
+                  style="background: #f0fdf4; color: #166534; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; border: 1px solid #86efac;">Ya
+                  calificado</span>
+                <span *ngIf="reportedDriver"
+                  style="background: #fef2f2; color: #991b1b; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; border: 1px solid #fecaca;">Ya
+                  reportado</span>
+              </div>
+
+              <button class="btn-outline" *ngIf="isDriver" (click)="openRequests()">
+                Ver solicitudes
+              </button>
+
+              <button class="btn-outline" *ngIf="canShareTrip" (click)="toggleSharingTrip()">
+                <ion-icon [name]="sharingTrip ? 'pause-circle-outline' : 'share-social-outline'"
+                  style="margin-right: 6px;"></ion-icon>
+                {{ sharingTrip ? 'Dejar de compartir trayecto' : 'Compartir trayecto' }}
+              </button>
+
+              <button class="btn-success" *ngIf="canFinalize" (click)="completeTrip()">
+                Finalizar viaje
+              </button>
+
+              <button class="btn-outline" style="border-color: #ef4444; color: #ef4444; margin-top: 12px;"
+                *ngIf="canFinalize" (click)="cancelTrip()">
+                Cancelar viaje
+              </button>
+            </div>
+          </ng-container>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Checkout / Payment Modal -->
+  <ion-modal [isOpen]="isPaymentModalOpen" (didDismiss)="closePaymentModal()">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar>
+          <ion-title>Confirmar Pago</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closePaymentModal()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="payment-content">
+        <div class="payment-summary" *ngIf="trip">
+          <div class="summary-card">
+            <h3>Resumen del Viaje</h3>
+            <div class="summary-row">
+              <span>Destino:</span>
+              <strong>{{ trip.destinationZone }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>Conductor:</span>
+              <strong>{{ trip.driverName }}</strong>
+            </div>
+            <div class="divider"></div>
+            <div class="summary-row total">
+              <span>Total a pagar:</span>
+              <strong class="total-price">${{ trip.price | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+
+          <div class="payment-method-card">
+            <h3>Método de Pago</h3>
+            <div class="simulated-card">
+              <ion-icon name="card"></ion-icon>
+              <div class="card-details">
+                <span class="card-name">Tarjeta Estudiantil U-Ride</span>
+                <span class="card-balance">Saldo disponible: $15.50</span>
+              </div>
+              <ion-icon name="checkmark-circle" color="success"></ion-icon>
+            </div>
+          </div>
+
+          <button class="btn-primary pay-button" (click)="confirmPaymentAndRequest()" [disabled]="processingPayment">
+            <ion-spinner *ngIf="processingPayment" name="crescent"></ion-spinner>
+            <span *ngIf="!processingPayment">Pagar ${{ trip.price | number:'1.2-2' }} y Solicitar</span>
+          </button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

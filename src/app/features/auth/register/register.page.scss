@@ -1,0 +1,193 @@
+.uride-content {
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+.center-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: 100%;
+  padding-top: 24px;
+  padding-bottom: 16px;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.register-header {
+  ion-toolbar {
+    --padding-start: 16px;
+    --padding-end: 16px;
+  }
+}
+
+.register-header-title {
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.1;
+  color: var(--ion-color-light);
+}
+
+.register-header-subtitle {
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ion-color-light);
+  opacity: 0.9;
+  margin-top: 2px;
+}
+
+.hero-section {
+  text-align: center;
+  margin-top: 8px;
+  margin-bottom: 32px;
+}
+
+.hero-logo {
+  width: auto;
+  max-width: 180px;
+  height: auto;
+  object-fit: contain;
+  margin-top: -10px;
+  margin-bottom: -15px;
+}
+
+.hero-title {
+  font-weight: 800;
+  font-size: 32px;
+  line-height: 1.1;
+  color: var(--ion-color-dark);
+  margin-top: 0px;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+}
+
+.hero-subtitle {
+  font-size: 15px;
+  color: var(--ion-color-medium);
+  line-height: 1.5;
+  text-align: justify;
+  text-justify: inter-word;
+  padding: 0 8px;
+}
+
+.registration-form {
+  margin-top: 24px;
+}
+
+.form-section {
+  margin-bottom: 0px;
+}
+
+.section-title {
+  display: none;
+}
+
+ion-icon {
+  font-size: 20px;
+}
+
+.toggle-password-button {
+  --padding-start: 0px;
+  --padding-end: 0px;
+  --padding-top: 0px;
+  --padding-bottom: 0px;
+  --color: var(--ion-color-primary);
+  height: 40px;
+  min-height: 40px;
+  width: 44px;
+  min-width: 44px;
+  margin: 0;
+  align-self: center;
+}
+
+.toggle-password-button ion-icon {
+  font-size: 22px;
+}
+
+.terms-item {
+  --background: transparent;
+  --padding-start: 0;
+  margin-bottom: 24px;
+  margin-top: 16px;
+}
+
+.terms-checkbox {
+  margin-right: 12px;
+  --size: 18px;
+  --checkbox-background-checked: var(--ion-color-tertiary);
+  --border-color-checked: var(--ion-color-tertiary);
+}
+
+.terms-label {
+  font-size: 13px;
+  color: var(--ion-color-dark);
+  line-height: 1.5;
+  white-space: normal !important;
+}
+
+.text-tertiary {
+  color: var(--ion-color-tertiary);
+  font-weight: 600;
+}
+
+.submit-button {
+  margin-top: 8px;
+  height: 52px;
+  --border-radius: 9999px;
+  font-size: 16px;
+  font-weight: 600;
+  --background: var(--ion-color-dark);
+  --color: var(--ion-color-light);
+}
+
+.auth-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 24px;
+}
+
+.auth-footer-text {
+  color: var(--ion-color-medium);
+  font-size: 14px;
+}
+
+.login-link {
+  font-size: 14px;
+  font-weight: 700;
+  height: auto;
+  --padding-start: 4px;
+  --padding-end: 4px;
+  margin: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  opacity: 0;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-color-scheme: dark) {
+
+  .hero-title,
+  .terms-label {
+    color: #ffffff;
+  }
+
+  /* Sin wrapper/card en registro */
+}

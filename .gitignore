@@ -1,0 +1,56 @@
+# Archivos de sistema y temporales
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*.swp
+*~
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Angular / Ionic
+.angular/
+.ionic/
+/www/
+/dist/
+/out-tsc/
+/.sourcemaps
+/coverage/
+
+# Capacitor
+/platforms/
+/plugins/
+/android/app/build/
+/android/.gradle/
+/android/local.properties
+/android/app/src/main/assets/public/
+/android/app/release/
+/ios/App/App/public/
+/ios/App/build/
+
+# Firebase
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+
+# IDEs (VS Code, IntelliJ, etc)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+.history/
+
+# Otros
+.sass-cache/
+/typings/
+/.nx/cache

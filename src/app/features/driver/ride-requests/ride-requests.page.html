@@ -1,0 +1,78 @@
+<ion-content [fullscreen]="true" class="uride-content ion-padding">
+  <div style="width: 100%; max-width: 1200px; margin: 0 auto 16px auto;">
+    <ion-button fill="clear" color="medium" (click)="goBack()" onKeyDown="" style="margin-left: -12px;">
+      <ion-icon name="arrow-back" slot="start"></ion-icon>
+      Volver
+    </ion-button>
+  </div>
+
+  <div class="requests-dashboard fade-in-up">
+    <div class="modern-card trip-info-card" *ngIf="trip">
+      <h3>Estado del Viaje: <span class="status-badge" [ngClass]="trip.status">{{ tripStatusLabel(trip.status) }}</span></h3>
+      <p *ngIf="trip.status === 'completed'" class="completed-msg">
+        Viaje finalizado. Ya puedes calificar o reportar a los pasajeros.
+      </p>
+    </div>
+
+    <ng-container *ngIf="requests$ | async as requests">
+      <div class="modern-card empty-state" *ngIf="requests.length === 0">
+        <div class="empty-icon-box">
+          <ion-icon name="people-outline"></ion-icon>
+        </div>
+        <h3>Sin solicitudes</h3>
+        <p>Aún no hay pasajeros interesados en este viaje.</p>
+      </div>
+
+      <div class="requests-list" *ngIf="requests.length > 0">
+        <div class="modern-card request-item" *ngFor="let req of requests; trackBy: trackByReq">
+          <div class="passenger-info">
+            <ion-avatar>
+              <ion-icon name="person-circle"></ion-icon>
+            </ion-avatar>
+            <div class="details">
+              <h4>{{ req.passengerName }}</h4>
+              <span class="req-status" [ngClass]="req.status">{{ requestStatusLabel(req.status) }}</span>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <ng-container *ngIf="req.status === 'pending'">
+              <ion-button color="success" (click)="accept(req)" onKeyDown="">Aceptar</ion-button>
+              <ion-button color="medium" fill="outline" (click)="reject(req)" onKeyDown="">Rechazar</ion-button>
+            </ng-container>
+
+            <ng-container *ngIf="trip?.status === 'completed' && req.status === 'accepted'">
+              <!-- Calificar -->
+              <ion-button
+                *ngIf="!(ratedMap[req.passengerUid] || req.driverRated)"
+                color="warning"
+                fill="outline"
+                (click)="ratePassenger(req.passengerUid)"
+                onKeyDown=""
+              >
+                Calificar
+              </ion-button>
+              <div class="status-badge-done rated" *ngIf="ratedMap[req.passengerUid] || req.driverRated">
+                Calificado 
+              </div>
+
+              <!-- Reportar -->
+              <ion-button
+                *ngIf="!(reportedMap[req.passengerUid] || req.driverReported)"
+                color="danger"
+                fill="outline"
+                (click)="reportPassengerPrompt(req.passengerUid, req.passengerName)"
+                onKeyDown=""
+              >
+                <ion-icon name="warning" slot="start"></ion-icon> Reportar
+              </ion-button>
+              <div class="status-badge-done reported" *ngIf="reportedMap[req.passengerUid] || req.driverReported">
+                Reportado 
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>

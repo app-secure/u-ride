@@ -1,0 +1,114 @@
+<ion-header class="ion-no-border elegant-header" [translucent]="true">
+  <ion-toolbar>
+    <div class="header-content">
+      <div class="header-left">
+        <img src="assets/logo-uride.png" class="logo-img" alt="U-Ride Logo" />
+        <span class="system-name">U-Ride</span>
+      </div>
+
+      <div class="header-right" *ngIf="user$ | async as user">
+        <div class="admin-profile">
+          <ion-icon name="person-circle" class="admin-avatar"></ion-icon>
+          <span class="admin-name">{{ user.displayName || 'Administrador' }}</span>
+        </div>
+        <button class="logout-btn" (click)="logout()">
+          <ion-icon name="log-out-outline"></ion-icon>
+          <span>Salir</span>
+        </button>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding uride-content">
+  <div class="admin-dashboard fade-in-up">
+
+    <div class="admin-navbar modern-card">
+      <ion-buttons>
+        <ion-button fill="clear" routerLink="/app/admin/reports" routerLinkActive="active">Reportes</ion-button>
+        <ion-button fill="clear" routerLink="/app/admin/routes" routerLinkActive="active">Rutas</ion-button>
+        <ion-button fill="clear" routerLink="/app/admin/rules" routerLinkActive="active">Reglas</ion-button>
+        <ion-button fill="clear" routerLink="/app/admin/users" routerLinkActive="active">Usuarios</ion-button>
+      </ion-buttons>
+    </div>
+
+    <div class="dashboard-header">
+      <div class="header-text">
+        <h2 class="title">Gestión de Reportes</h2>
+        <p class="subtitle">Monitorea y modera el comportamiento de la comunidad</p>
+      </div>
+      <div class="header-stats">
+        <div class="stat-badge">
+          <ion-icon name="alert-circle"></ion-icon>
+          <span>Pendientes de revisión</span>
+        </div>
+      </div>
+    </div>
+
+    <ng-container *ngIf="reports$ | async as reports; else loading">
+      <div class="empty-state" *ngIf="reports.length === 0">
+        <div class="empty-icon-box">
+          <ion-icon name="shield-checkmark"></ion-icon>
+        </div>
+        <h3>Todo en orden</h3>
+        <p>No hay reportes abiertos en este momento.</p>
+      </div>
+
+      <div class="reports-grid" *ngIf="reports.length > 0">
+        <div class="modern-card report-card" *ngFor="let r of reports; let i = index"
+          [style.animation-delay]="i * 0.1 + 's'">
+          <div class="card-header">
+            <div class="status-badge open">
+              <span class="dot"></span>
+              Abierto
+            </div>
+            <span class="date">{{ r.createdAt | date:'short' }}</span>
+          </div>
+
+          <div class="card-body">
+            <div class="user-row">
+              <div class="user-info">
+                <span class="label">Reportado</span>
+                <span class="value">{{ r.reportedUid }}</span>
+              </div>
+              <ion-icon name="arrow-forward" class="arrow-icon"></ion-icon>
+              <div class="user-info">
+                <span class="label">Reportante</span>
+                <span class="value">{{ r.reporterUid }}</span>
+              </div>
+            </div>
+
+            <div class="reason-box">
+              <h4 class="reason-title">Motivo del reporte</h4>
+              <p class="reason-text">{{ r.reason }}</p>
+
+              <a *ngIf="r.evidenceUrl" [href]="r.evidenceUrl" target="_blank" class="evidence-link">
+                <ion-icon name="image-outline"></ion-icon>
+                Ver evidencia adjunta
+              </a>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <button class="action-btn warn-btn" (click)="markWarned(r)" [disabled]="busy">
+              <ion-icon name="warning"></ion-icon>
+              Advertir
+            </button>
+            <button class="action-btn suspend-btn" (click)="suspend7d(r)" [disabled]="busy">
+              <ion-icon name="ban"></ion-icon>
+              Suspender 7 días
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #loading>
+      <div class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Cargando reportes...</p>
+      </div>
+    </ng-template>
+
+  </div>
+</ion-content>

@@ -1,0 +1,80 @@
+<ion-header class="ion-no-border elegant-header" [translucent]="true">
+  <ion-toolbar>
+    <div class="header-content">
+      <div class="header-left">
+        <img src="assets/logo-uride.png" class="logo-img" alt="U-Ride Logo" />
+        <span class="system-name">U-Ride</span>
+      </div>
+
+      <div class="header-right" *ngIf="user$ | async as user">
+        <div class="admin-profile">
+          <ion-icon name="person-circle" class="admin-avatar"></ion-icon>
+          <span class="admin-name">{{ user.displayName || 'Administrador' }}</span>
+        </div>
+        <button class="logout-btn" (click)="logout()">
+          <ion-icon name="log-out-outline"></ion-icon>
+          <span>Salir</span>
+        </button>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding uride-content">
+  <div class="admin-dashboard fade-in-up">
+    
+    <div class="admin-navbar modern-card">
+      <ion-buttons>
+        <ion-button fill="clear" routerLink="/app/admin/reports" routerLinkActive="active">Reportes</ion-button>
+        <ion-button fill="clear" routerLink="/app/admin/routes" routerLinkActive="active">Rutas</ion-button>
+        <ion-button fill="clear" routerLink="/app/admin/rules" routerLinkActive="active">Reglas</ion-button>
+        <ion-button fill="clear" routerLink="/app/admin/users" routerLinkActive="active">Usuarios</ion-button>
+      </ion-buttons>
+    </div>
+
+    <div class="dashboard-header">
+      <div class="header-text">
+        <h2 class="title">Gestión de Reglas</h2>
+        <p class="subtitle">Administra las normas y pautas de convivencia para los viajes</p>
+      </div>
+      <div class="header-stats">
+        <button class="action-btn-main" (click)="createRule()">
+          <ion-icon name="add-circle"></ion-icon>
+          <span>Nueva Regla</span>
+        </button>
+      </div>
+    </div>
+
+    <ng-container *ngIf="rules$ | async as rules">
+      <div class="empty-state" *ngIf="rules.length === 0">
+        <div class="empty-icon-box">
+          <ion-icon name="list-outline"></ion-icon>
+        </div>
+        <h3>Sin reglas</h3>
+        <p>No hay reglas configuradas actualmente.</p>
+      </div>
+
+      <div class="items-grid" *ngIf="rules.length > 0">
+        <div class="modern-card list-item-card" *ngFor="let r of rules; let i = index" [style.animation-delay]="i * 0.05 + 's'">
+          <div class="item-content">
+            <div class="item-icon">
+              <ion-icon name="shield-outline"></ion-icon>
+            </div>
+            <div class="item-info">
+              <span class="item-name">{{ r.text }}</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="icon-action-btn edit" (click)="editRule(r)" title="Editar">
+              <ion-icon name="create-outline"></ion-icon>
+            </button>
+            <button class="icon-action-btn delete" (click)="deleteRule(r)" title="Eliminar">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+  </div>
+</ion-content>

@@ -1,0 +1,205 @@
+.driver-trips-dashboard {
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.header-section {
+  margin-bottom: 24px;
+  
+  .title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+
+  .title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 4px 0;
+  }
+  
+  .subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+  }
+  
+  .publish-btn {
+    --border-radius: 12px;
+    font-weight: 600;
+    text-transform: none;
+    margin: 0;
+    --background: #5a4ff3;
+  }
+}
+
+.custom-segment {
+  background: white;
+  padding: 4px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  
+  ion-segment-button {
+    --indicator-color: #3b82f6;
+    --color: #64748b;
+    --color-checked: white;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+}
+
+.modern-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(0,0,0,0.02);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  
+  .empty-icon-box {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 32px;
+  }
+  
+  h3 { color: #334155; font-weight: 700; margin: 0 0 8px; }
+  p { color: #64748b; margin: 0; font-size: 14px; }
+}
+
+.trip-card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.trip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  .status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    
+    &.open { background: #eff6ff; color: #3b82f6; }
+    &.completed { background: #f0fdf4; color: #22c55e; }
+    &.cancelled { background: #fef2f2; color: #ef4444; }
+  }
+  
+  .date-text {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 500;
+  }
+}
+
+.trip-route {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  
+  .route-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    ion-icon {
+      font-size: 20px;
+      &.icon-origin { color: #22c55e; }
+      &.icon-destination { color: #ef4444; }
+    }
+    
+    .route-info {
+      display: flex;
+      flex-direction: column;
+      
+      .route-label { font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700; }
+      .route-value { font-size: 15px; color: #1e293b; font-weight: 600; }
+    }
+  }
+}
+
+.trip-stats {
+  display: flex;
+  justify-content: flex-start;
+  
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 500;
+    
+    ion-icon { color: #3b82f6; }
+  }
+}
+
+.trip-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 16px;
+  
+  .action-row {
+    display: flex;
+    gap: 8px;
+    
+    ion-button {
+      flex: 1;
+      margin: 0;
+      --border-radius: 12px;
+      font-weight: 700;
+    }
+  }
+  
+  ion-button[expand="block"] {
+    --border-radius: 12px;
+    font-weight: 700;
+  }
+}
+
+.fade-in-up {
+  opacity: 0;
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-color-scheme: dark) {
+  .header-section .title { color: #f8fafc; }
+  .custom-segment { background: #1e293b; }
+  .modern-card { background: #1e293b; border-color: #334155; }
+  .empty-state .empty-icon-box { background: #0f172a; }
+  .empty-state h3 { color: #f8fafc; }
+  .trip-route { background: #0f172a; }
+  .trip-route .route-info .route-value { color: #f8fafc; }
+  .trip-stats .stat { color: #cbd5e1; }
+  .trip-actions { border-color: #334155; }
+}

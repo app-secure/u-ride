@@ -1,0 +1,172 @@
+<ion-content [fullscreen]="true" class="ion-padding uride-content">
+  <!-- Botón volver superior (FUERA del grid para no romperlo) -->
+  <div style="width: 100%; max-width: 1200px; margin: 0 auto 16px auto;">
+    <ion-button fill="clear" color="medium" (click)="goBack()" style="margin-left: -12px;">
+      <ion-icon name="arrow-back" slot="start"></ion-icon>
+      Volver
+    </ion-button>
+  </div>
+
+  <div class="profile-dashboard-grid fade-in-up">
+
+    <!-- LEFT COLUMN: Personal Info -->
+    <div class="dashboard-col col-left">
+      <div class="modern-card info-card" *ngIf="profile">
+        <div class="card-header">
+          <h2 class="card-title">Información Personal</h2>
+
+          <!-- Toggle Actions -->
+          <button class="text-action-btn edit-btn" type="button" (click)="toggleEdit()" *ngIf="!isEditing">
+            <ion-icon name="pencil"></ion-icon>
+            <span>Editar</span>
+          </button>
+
+          <div class="header-actions-edit" *ngIf="isEditing">
+            <button class="text-action-btn cancel-btn" type="button" (click)="cancelEdit()">
+              <ion-icon name="close"></ion-icon>
+              <span>Cancelar</span>
+            </button>
+            <button class="solid-action-btn save-btn" type="button" (click)="save()"
+              [disabled]="saving || form.invalid">
+              <ion-icon name="save"></ion-icon>
+              <span>Guardar</span>
+              <ion-spinner *ngIf="saving" name="dots"></ion-spinner>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <!-- Identificador visual (Avatar + Name) -->
+          <div class="user-identity-row">
+            <div class="avatar-box">
+              <img *ngIf="profile.photoUrl" [src]="profile.photoUrl" class="profile-avatar" alt="Foto de perfil" />
+              <ion-icon name="person" class="profile-avatar" *ngIf="!profile.photoUrl"></ion-icon>
+
+              <input #fileInput type="file" accept="image/*" hidden (change)="onPhotoSelected($event)" />
+              <button class="photo-upload-btn" *ngIf="isEditing" [disabled]="uploadingPhoto"
+                (click)="fileInput.click()">
+                <ion-icon name="camera" *ngIf="!uploadingPhoto"></ion-icon>
+                <ion-spinner *ngIf="uploadingPhoto" name="dots"></ion-spinner>
+              </button>
+            </div>
+            <div class="user-titles">
+              <h3 class="name-text">{{ form.get('displayName')?.value || 'Usuario U-Ride' }}</h3>
+              <span class="subtitle-text">{{ form.get('career')?.value || 'Ingeniería / Ocupación no definida' }}</span>
+              <div class="verified-tag">
+                <ion-icon name="checkmark-circle"></ion-icon> Estudiante Verificado
+              </div>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="section-divider"></div>
+
+          <!-- READ ONLY MODE -->
+          <div class="read-only-fields" *ngIf="!isEditing">
+            <div class="data-row">
+              <span class="data-label">Nombre Completo</span>
+              <div class="data-value">{{ profile.displayName || 'No especificado' }}</div>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Correo Institucional</span>
+              <div class="data-value with-icon"><ion-icon name="mail-outline"></ion-icon> {{ email ||
+                'correo@uta.edu.ec' }}</div>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Carrera</span>
+              <div class="data-value with-icon"><ion-icon name="school-outline"></ion-icon> {{ profile.career || 'No
+                especificada' }}</div>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Teléfono</span>
+              <div class="data-value with-icon"><ion-icon name="call-outline"></ion-icon> {{ profile.phone || 'No
+                especificado' }}</div>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Zona de Referencia</span>
+              <div class="data-value with-icon"><ion-icon name="location-outline"></ion-icon> {{ profile.zone || 'No
+                especificada' }}</div>
+            </div>
+          </div>
+
+          <!-- EDIT MODE -->
+          <div class="edit-fields-form" *ngIf="isEditing">
+            <form [formGroup]="form" (ngSubmit)="save()">
+
+              <div class="uride-input-group mt-0">
+                <label class="uride-label">Nombre Completo</label>
+                <ion-item class="uride-input-item">
+                  <ion-input formControlName="displayName" placeholder="Ej: Juan Estudiante"></ion-input>
+                </ion-item>
+              </div>
+
+              <div class="uride-input-group readonly-group">
+                <label class="uride-label">Correo Institucional</label>
+                <ion-item class="uride-input-item disabled-item" style="opacity: 0.7;">
+                  <ion-icon name="mail-outline" slot="start" class="field-icon"
+                    style="margin-right: 8px; color: #94a3b8;"></ion-icon>
+                  <ion-input [value]="email" readonly></ion-input>
+                </ion-item>
+              </div>
+
+              <div class="uride-input-group">
+                <label class="uride-label">Carrera</label>
+                <ion-item class="uride-input-item">
+                  <ion-input formControlName="career" placeholder="Ingeniería en Sistemas"></ion-input>
+                </ion-item>
+              </div>
+
+              <div class="uride-input-group">
+                <label class="uride-label">Teléfono</label>
+                <ion-item class="uride-input-item">
+                  <ion-input inputmode="tel" formControlName="phone" placeholder="+593 99..."></ion-input>
+                </ion-item>
+              </div>
+
+              <div class="uride-input-group mb-0">
+                <label class="uride-label">Zona de Referencia</label>
+                <ion-item class="uride-input-item">
+                  <ion-input formControlName="zone" placeholder="Norte - La Carolina"></ion-input>
+                </ion-item>
+              </div>
+
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Reputación -->
+    <div class="dashboard-col col-right" *ngIf="profile">
+
+      <!-- Reputación Card -->
+      <div class="modern-card stat-card">
+        <h3 class="card-title-sm">Reputación</h3>
+
+        <div class="rating-hero-box">
+          <ion-icon name="star" class="hero-star"></ion-icon>
+          <span class="score-num">{{ ratingAvg | number:'1.1-1' }}</span>
+          <p class="score-label">Calificación Promedio</p>
+        </div>
+
+        <div class="stat-list">
+          <div class="stat-list-item">
+            <span class="stat-name">Total de viajes</span>
+            <span class="stat-val">{{ profile.tripsCount || 0 }}</span>
+          </div>
+          <div class="stat-list-item">
+            <span class="stat-name">Como conductor</span>
+            <span class="stat-val">{{ profile.driverTripsCount || 0 }}</span>
+          </div>
+          <div class="stat-list-item">
+            <span class="stat-name">Como pasajero</span>
+            <span class="stat-val">{{ profile.passengerTripsCount || 0 }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</ion-content>

@@ -1,0 +1,187 @@
+import { EnvironmentInjector, Injectable, inject, runInInjectionContext } from '@angular/core';
+import { Router } from '@angular/router';
+import { Capacitor } from '@capacitor/core';
+import {
+  Auth,
+  User,
+  UserCredential,
+  authState,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  signInWithEmailAndPassword,
+  signInWithRedirect,
+  getRedirectResult,
+  signOut,
+  updateProfile,
+  OAuthProvider,
+  signInWithPopup,
+} from '@angular/fire/auth';
+import { Observable, firstValueFrom } from 'rxjs';
+
+import { environment } from '../../../environments/environment';
+import { UsersService } from '../services/users.service';
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private readonly auth = inject(Auth);
+  private readonly router = inject(Router);
+  private readonly users = inject(UsersService);
+  private readonly injector = inject(EnvironmentInjector);
+
+  readonly user$: Observable<User | null> = runInInjectionContext(this.injector, () => authState(this.auth));
+
+  async register(payload: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    career: string;
+    phone: string;
+    zone: string;
+  }): Promise<void> {
+    const normalized = payload.email.trim().toLowerCase();
+    this.assertInstitutionEmail(normalized);
+
+    const cred = await createUserWithEmailAndPassword(this.auth, normalized, payload.password);
+    if (cred.user) {
+      const displayName = `${payload.firstName}`.trim() + ' ' + `${payload.lastName}`.trim();
+      try {
+        await updateProfile(cred.user, { displayName: displayName.trim() });
+      } catch {
+        // No bloquea el registro si falla el displayName en Auth.
+      }
+
+      await sendEmailVerification(cred.user);
+      try {
+        await this.users.ensureUserDoc(cred.user);
+        await this.users.updateProfile(cred.user.uid, {
+          displayName: displayName.trim(),
+          career: payload.career.trim(),
+          zone: payload.zone.trim(),
+          phone: payload.phone.trim(),
+        });
+      } catch (e) {
+        console.warn('[AuthService.register] ensureUserDoc failed:', e);
+      }
+    }
+  }
+
+  async login(email: string, password: string): Promise<void> {
+    const normalized = email.trim().toLowerCase();
+    this.assertInstitutionEmail(normalized);
+
+    const cred = await signInWithEmailAndPassword(this.auth, normalized, password);
+    try {
+      await this.users.ensureUserDoc(cred.user);
+    } catch (e) {
+      console.warn('[AuthService.login] ensureUserDoc failed:', e);
+      throw new Error('PROFILE_WRITE_FAILED');
+    }
+
+    if (cred.user.emailVerified) {
+      await this.users.syncEmailVerified(cred.user.uid, true);
+    }
+  }
+
+  async loginWithMicrosoft(): Promise<'done'> {
+    const provider = this.buildMicrosoftProvider();
+
+    // Usamos signInWithPopup tanto en Web como en Móvil.
+    // En Capacitor, esto abre un Chrome Custom Tab o SFSafariView
+    // que devuelve el control a la app automáticamente al terminar.
+    try {
+      const cred = await signInWithPopup(this.auth, provider);
+      await this.finalizeMicrosoftLogin(cred);
+      return 'done';
+    } catch (error: any) {
+      console.error('[AuthService.loginWithMicrosoft] Error:', error);
+      // Si el popup falla (ej. bloqueado), podrías intentar redirect como último recurso,
+      // pero normalmente Popup es lo más estable en Capacitor moderno.
+      throw error;
+    }
+  }
+
+  /**
+   * Completa el flujo de Microsoft si venimos de un redirect.
+   * Devuelve true si se procesó un resultado (usuario autenticado).
+   */
+  async completeMicrosoftRedirectIfNeeded(): Promise<boolean> {
+    if (!Capacitor.isNativePlatform()) return false;
+
+    let cred: UserCredential | null = null;
+    try {
+      cred = await getRedirectResult(this.auth);
+    } catch {
+      return false;
+    }
+
+    if (!cred?.user) return false;
+    await this.finalizeMicrosoftLogin(cred);
+    return true;
+  }
+
+  private buildMicrosoftProvider(): OAuthProvider {
+    const provider = new OAuthProvider('microsoft.com');
+    const domain = environment.institutionEmailDomain?.trim().toLowerCase();
+    if (domain) {
+      provider.setCustomParameters({
+        tenant: 'common',
+        login_hint: `@${domain}`,
+      });
+    }
+    return provider;
+  }
+
+  private async finalizeMicrosoftLogin(cred: UserCredential): Promise<void> {
+    const domain = environment.institutionEmailDomain?.trim().toLowerCase();
+
+    // Verificamos si el correo devuelto por Microsoft es del dominio de la U
+    const email = cred.user.email?.trim().toLowerCase();
+    if (email && domain && !email.endsWith(`@${domain}`)) {
+      await signOut(this.auth);
+      throw new Error('EMAIL_DOMAIN_NOT_ALLOWED');
+    }
+
+    try {
+      await this.users.ensureUserDoc(cred.user);
+      if (cred.user.displayName) {
+        await this.users.updateProfile(cred.user.uid, {
+          displayName: cred.user.displayName,
+        });
+      }
+    } catch (e) {
+      console.warn('[AuthService.loginWithMicrosoft] ensureUserDoc failed:', e);
+      throw new Error('PROFILE_WRITE_FAILED');
+    }
+  }
+
+  async logout(): Promise<void> {
+    await signOut(this.auth);
+    await this.router.navigateByUrl('/auth/login');
+  }
+
+  async refreshCurrentUser(): Promise<User | null> {
+    const current = this.auth.currentUser;
+    if (!current) return null;
+    await current.reload();
+    return this.auth.currentUser;
+  }
+
+  async getCurrentUserOrThrow(): Promise<User> {
+    const user = this.auth.currentUser ?? (await firstValueFrom(this.user$));
+    if (!user) throw new Error('NO_AUTH');
+    return user;
+  }
+
+  private assertInstitutionEmail(email: string): void {
+    const domain = environment.institutionEmailDomain?.trim().toLowerCase();
+    if (!domain) return;
+    if (!email.endsWith(`@${domain}`)) {
+      throw new Error('EMAIL_DOMAIN_NOT_ALLOWED');
+    }
+  }
+
+  async getUser(): Promise<User | null> {
+    return this.auth.currentUser ?? await firstValueFrom(this.user$);
+  }
+}

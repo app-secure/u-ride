@@ -1,0 +1,80 @@
+<ion-header class="login-header">
+  <ion-toolbar color="primary">
+    <ion-title>
+      <div class="login-header-title">U-Ride</div>
+      <div class="login-header-subtitle">Login</div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding uride-content">
+  <div class="center-container">
+    <div class="hero-section fade-in-up" style="animation-delay: 0.1s">
+      <img src="assets/logo-uride.png" class="hero-logo" alt="U-Ride Logo" />
+      <p class="hero-subtitle">
+        Accede con tu correo institucional
+        <br *ngIf="domain" />
+        <span *ngIf="domain" style="font-weight: 600;">@{{ domain }}</span>
+      </p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="form-section fade-in-up" style="animation-delay: 0.2s">
+
+          <div class="uride-input-group">
+            <label class="uride-label">Correo institucional:</label>
+            <ion-item class="uride-input-item">
+              <ion-input inputmode="email" autocomplete="email" formControlName="email"
+                placeholder="tu.nombre@{{ domain }}"></ion-input>
+            </ion-item>
+            <span class="error-message fade-in-up"
+              *ngIf="form.get('email')?.invalid && form.get('email')?.touched">Formato de correo incorrecto</span>
+          </div>
+
+          <div class="uride-input-group">
+            <label class="uride-label">Contraseña:</label>
+            <ion-item class="uride-input-item">
+              <ion-input [type]="showPassword ? 'text' : 'password'" autocomplete="current-password" formControlName="password"
+                placeholder="••••••••"></ion-input>
+              <ion-button class="toggle-password-button" fill="clear" slot="end" color="primary" (click)="togglePassword()" type="button" tabindex="-1">
+                <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" slot="icon-only"></ion-icon>
+              </ion-button>
+            </ion-item>
+            <span class="error-message fade-in-up"
+              *ngIf="form.get('password')?.invalid && form.get('password')?.touched">Contraseña obligatoria</span>
+          </div>
+        </div>
+
+      <div class="actions-section fade-in-up" style="animation-delay: 0.3s">
+        <ion-button type="submit" expand="block" [disabled]="loading || form.invalid" class="submit-button">
+          <ion-icon name="arrow-forward" slot="end" *ngIf="!loading"></ion-icon>
+          <ion-spinner *ngIf="loading" name="dots" slot="start"></ion-spinner>
+          Entrar
+        </ion-button>
+
+        <div class="divider">
+          <span>O ingresa con un clic</span>
+        </div>
+
+        <button class="btn-microsoft" (click)="loginWithMicrosoft()" [disabled]="loading" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 21 21">
+            <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+            <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+            <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+            <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+          </svg>
+          <span>Continuar con Microsoft</span>
+        </button>
+
+        <div class="auth-footer">
+          <span class="auth-footer-text">¿Eres nuevo en U-Ride?</span>
+          <ion-button fill="clear" color="tertiary" type="button" (click)="goToRegister()" class="register-link">
+            Crear cuenta
+          </ion-button>
+        </div>
+      </div>
+    </form>
+
+    <ion-loading [isOpen]="loading" message="Iniciando sesión..." spinner="crescent" cssClass="uride-loading"></ion-loading>
+  </div>
+</ion-content>

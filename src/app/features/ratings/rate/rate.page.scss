@@ -1,0 +1,200 @@
+.indrive-style {
+  --background: #f8fafc;
+}
+
+.rate-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
+/* Driver Profile Header */
+.profile-header-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
+  .avatar-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    img { width: 100%; height: 100%; object-fit: cover; }
+    ion-icon { font-size: 32px; }
+  }
+
+  .info {
+    flex: 1;
+    h3 { margin: 0; font-size: 18px; font-weight: 700; color: #1e293b; }
+    .subtitle { margin: 2px 0 6px 0; font-size: 13px; color: #64748b; }
+    .rating-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #fffbeb;
+      color: #92400e;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      ion-icon { color: #f59e0b; }
+    }
+  }
+}
+
+/* Rating Card & Stars */
+.rating-card {
+  background: white;
+  padding: 24px;
+  border-radius: 20px;
+  text-align: center;
+  margin-bottom: 32px;
+
+  .question {
+    font-size: 15px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 20px;
+  }
+
+  .stars-selector {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    button {
+      background: transparent;
+      border: none;
+      padding: 0;
+      font-size: 40px;
+      color: #e2e8f0;
+      transition: transform 0.2s;
+      cursor: pointer;
+
+      &:active { transform: scale(1.2); }
+      &.active { color: #f59e0b; }
+    }
+  }
+
+  .stars-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #f59e0b;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .comment-box {
+    margin-bottom: 20px;
+    textarea {
+      width: 100%;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      color: #1e293b;
+      outline: none;
+      resize: none;
+      transition: border-color 0.2s;
+      
+      &:focus { border-color: #22c55e; }
+      &::placeholder { color: #94a3b8; }
+    }
+  }
+
+  .btn-submit {
+    width: 100%;
+    background: #000000;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:disabled { opacity: 0.5; }
+    &:hover:not(:disabled) { background: #111827; }
+  }
+}
+
+/* History Reviews Section */
+.others-reviews {
+  .section-title {
+    margin-bottom: 16px;
+    h4 { margin: 0; font-size: 15px; font-weight: 700; color: #1e293b; }
+    .divider { width: 40px; height: 3px; background: #22c55e; margin-top: 6px; border-radius: 2px; }
+  }
+
+  .empty-reviews {
+    text-align: center;
+    padding: 20px;
+    color: #94a3b8;
+    font-size: 14px;
+  }
+
+  .review-item {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    border: 1px solid #f1f5f9;
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      .stars-mini {
+        display: flex;
+        gap: 2px;
+        ion-icon { font-size: 14px; }
+      }
+      .date { font-size: 11px; color: #94a3b8; }
+    }
+
+    .comment {
+      margin: 0;
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.5;
+      &.italic { font-style: italic; opacity: 0.7; }
+    }
+  }
+}
+
+/* Dark Mode support */
+@media (prefers-color-scheme: dark) {
+  .indrive-style { --background: #0f172a; }
+  .profile-header-box, .rating-card, .review-item {
+    background: #1e293b;
+    border: none;
+  }
+  .profile-header-box .info h3, .rating-card .stars-label, .others-reviews .section-title h4 { color: #f8fafc; }
+  .profile-header-box .avatar-wrapper, .rating-card .comment-box textarea { background: #334155; }
+  .rating-card .comment-box textarea { border-color: #475569; color: #f8fafc; }
+  .rating-card .btn-submit { background: #22c55e; color: #000; }
+  .review-item .comment { color: #cbd5e1; }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

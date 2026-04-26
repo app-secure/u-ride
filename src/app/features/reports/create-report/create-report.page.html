@@ -1,0 +1,46 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/app/trips"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Reportar</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div style="max-width: 680px; margin: 0 auto;">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Motivo del reporte</ion-card-title>
+        <ion-card-subtitle>Usuario reportado: {{ reportedUid }}</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <ion-item>
+            <ion-textarea
+              label="Describe lo ocurrido"
+              labelPlacement="stacked"
+              formControlName="reason"
+              autoGrow="true"
+              placeholder="Ej: lenguaje ofensivo, incumplimiento de reglas, etc."
+            ></ion-textarea>
+          </ion-item>
+
+          <ion-item>
+            <ion-input
+              label="Evidencia (URL opcional)"
+              labelPlacement="stacked"
+              formControlName="evidenceUrl"
+              placeholder="https://..."
+            ></ion-input>
+          </ion-item>
+
+          <ion-button type="submit" expand="block" [disabled]="saving" style="margin-top: 16px;">
+            <ion-spinner *ngIf="saving" name="dots" slot="start"></ion-spinner>
+            Enviar reporte
+          </ion-button>
+        </form>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

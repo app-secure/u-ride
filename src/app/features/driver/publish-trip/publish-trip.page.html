@@ -1,0 +1,221 @@
+<ion-content [fullscreen]="true" class="uride-content">
+  <div class="publish-dashboard fade-in-up">
+    
+    <div class="header-section">
+      <button type="button" class="btn-back-top" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        Volver a Mis Viajes
+      </button>
+      <h2 class="title">{{ editTripId ? 'Editar Viaje' : 'Publicar Nuevo Viaje' }}</h2>
+      <p class="subtitle">{{ editTripId ? 'Actualiza los detalles de tu viaje' : 'Completa los detalles para compartir tu ruta' }}</p>
+    </div>
+
+    <form [formGroup]="publishForm" (ngSubmit)="onSubmit()" class="publish-form modern-card">
+
+      <!-- Ruta de Recorrida -->
+      <div class="form-section">
+        <h3 class="section-title">Ruta de Recorrida</h3>
+
+        <div class="input-group">
+          <label>Selecciona la ruta</label>
+          <div class="custom-input-box">
+            <ion-icon name="git-branch-outline" class="icon-gray"></ion-icon>
+            <select formControlName="routeName">
+              <option value="" disabled>Seleccionar ruta</option>
+              <option *ngFor="let r of (routeOptions$ | async)" [value]="r">{{ r }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Información de Ruta -->
+      <div class="form-section">
+        <h3 class="section-title">Información de Ruta</h3>
+        
+        <div class="row-inputs">
+          <div class="input-group">
+            <div class="label-row">
+              <label>Origen</label>
+            </div>
+            <div class="custom-input-box">
+              <ion-icon name="location-outline" class="icon-origin"></ion-icon>
+              <button
+                type="button"
+                class="location-select-btn"
+                [class.is-placeholder]="!publishForm.controls.originZone.value"
+                (click)="openLocationPicker('origin')"
+              >
+                {{ publishForm.controls.originZone.value ? mainLabel(publishForm.controls.originZone.value) : 'Seleccionar ubicación' }}
+              </button>
+            </div>
+            <span class="hint">Busca una dirección y puntea la parada exacta en el mapa</span>
+          </div>
+
+          <div class="input-group">
+            <label>Destino</label>
+            <div class="custom-input-box">
+              <ion-icon name="location" class="icon-dest"></ion-icon>
+              <button
+                type="button"
+                class="location-select-btn"
+                [class.is-placeholder]="!publishForm.controls.destinationZone.value"
+                (click)="openLocationPicker('destination')"
+              >
+                {{ publishForm.controls.destinationZone.value ? mainLabel(publishForm.controls.destinationZone.value) : 'Seleccionar ubicación' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fecha y Hora -->
+      <div class="form-section">
+        <h3 class="section-title">Fecha y Hora</h3>
+        
+        <div class="row-inputs">
+          <div class="input-group">
+            <label>Fecha</label>
+            <div class="custom-input-box">
+              <ion-icon name="calendar-outline" class="icon-gray"></ion-icon>
+              <input type="date" formControlName="date" />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Hora de Salida</label>
+            <div class="custom-input-box">
+              <ion-icon name="time-outline" class="icon-gray"></ion-icon>
+              <input type="time" formControlName="time" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información del Vehículo -->
+      <div class="form-section">
+        <h3 class="section-title">Información del Vehículo</h3>
+        
+        <div class="row-inputs">
+          <div class="input-group">
+            <label>Marca</label>
+            <div class="custom-input-box">
+              <ion-icon name="car-outline" class="icon-gray"></ion-icon>
+              <input type="text" formControlName="vehicleBrand" placeholder="Ej: Chevrolet" />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Modelo / Número de Bus</label>
+            <div class="custom-input-box">
+              <ion-icon name="car-sport-outline" class="icon-gray"></ion-icon>
+              <input type="text" formControlName="vehicleModel" placeholder="Ej: Furgoneta, Bus #42..." />
+            </div>
+          </div>
+        </div>
+        
+        <div class="row-inputs">
+          <div class="input-group">
+            <label>Placa</label>
+            <div class="custom-input-box">
+              <ion-icon name="barcode-outline" class="icon-gray"></ion-icon>
+              <input type="text" formControlName="vehiclePlate" placeholder="Ej: ABC-1234" />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Color</label>
+            <div class="custom-input-box">
+              <ion-icon name="color-palette-outline" class="icon-gray"></ion-icon>
+              <input type="text" formControlName="vehicleColor" placeholder="Ej: Blanco" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Capacidad -->
+      <div class="form-section">
+        <h3 class="section-title">Capacidad</h3>
+        
+        <div class="input-group">
+          <label>Cupos Disponibles</label>
+          <div class="custom-input-box">
+            <ion-icon name="people-outline" class="icon-gray"></ion-icon>
+            <input type="number" formControlName="seatsTotal" min="1" max="40" placeholder="Ej: 3" />
+          </div>
+          <span class="hint">No excedas la capacidad legal de tu vehículo</span>
+        </div>
+      </div>
+
+      <!-- Costo / Precio -->
+      <div class="form-section">
+        <h3 class="section-title">Aporte por Pasajero</h3>
+        <div class="input-group">
+          <label>Costo sugerido o fijo (Ej: 0.50)</label>
+          <div class="custom-input-box">
+            <ion-icon name="cash-outline" class="icon-gray"></ion-icon>
+            <span class="currency-prefix">$</span>
+            <input type="number" formControlName="price" placeholder="0.50" step="0.10" min="0" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Método de pago -->
+      <div class="form-section">
+        <h3 class="section-title">Método de Pago</h3>
+        <div class="input-group">
+          <label>Indica cómo se realizará el pago</label>
+          <div class="custom-input-box">
+            <ion-icon name="card-outline" class="icon-gray"></ion-icon>
+            <input type="text" formControlName="paymentMethod" placeholder="Ej: Efectivo, Transferencia..." />
+          </div>
+          <span class="hint" *ngIf="!hasPrice">Ingresa primero el costo para habilitar el método de pago</span>
+        </div>
+      </div>
+
+      <!-- Reglas del Viaje -->
+      <div class="form-section">
+        <h3 class="section-title">Reglas del Viaje</h3>
+
+        <ng-container *ngIf="ruleOptions$ | async as rules">
+          <div class="rules-container">
+            <div class="rule-item" *ngFor="let r of rules">
+              <div class="rule-text">
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                <span>{{ r }}</span>
+              </div>
+              <ion-checkbox
+                mode="ios"
+                [checked]="isRuleSelected(r)"
+                (ionChange)="toggleRule(r, $event.detail.checked)"
+              ></ion-checkbox>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Notas Adicionales -->
+      <div class="form-section">
+        <h3 class="section-title">Notas Adicionales</h3>
+        
+        <div class="input-group">
+          <label>Reglas o Preferencias</label>
+          <div class="custom-textarea-box">
+            <ion-icon name="document-text-outline" class="icon-gray"></ion-icon>
+            <textarea formControlName="notes" placeholder="Ej: Salida puntual, no fumar, etc." rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <ion-button fill="outline" class="btn-cancel" (click)="goBack()">
+          Cancelar
+        </ion-button>
+        <ion-button type="submit" class="btn-publish" [disabled]="publishForm.invalid || isSubmitting">
+          <ion-spinner *ngIf="isSubmitting" name="crescent"></ion-spinner>
+          <span *ngIf="!isSubmitting">{{ editTripId ? 'Guardar cambios' : 'Publicar Viaje' }}</span>
+        </ion-button>
+      </div>
+      
+    </form>
+  </div>
+</ion-content>

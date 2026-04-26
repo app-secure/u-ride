@@ -1,0 +1,40 @@
+<ion-header class="ion-no-border" [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="end">
+      <ion-button color="danger" (click)="logout()">
+        <ion-icon name="log-out-outline" slot="start"></ion-icon>
+        Salir
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="uride-content">
+  <div class="role-selection-container fade-in-up">
+    
+    <div class="header-section">
+      <img src="assets/logo-uride.png" alt="U-Ride Logo" class="logo" />
+      <h1>¿Cómo quieres iniciar?</h1>
+      <p>Selecciona tu rol para esta sesión</p>
+    </div>
+
+    <div class="roles-grid">
+      <button class="role-card passenger" (click)="goToPassenger()">
+        <div class="icon-box">
+          <ion-icon name="person"></ion-icon>
+        </div>
+        <h2>Pasajero</h2>
+        <p>Busca y únete a viajes disponibles</p>
+      </button>
+
+      <button class="role-card driver" (click)="goToDriver()">
+        <div class="icon-box">
+          <ion-icon name="car-sport"></ion-icon>
+        </div>
+        <h2>Conductor</h2>
+        <p>Publica viajes y gestiona pasajeros</p>
+      </button>
+    </div>
+
+  </div>
+</ion-content>

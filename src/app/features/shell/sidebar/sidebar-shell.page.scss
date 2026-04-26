@@ -1,0 +1,179 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.main-header {
+  background: white;
+  border-bottom: 1px solid #f1f5f9;
+  
+  ion-toolbar {
+    --background: white;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+  }
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  
+  .logo {
+    height: 36px;
+    width: auto;
+  }
+  
+  .system-name {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+  }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.user-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+
+  .display-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    display: none; // Oculto en móviles
+    
+    @media (min-width: 768px) {
+      display: block;
+    }
+  }
+
+  .settings-icon {
+    font-size: 20px;
+    color: #1e293b;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    
+    &:hover {
+      background: #e2e8f0;
+    }
+  }
+}
+
+.header-logout-btn {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  margin: 0;
+  height: 40px;
+  
+  ion-icon {
+    font-size: 22px;
+  }
+}
+
+/* Popover Styles */
+.popover-wrapper {
+  padding: 8px 0;
+  min-width: 260px;
+}
+
+.popover-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 8px;
+  
+  .role-label {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0 0 4px 0;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  
+  .role-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    
+    ion-icon {
+      color: #000000;
+    }
+  }
+}
+
+.popover-actions {
+  ion-item {
+    --padding-start: 20px;
+    --inner-padding-end: 20px;
+    --min-height: 52px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #334155;
+    
+    ion-icon[slot="start"] {
+      font-size: 20px;
+      color: #64748b;
+      margin-right: 16px;
+    }
+    
+    &.logout-item {
+      margin-top: 8px;
+      --border-color: #f1f5f9;
+      --border-style: solid;
+      --border-width: 1px 0 0 0;
+      
+      ion-label { color: #ef4444; }
+      ion-icon { color: #ef4444 !important; }
+    }
+  }
+}
+
+::ng-deep .role-loading {
+  --spinner-color: #000000;
+  .loading-wrapper {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  }
+  .loading-content {
+    font-weight: 600;
+    color: #0f172a;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .main-header, .main-header ion-toolbar { background: #1e293b; --background: #1e293b; border-color: #334155; }
+  .header-left .system-name { color: #f8fafc; }
+  .user-profile-btn { background: #0f172a; border-color: #334155; }
+  .user-profile-btn:hover { background: #1e293b; }
+  .user-profile-btn .display-name { color: #cbd5e1; }
+  .user-profile-btn .header-avatar { background: #334155; }
+  
+  .popover-header { border-color: #334155; }
+  .popover-header .role-value { color: #f8fafc; }
+  .popover-actions ion-item { color: #cbd5e1; }
+  .popover-actions ion-item.logout-item { --border-color: #334155; }
+  
+  ::ng-deep .role-loading .loading-wrapper {
+    background: rgba(30, 41, 59, 0.95);
+  }
+  ::ng-deep .role-loading .loading-content { color: #f8fafc; }
+}

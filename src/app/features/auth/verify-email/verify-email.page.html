@@ -1,0 +1,39 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Verifica tu correo</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="logout()" (keydown.enter)="logout()" (keydown.space)="logout()">
+        Salir
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div style="max-width: 520px; margin: 0 auto;">
+    <h2 style="margin-top: 8px;">Te enviamos un enlace</h2>
+    <p class="ion-text-wrap">
+      Revisa tu bandeja de entrada y spam. Correo: <strong>{{ email }}</strong>
+    </p>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Antes de continuar</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        Necesitamos verificar que perteneces a la institución para mantener la comunidad segura.
+      </ion-card-content>
+    </ion-card>
+
+    <ion-button expand="block" (click)="iVerified()" (keydown.enter)="iVerified()" (keydown.space)="iVerified()"
+      [disabled]="loading">
+      <ion-spinner *ngIf="loading" name="dots" slot="start"></ion-spinner>
+      Ya verifiqué
+    </ion-button>
+
+    <ion-button expand="block" fill="outline" (click)="resend()" (keydown.enter)="resend()" (keydown.space)="resend()"
+      [disabled]="loading" style="margin-top: 10px;">
+      Reenviar enlace
+    </ion-button>
+  </div>
+</ion-content>

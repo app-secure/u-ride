@@ -1,0 +1,24 @@
+<ion-tabs>
+  <ion-router-outlet [animated]="false"></ion-router-outlet>
+
+  <ng-container *ngIf="role$ | async as role">
+  <ion-tab-bar slot="bottom" *ngIf="(showTabBar$ | async)">
+    
+    <ion-tab-button *ngIf="role === 'passenger'" tab="trips" href="/app/trips">
+      <ion-icon name="search"></ion-icon>
+      <ion-label>Buscar Viajes</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button *ngIf="role === 'driver'" tab="my-trips" href="/app/my-trips">
+      <ion-icon name="list"></ion-icon>
+      <ion-label>Mis Viajes</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button *ngIf="role === 'driver'" tab="publish" href="/app/publish">
+      <ion-icon name="add-circle"></ion-icon>
+      <ion-label>Publicar</ion-label>
+    </ion-tab-button>
+
+  </ion-tab-bar>
+  </ng-container>
+</ion-tabs>

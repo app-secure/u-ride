@@ -1,0 +1,88 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/app/trips" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ titleLabel }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding indrive-style">
+  <div class="rate-container fade-in-up">
+    
+    <!-- Driver Header -->
+    <div class="profile-header-box" *ngIf="toProfile">
+      <div class="avatar-wrapper">
+        <img *ngIf="toProfile.photoUrl" [src]="toProfile.photoUrl" alt="Driver" />
+        <ion-icon *ngIf="!toProfile.photoUrl" name="person" color="medium"></ion-icon>
+      </div>
+      <div class="info">
+        <h3>{{ toProfile.displayName }}</h3>
+        <p class="subtitle">{{ toProfile.career || 'Estudiante UTA' }}</p>
+        <div class="rating-badge">
+          <ion-icon name="star"></ion-icon>
+          <span>{{ (toProfile.ratingSum || 0) / (toProfile.ratingCount || 1) | number:'1.1-1' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rating Form -->
+    <div class="rating-card shadow-sm">
+      <p class="question">¿Cómo fue tu experiencia de viaje?</p>
+      
+      <div class="stars-selector">
+        <button type="button" *ngFor="let n of [1,2,3,4,5]" 
+                (click)="setStars(n)"
+                [class.active]="form.controls.stars.value >= n">
+          <ion-icon [name]="form.controls.stars.value >= n ? 'star' : 'star-outline'"></ion-icon>
+        </button>
+      </div>
+
+      <p class="stars-label">{{ 
+        form.controls.stars.value === 5 ? '¡Excelente!' : 
+        form.controls.stars.value === 4 ? 'Muy bueno' : 
+        form.controls.stars.value === 3 ? 'Normal' : 
+        form.controls.stars.value === 2 ? 'Regular' : 'Malo' 
+      }}</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="comment-box">
+          <textarea formControlName="comment" 
+                    placeholder="Escribe un comentario opcional..."
+                    rows="3"></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="submitting || blockedReason">
+          <span *ngIf="!submitting">Enviar Calificación</span>
+          <ion-spinner *ngIf="submitting" name="dots"></ion-spinner>
+        </button>
+      </form>
+    </div>
+
+    <!-- Others Reviews Section -->
+    <div class="others-reviews" *ngIf="otherReviews$ | async as reviews">
+      <div class="section-title">
+        <h4>Lo que dicen otros usuarios</h4>
+        <div class="divider"></div>
+      </div>
+
+      <div *ngIf="$any(reviews).length === 0" class="empty-reviews">
+        <p>Aún no hay comentarios sobre este usuario.</p>
+      </div>
+
+      <div class="review-item" *ngFor="let r of $any(reviews)">
+        <div class="review-header">
+          <div class="stars-mini">
+            <ion-icon *ngFor="let sn of [1,2,3,4,5]" 
+                      [name]="r.stars >= sn ? 'star' : 'star-outline'"
+                      [style.color]="r.stars >= sn ? '#f59e0b' : '#cbd5e1'"></ion-icon>
+          </div>
+          <span class="date">{{ r.createdAt | date:'shortDate' }}</span>
+        </div>
+        <p class="comment" *ngIf="r.comment">{{ r.comment }}</p>
+        <p class="comment italic" *ngIf="!r.comment">Sin comentarios adicionales.</p>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

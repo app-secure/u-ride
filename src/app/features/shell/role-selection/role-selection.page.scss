@@ -1,0 +1,139 @@
+.uride-content {
+  --background: #f8fafc;
+}
+
+.role-selection-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 48px;
+  
+  .logo {
+    height: 64px;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 24px;
+  }
+  
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+  }
+  
+  p {
+    font-size: 16px;
+    color: #64748b;
+    margin: 0;
+  }
+}
+
+.roles-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  width: 100%;
+  
+  @media (min-width: 600px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.role-card {
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 24px;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  }
+  
+  .icon-box {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    transition: transform 0.3s ease;
+    
+    ion-icon {
+      font-size: 40px;
+    }
+  }
+  
+  &:hover .icon-box {
+    transform: scale(1.1);
+  }
+  
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+  }
+  
+  p {
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.5;
+  }
+  
+  &.passenger, &.driver {
+    .icon-box {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    h2 { color: #0f172a; }
+    p { color: #64748b; }
+    
+    &:hover { border-color: var(--ion-color-warning); }
+  }
+}
+
+.fade-in-up {
+  opacity: 0;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .uride-content { --background: #0f172a; }
+  .header-section h1 { color: #f8fafc; }
+  .role-card {
+    background: #1e293b;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    
+    &.passenger, &.driver {
+      .icon-box {
+        background: #0f172a;
+        color: #f8fafc;
+      }
+      h2 { color: #f8fafc; }
+    }
+  }
+}

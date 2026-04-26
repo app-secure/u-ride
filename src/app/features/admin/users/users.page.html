@@ -1,0 +1,82 @@
+<ion-header class="ion-no-border elegant-header" [translucent]="true">
+  <ion-toolbar>
+    <div class="header-content">
+      <div class="header-left">
+        <img src="assets/logo-uride.png" class="logo-img" alt="U-Ride Logo" />
+        <span class="system-name">U-Ride</span>
+      </div>
+
+      <div class="header-right" *ngIf="user$ | async as user">
+        <div class="admin-profile">
+          <ion-icon name="person-circle" class="admin-avatar"></ion-icon>
+          <span class="admin-name">{{ user.displayName || 'Administrador' }}</span>
+        </div>
+        <button class="logout-btn" (click)="logout()">
+          <ion-icon name="log-out-outline"></ion-icon>
+          <span>Salir</span>
+        </button>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding uride-content">
+  <div class="admin-dashboard fade-in-up">
+    
+    <div class="admin-navbar modern-card">
+      <ion-buttons>
+        <ion-button fill="clear" routerLink="/app/admin/reports" routerLinkActive="active">Reportes</ion-button>
+        <ion-button fill="clear" routerLink="/app/admin/routes" routerLinkActive="active">Rutas</ion-button>
+        <ion-button fill="clear" routerLink="/app/admin/rules" routerLinkActive="active">Reglas</ion-button>
+        <ion-button fill="clear" routerLink="/app/admin/users" routerLinkActive="active">Usuarios</ion-button>
+      </ion-buttons>
+    </div>
+
+    <div class="dashboard-header">
+      <div class="header-text">
+        <h2 class="title">Gestión de Usuarios</h2>
+        <p class="subtitle">Administra los accesos y roles de la comunidad universitaria</p>
+      </div>
+    </div>
+
+    <ng-container *ngIf="users$ | async as users">
+      <div class="empty-state" *ngIf="users.length === 0">
+        <div class="empty-icon-box">
+          <ion-icon name="people-outline"></ion-icon>
+        </div>
+        <h3>Sin usuarios</h3>
+        <p>No se encontraron usuarios registrados.</p>
+      </div>
+
+      <div class="items-grid" *ngIf="users.length > 0">
+        <div class="modern-card user-card" *ngFor="let u of users; let i = index" [style.animation-delay]="i * 0.05 + 's'" [class.disabled-user]="u.disabled">
+          <div class="user-main">
+            <div class="user-avatar-box">
+              <ion-icon name="person"></ion-icon>
+            </div>
+            <div class="user-details">
+              <div class="user-name-row">
+                <span class="user-display-name">{{ u.displayName || 'Sin nombre' }}</span>
+                <span class="status-pill" [class.danger]="u.disabled">{{ u.disabled ? 'Desactivado' : 'Activo' }}</span>
+              </div>
+              <span class="user-email">{{ u.email }}</span>
+              <span class="user-uid">ID: {{ u.uid }}</span>
+            </div>
+          </div>
+          
+          <div class="user-actions">
+            <button class="action-btn secondary" (click)="editUser(u)">
+              <ion-icon name="create-outline"></ion-icon>
+              <span>Editar</span>
+            </button>
+            <button class="action-btn" [class.danger]="!u.disabled" [class.success]="u.disabled" (click)="toggleDisabled(u)">
+              <ion-icon [name]="u.disabled ? 'checkmark-circle-outline' : 'ban-outline'"></ion-icon>
+              <span>{{ u.disabled ? 'Activar' : 'Desactivar' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+  </div>
+</ion-content>
