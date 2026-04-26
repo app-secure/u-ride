@@ -82,11 +82,7 @@ export class LoginPage {
     this.loading = true;
     let ok = false;
     try {
-      const result = await this.auth.loginWithMicrosoft();
-      if (result === 'redirect') {
-        // En native se abandona la app para autenticarse; no navegamos aquí.
-        return;
-      }
+      await this.auth.loginWithMicrosoft();
       ok = true;
     } catch (e: any) {
       // Si el usuario cierra el popup, no mostramos error feo
