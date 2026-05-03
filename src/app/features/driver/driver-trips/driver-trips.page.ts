@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { Router, RouterLink } from '@angular/router';
-import { Observable, combineLatest, of, switchMap, BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
+import { map, switchMap, startWith } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { TripsService } from '../../../core/services/trips.service';
@@ -25,6 +26,7 @@ export class DriverTripsPage {
   private readonly toastCtrl = inject(ToastController);
 
   private readonly segmentSubject = new BehaviorSubject<'active' | 'completed'>('active');
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
   
   get segment(): 'active' | 'completed' {
     return this.segmentSubject.value;
@@ -34,14 +36,8 @@ export class DriverTripsPage {
     this.segmentSubject.next(val);
   }
 
-  readonly myTrips$: Observable<Trip[]> = this.auth.user$.pipe(
-    switchMap(user => {
-      if (!user) return of([]);
-      // Filtramos en cliente para mayor control sin índices compuestos
-      return this.tripsSvc.trips$({ onlyOpen: false }).pipe(
-        map((trips: Trip[]) => trips.filter(t => t.driverUid === user.uid))
-      );
-    })
+  readonly myTrips$: Observable<Trip[]> = this.refresh$.pipe(
+    switchMap(() => this.tripsSvc.getMyTrips()),
   );
 
   readonly filteredTrips$: Observable<Trip[]> = combineLatest([
@@ -52,6 +48,11 @@ export class DriverTripsPage {
       segment === 'active' ? t.status === 'open' : (t.status === 'completed' || t.status === 'cancelled')
     ))
   );
+
+  doRefresh(event: any): void {
+    this.refresh$.next();
+    setTimeout(() => event.target.complete(), 600);
+  }
 
   async cancelTrip(trip: Trip): Promise<void> {
     const alert = await this.alertCtrl.create({
@@ -64,7 +65,8 @@ export class DriverTripsPage {
           role: 'destructive',
           handler: async () => {
             try {
-              await this.tripsSvc.updateTripStatus(trip.id, 'cancelled');
+              await firstValueFrom(this.tripsSvc.updateTripStatus(trip.id, 'cancelled'));
+              this.refresh$.next();
               await this.presentToast('Viaje cancelado correctamente.', 'success');
             } catch (e: any) {
               await this.presentToast('Error al cancelar el viaje.', 'danger');
@@ -86,9 +88,9 @@ export class DriverTripsPage {
           text: 'Sí, finalizar', 
           handler: async () => {
             try {
-              await this.tripsSvc.updateTripStatus(trip.id, 'completed');
+              await firstValueFrom(this.tripsSvc.updateTripStatus(trip.id, 'completed'));
+              this.refresh$.next();
               await this.presentToast('Viaje finalizado. Ahora puedes calificar/reportar pasajeros.', 'success');
-              // Optionally redirect to report page directly, or let them click it from the completed list.
             } catch (e: any) {
               await this.presentToast('Error al finalizar el viaje.', 'danger');
             }
@@ -123,6 +125,7 @@ export class DriverTripsPage {
           handler: async () => {
             try {
               await this.tripsSvc.deleteTrip(trip.id);
+              this.refresh$.next();
               await this.presentToast('Viaje eliminado.', 'success');
             } catch {
               await this.presentToast('Error al eliminar el viaje.', 'danger');
@@ -135,10 +138,6 @@ export class DriverTripsPage {
   }
 
   reportPassengers(trip: Trip): void {
-    // Navigate to a report page passing the tripId. For now, we can use an alert or a modal.
-    // The requirement says: "le salga otra vez la lista de pasajeros y le muestre de cada lista un boton que diga reportar"
-    // So we navigate to requests page but in "report mode"?
-    // Let's create a route or just pass state. The requests page already has all passengers.
     this.router.navigate(['/app/requests', trip.id]);
   }
 

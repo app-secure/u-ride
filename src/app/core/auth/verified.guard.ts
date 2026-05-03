@@ -19,7 +19,8 @@ export class VerifiedGuard implements CanActivate {
           return of(false);
         }
 
-        return this.users.profile$(user.uid).pipe(
+        // Llamada HTTP one-shot al perfil del usuario
+        return this.users.getProfile(user.uid).pipe(
           take(1),
           map(profile => {
             if (profile?.disabled) {

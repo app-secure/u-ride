@@ -1,7 +1,4 @@
-import { Injectable, inject } from '@angular/core';
-import { Firestore, addDoc, collection } from '@angular/fire/firestore';
-
-import { TimeService } from './time.service';
+import { Injectable } from '@angular/core';
 
 export type AuditEventType =
   | 'auth.register'
@@ -13,17 +10,14 @@ export type AuditEventType =
   | 'report.create'
   | 'admin.action';
 
+/**
+ * STUB: La auditoría ahora es gestionada por el backend (.NET AuditableEntity).
+ * Este servicio se mantiene como stub para no romper componentes que lo referencian.
+ * Se puede eliminar cuando se limpien todas las referencias.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuditLogService {
-  private readonly firestore = inject(Firestore);
-
-  async log(uid: string, type: AuditEventType, payload: Record<string, any>): Promise<void> {
-    const ref = collection(this.firestore, 'events');
-    await addDoc(ref, {
-      uid,
-      type,
-      payload,
-      createdAt: TimeService.nowIso(),
-    });
+  async log(_uid: string, _type: AuditEventType, _payload: Record<string, any>): Promise<void> {
+    // No-op: auditoría manejada por el backend
   }
 }

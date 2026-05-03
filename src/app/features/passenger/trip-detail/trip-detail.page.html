@@ -89,20 +89,20 @@
               </div>
 
               <!-- Vehicle info -->
-              <div class="vehicle-info" *ngIf="trip.vehicleInfo">
+              <div class="vehicle-info" *ngIf="trip.vehicle">
                 <h4>Vehículo</h4>
                 <div class="vehicle-details">
                   <div class="v-item">
                     <ion-icon name="car-outline"></ion-icon>
-                    <span>{{ trip.vehicleInfo.brand }} {{ trip.vehicleInfo.model }}</span>
+                    <span>{{ trip.vehicle.brand }} {{ trip.vehicle.model }}</span>
                   </div>
                   <div class="v-item">
                     <ion-icon name="barcode-outline"></ion-icon>
-                    <span>{{ trip.vehicleInfo.plate }}</span>
+                    <span>{{ trip.vehicle.plate }}</span>
                   </div>
                   <div class="v-item">
                     <ion-icon name="color-palette-outline"></ion-icon>
-                    <span>{{ trip.vehicleInfo.color }}</span>
+                    <span>{{ trip.vehicle.color }}</span>
                   </div>
                 </div>
               </div>

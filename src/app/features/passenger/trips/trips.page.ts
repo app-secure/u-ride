@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
-import { combineLatest, of, forkJoin } from 'rxjs';
-import { debounceTime, startWith, switchMap, take, map } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, of } from 'rxjs';
+import { debounceTime, startWith, switchMap, map } from 'rxjs/operators';
 
 import { TripsService } from '../../../core/services/trips.service';
+import { TripRequestsService } from '../../../core/services/trip-requests.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import type { Trip } from '../../../core/models/trip.model';
+import type { TripRequest } from '../../../core/models/trip-request.model';
 
 @Component({
   selector: 'app-trips',
@@ -20,6 +22,7 @@ import type { Trip } from '../../../core/models/trip.model';
 export class TripsPage {
   private readonly fb = inject(FormBuilder);
   private readonly tripsSvc = inject(TripsService);
+  private readonly tripRequestsSvc = inject(TripRequestsService);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly toastCtrl = inject(ToastController);
@@ -27,7 +30,9 @@ export class TripsPage {
 
   currentUid: string | null = null;
   /** Mapa de tripId -> estado de solicitud del usuario */
-  myRequestsMap: Record<string, string> = {};
+  myRequestsMap: Record<string, { status: string; requestId: string }> = {};
+
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
 
   readonly routes$ = this.tripsSvc.tripRoutes$();
 
@@ -36,63 +41,44 @@ export class TripsPage {
     date: [''],
   });
 
-  readonly trips$ = this.filters.valueChanges.pipe(
-    startWith(this.filters.getRawValue()),
+  readonly trips$ = combineLatest([
+    this.filters.valueChanges.pipe(startWith(this.filters.getRawValue())),
+    this.refresh$,
+  ]).pipe(
     debounceTime(250),
-    switchMap(v =>
-      this.tripsSvc.trips$({
-        routeName: v.routeName?.trim() ? v.routeName.trim() : undefined,
-        date: v.date ? v.date : undefined,
-        onlyOpen: true,
+    switchMap(([v]) =>
+      this.tripsSvc.searchTrips({
+        originZone: v.routeName?.trim() ? v.routeName.trim() : undefined,
+        departureDate: v.date ? v.date : undefined,
+        pageSize: 50,
       }),
     ),
+    map(result => result.items),
   );
 
   constructor() {
-    // Fuente 1: userMyRequests$ en tiempo real (para solicitudes nuevas)
-    this.auth.user$.pipe(
-      switchMap(user => {
-        if (!user) return of([] as { tripId: string; status: string }[]);
-        this.currentUid = user.uid;
-        return this.tripsSvc.userMyRequests$(user.uid);
-      })
-    ).subscribe(requests => {
-      const update: Record<string, string> = {};
-      requests.forEach(r => { update[r.tripId] = r.status; });
-      this.myRequestsMap = { ...this.myRequestsMap, ...update };
-    });
-
-    // Fuente 2: one-shot por trip al cargar la lista (para solicitudes antiguas)
-    combineLatest([this.trips$, this.auth.user$]).pipe(
-      switchMap(([trips, user]) => {
-        if (!user || trips.length === 0) return of([] as { tripId: string; status: string }[]);
-        const uid = user.uid;
-        // Solo revisar trips que aún no están en el mapa
-        const tripsToCheck = trips.filter(t => !this.myRequestsMap[t.id]);
-        if (tripsToCheck.length === 0) return of([] as { tripId: string; status: string }[]);
-        const checks = tripsToCheck.map(trip =>
-          this.tripsSvc.passengerRequest$(trip.id, uid).pipe(
-            take(1),
-            map(req => ({ tripId: trip.id, status: req?.status ?? 'none' }))
-          )
-        );
-        return forkJoin(checks);
-      })
-    ).subscribe(results => {
-      const update: Record<string, string> = {};
-      results.forEach(r => {
-        if (r.status !== 'none') {
-          update[r.tripId] = r.status;
-          // Si está aceptado y el uid está disponible, asegurar que el doc de usuario exista
-          if (r.status === 'accepted' && this.currentUid) {
-            this.tripsSvc.syncUserRequestStatusPublic(r.tripId, this.currentUid, 'accepted');
-          }
-        }
-      });
-      if (Object.keys(update).length > 0) {
-        this.myRequestsMap = { ...this.myRequestsMap, ...update };
+    this.auth.user$.subscribe(user => {
+      this.currentUid = user?.uid ?? null;
+      if (user) {
+        this.loadMyRequests();
       }
     });
+  }
+
+  private loadMyRequests(): void {
+    this.tripRequestsSvc.getMyRequests().subscribe(requests => {
+      const update: Record<string, { status: string; requestId: string }> = {};
+      requests.forEach(r => {
+        update[r.tripId] = { status: r.status, requestId: r.id };
+      });
+      this.myRequestsMap = update;
+    });
+  }
+
+  doRefresh(event: any): void {
+    this.refresh$.next();
+    this.loadMyRequests();
+    setTimeout(() => event.target.complete(), 600);
   }
 
   openTrip(trip: Trip): void {
@@ -112,9 +98,9 @@ export class TripsPage {
   }
 
   getRequestStatus(trip: Trip): string {
-    const mapStatus = this.myRequestsMap[trip.id];
+    const mapEntry = this.myRequestsMap[trip.id];
     // Si hay estado en el mapa y no está cancelado por el pasajero, usarlo
-    if (mapStatus && mapStatus !== 'cancelled_by_passenger') return mapStatus;
+    if (mapEntry && mapEntry.status !== 'cancelled_by_passenger') return mapEntry.status;
     // Fallback: confirmedPassengerUids
     if (this.isAccepted(trip)) return 'accepted';
     return 'none';
@@ -122,6 +108,8 @@ export class TripsPage {
 
   async cancelMySpot(trip: Trip): Promise<void> {
     if (!this.currentUid) return;
+    const mapEntry = this.myRequestsMap[trip.id];
+    if (!mapEntry?.requestId) return;
 
     const alert = await this.alertCtrl.create({
       header: 'Cancelar cupo',
@@ -133,10 +121,11 @@ export class TripsPage {
           role: 'destructive',
           handler: async () => {
             try {
-              await this.tripsSvc.cancelSpot(trip.id, this.currentUid!);
+              await this.tripRequestsSvc.cancelRequest(mapEntry.requestId).toPromise();
               const updated = { ...this.myRequestsMap };
               delete updated[trip.id];
               this.myRequestsMap = updated;
+              this.refresh$.next();
               const toast = await this.toastCtrl.create({
                 message: 'Has liberado tu cupo exitosamente.',
                 duration: 2000,

@@ -4,7 +4,7 @@ import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { of, switchMap } from 'rxjs';
+import { of, switchMap, firstValueFrom } from 'rxjs';
 
 import * as L from 'leaflet';
 import { Geolocation } from '@capacitor/geolocation';
@@ -12,12 +12,20 @@ import { Geolocation } from '@capacitor/geolocation';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UsersService } from '../../../core/services/users.service';
 import { TripsService } from '../../../core/services/trips.service';
+import { TripRequestsService } from '../../../core/services/trip-requests.service';
 import { RoleStateService } from '../../../core/services/role-state.service';
 import { ReviewsService } from '../../../core/services/reviews.service';
 import { ReportsService } from '../../../core/services/reports.service';
 import type { Trip } from '../../../core/models/trip.model';
 import type { UserProfile } from '../../../core/models/user-profile.model';
-import type { DriverLiveLocation } from '../../../core/services/trips.service';
+
+export type DriverLiveLocation = {
+  driverUid: string;
+  active: boolean;
+  lat?: number;
+  lng?: number;
+  updatedAt?: string;
+};
 
 @Component({
   selector: 'app-trip-detail',
@@ -33,6 +41,7 @@ export class TripDetailPage {
   private readonly auth = inject(AuthService);
   private readonly users = inject(UsersService);
   private readonly trips = inject(TripsService);
+  private readonly tripRequests = inject(TripRequestsService);
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
   private readonly roleState = inject(RoleStateService);
@@ -85,50 +94,12 @@ export class TripDetailPage {
         if (!profile) return;
         this.currentUid = profile.uid;
         this.currentName = profile.displayName || 'Estudiante';
+        this.loadMyRequestStatus();
         this.checkDriverActionStatus();
       });
 
-    // Escuchar en tiempo real el estado de la solicitud del pasajero
-    this.auth.user$
-      .pipe(
-        switchMap(user => {
-          if (!user) return of(undefined);
-          return this.trips.passengerRequest$(this.tripId, user.uid);
-        }),
-        takeUntilDestroyed(),
-      )
-      .subscribe(req => {
-        this.myRequestStatus = req?.status ?? 'none';
-      });
-
-    this.trips.trip$(this.tripId)
-      .pipe(takeUntilDestroyed())
-      .subscribe(trip => {
-        this.trip = trip ?? null;
-        
-        if (trip) {
-          // Cargar perfil del conductor de forma segura
-          this.users.profile$(trip.driverUid)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(p => {
-              this.driverProfile = p ?? null;
-            });
-        }
-
-        this.checkDriverActionStatus();
-        this.initMapIfReady();
-        this.syncTripMarkers();
-        this.syncRouteLine();
-      });
-
-    // Escuchar ubicación en vivo del conductor (si existe) para mostrar el marcador.
-    this.trips
-      .driverLiveLocation$(this.tripId)
-      .pipe(takeUntilDestroyed())
-      .subscribe(live => {
-        this.driverLive = live;
-        this.syncDriverMarker();
-      });
+    // Cargar viaje one-shot
+    this.loadTrip();
 
     // Seguridad: Si el usuario pierde la sesión (logout), cerramos el modal.
     this.auth.user$.pipe(takeUntilDestroyed()).subscribe(user => {
@@ -165,15 +136,45 @@ export class TripDetailPage {
     requestAnimationFrame(() => this.map?.invalidateSize());
   }
 
+  private loadTrip(): void {
+    if (!this.tripId) return;
+    this.trips.getById(this.tripId).subscribe(trip => {
+      this.trip = trip ?? null;
+      if (trip) {
+        this.users.getProfile(trip.driverUid).subscribe(p => {
+          this.driverProfile = p ?? null;
+        });
+      }
+      this.checkDriverActionStatus();
+      this.initMapIfReady();
+      this.syncTripMarkers();
+      this.syncRouteLine();
+    });
+  }
+
+  private loadMyRequestStatus(): void {
+    if (!this.currentUid) return;
+    this.tripRequests.getMyRequests().subscribe(requests => {
+      const mine = requests.find(r => r.tripId === this.tripId);
+      this.myRequestStatus = mine?.status ?? 'none';
+    });
+  }
+
   private async checkDriverActionStatus(): Promise<void> {
     if (!this.trip || !this.currentUid || this.isDriver) return;
     
-    const driverUid = this.trip.driverUid;
     // Solo verificar si el viaje está finalizado
     if (this.trip.status !== 'completed') return;
 
-    this.ratedDriver = await this.reviews.hasReviewed(this.tripId, this.currentUid, driverUid);
-    this.reportedDriver = await this.reports.hasReported(this.currentUid, driverUid, this.tripId);
+    // Check via reviews API
+    try {
+      const reviews = await firstValueFrom(this.reviews.getByTrip(this.tripId));
+      this.ratedDriver = reviews.some(r => r.fromUid === this.currentUid && r.toUid === this.trip!.driverUid);
+    } catch {
+      this.ratedDriver = false;
+    }
+    // reportedDriver: no hay endpoint para verificar, dejamos false
+    this.reportedDriver = false;
   }
 
   private initMapIfReady(): void {
@@ -438,7 +439,8 @@ export class TripDetailPage {
     }
 
     this.sharingTrip = true;
-    await this.trips.setDriverLiveActive(this.tripId, this.currentUid, true);
+    // STUB: setDriverLiveActive no tiene endpoint backend aún
+    // await this.trips.setDriverLiveActive(this.tripId, this.currentUid, true);
 
     // Empezar a enviar la ubicación en segundo plano mientras el driver esté en esta pantalla.
     this.watchId = await Geolocation.watchPosition(
@@ -449,7 +451,8 @@ export class TripDetailPage {
         const lng = position.coords.longitude;
         if (typeof lat !== 'number' || typeof lng !== 'number') return;
         try {
-          await this.trips.setDriverLiveLocation(this.tripId, { driverUid: this.currentUid!, lat, lng, active: true });
+          // STUB: setDriverLiveLocation no tiene endpoint backend aún
+          // await this.trips.setDriverLiveLocation(this.tripId, { driverUid: this.currentUid!, lat, lng, active: true });
         } catch {
           // No bloquear el UI por errores intermitentes de red.
         }
@@ -477,7 +480,8 @@ export class TripDetailPage {
 
     this.sharingTrip = false;
     if (this.currentUid) {
-      await this.trips.setDriverLiveActive(this.tripId, this.currentUid, false);
+      // STUB: setDriverLiveActive no tiene endpoint backend aún
+      // await this.trips.setDriverLiveActive(this.tripId, this.currentUid, false);
     }
 
     const toast = await this.toastCtrl.create({
@@ -539,7 +543,7 @@ export class TripDetailPage {
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
-      await this.trips.requestToJoin(this.tripId, this.currentUid, this.currentName);
+      await firstValueFrom(this.tripRequests.createRequest(this.tripId));
       
       this.closePaymentModal();
       
@@ -611,7 +615,7 @@ export class TripDetailPage {
           role: 'destructive',
           handler: async () => {
             try {
-              await this.trips.updateTripStatus(this.tripId, 'cancelled');
+              await firstValueFrom(this.trips.updateTripStatus(this.tripId, 'cancelled'));
               const toast = await this.toastCtrl.create({
                 message: 'Viaje cancelado correctamente.',
                 duration: 2500,

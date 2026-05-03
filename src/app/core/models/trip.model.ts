@@ -6,6 +6,13 @@ export interface TripRuleSet {
   noSensitiveData: boolean;
 }
 
+export interface VehicleInfo {
+  plate: string;
+  model: string;
+  brand: string;
+  color: string;
+}
+
 export interface Trip {
   id: string;
   driverUid: string;
@@ -16,22 +23,17 @@ export interface Trip {
 
   originZone: string;
   destinationZone: string;
-  originLat?: number; // Optional latitude for origin
-  originLng?: number; // Optional longitude for origin
-  destinationLat?: number; // Optional latitude for destination
-  destinationLng?: number; // Optional longitude for destination
+  originLat?: number;
+  originLng?: number;
+  destinationLat?: number;
+  destinationLng?: number;
   departureAt: string; // ISO
   seatsTotal: number;
   seatsAvailable: number;
   price: number;
 
   notes?: string;
-  vehicleInfo?: {
-    plate: string;
-    model: string;
-    brand: string;
-    color: string;
-  };
+  vehicle?: VehicleInfo;
   rules: TripRuleSet;
   status: TripStatus;
 
@@ -41,4 +43,23 @@ export interface Trip {
   updatedAt: string;
 }
 
-export type TripCreate = Omit<Trip, 'id' | 'createdAt' | 'updatedAt' | 'seatsAvailable' | 'confirmedPassengerUids'>;
+/**
+ * DTO para crear un viaje. Coincide con CreateTripDto del backend.
+ * El backend extrae driverUid y driverName del token JWT.
+ */
+export interface TripCreate {
+  routeName: string;
+  paymentMethod: string;
+  originZone: string;
+  destinationZone: string;
+  originLat?: number;
+  originLng?: number;
+  destinationLat?: number;
+  destinationLng?: number;
+  departureAt: string;
+  seatsTotal: number;
+  price: number;
+  notes?: string;
+  vehicle: VehicleInfo;
+  rules: TripRuleSet;
+}

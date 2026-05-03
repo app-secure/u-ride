@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { IonicModule, LoadingController, PopoverController } from '@ionic/angular';
-import { Observable, of } from 'rxjs';
+import { Observable, of, BehaviorSubject } from 'rxjs';
 import { filter, switchMap, map, catchError, startWith } from 'rxjs/operators';
 
 import { AuthService } from '../../../core/auth/auth.service';
@@ -31,16 +31,15 @@ export class SidebarShellPage {
   readonly user$ = this.auth.user$;
   readonly role$: Observable<AppRole> = this.roleState.role$;
 
-  readonly notifications$: Observable<AppNotification[]> = this.user$.pipe(
-    switchMap((user: any) => {
-      if (!user) return of([]);
-      return this.notifications.notifications$(user.uid).pipe(
-        catchError((err: any) => {
-          console.error('Error cargando notificaciones:', err);
-          return of([]);
-        })
-      );
-    }),
+  private readonly refreshNotifs$ = new BehaviorSubject<void>(undefined);
+
+  readonly notifications$: Observable<AppNotification[]> = this.refreshNotifs$.pipe(
+    switchMap(() => this.notifications.getMyNotifications().pipe(
+      catchError((err: any) => {
+        console.error('Error cargando notificaciones:', err);
+        return of([]);
+      })
+    )),
     startWith([])
   );
 

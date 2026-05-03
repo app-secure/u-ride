@@ -3,18 +3,18 @@ import { registerLocaleData } from '@angular/common';
 import localeEsEc from '@angular/common/locales/es-EC';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { RouteReuseStrategy, provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
 import { provideFirebaseApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
-import { provideFirestore, getFirestore } from '@angular/fire/firestore';
-import { provideStorage, getStorage } from '@angular/fire/storage';
 import { initializeApp } from 'firebase/app';
 
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import { environment } from './environments/environment';
+import { tokenInterceptor } from './app/core/auth/token.interceptor';
 
 registerLocaleData(localeEsEc);
 
@@ -28,9 +28,8 @@ bootstrapApplication(AppComponent, {
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     importProvidersFrom(IonicModule.forRoot()),
     provideRouter(routes, withPreloading(PreloadAllModules)),
+    provideHttpClient(withInterceptors([tokenInterceptor])),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
-    provideFirestore(() => getFirestore()),
-    provideStorage(() => getStorage()),
   ],
 }).catch(err => console.log(err));

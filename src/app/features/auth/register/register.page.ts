@@ -118,7 +118,7 @@ export class RegisterPage {
       return 'Correo inválido.';
     }
     if (low.includes('permission') || low.includes('insufficient')) {
-      return 'La cuenta se pudo crear, pero Firestore bloqueó el perfil (rules/permisos). Revisa las reglas en Firebase Console.';
+      return 'La cuenta se pudo crear, pero no se pudo sincronizar el perfil con el servidor. Verifica la conexión.';
     }
     return 'No se pudo crear la cuenta.';
   }

@@ -4,7 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { of, switchMap } from 'rxjs';
+import { of, switchMap, firstValueFrom } from 'rxjs';
 import { startWith } from 'rxjs/operators';
 
 import { AuthService } from '../../../core/auth/auth.service';
@@ -80,8 +80,7 @@ export class PublishTripPage {
       });
 
     if (this.editTripId) {
-      this.trips
-        .trip$(this.editTripId)
+      this.trips.getById(this.editTripId)
         .pipe(takeUntilDestroyed())
         .subscribe(trip => {
           this.tripToEdit = trip ?? null;
@@ -106,10 +105,10 @@ export class PublishTripPage {
             paymentMethod: trip.paymentMethod ?? '',
             ruleTexts: Array.isArray(trip.ruleTexts) ? trip.ruleTexts : [],
             notes: trip.notes ?? '',
-            vehiclePlate: trip.vehicleInfo?.plate ?? '',
-            vehicleModel: trip.vehicleInfo?.model ?? '',
-            vehicleBrand: trip.vehicleInfo?.brand ?? '',
-            vehicleColor: trip.vehicleInfo?.color ?? '',
+            vehiclePlate: trip.vehicle?.plate ?? '',
+            vehicleModel: trip.vehicle?.model ?? '',
+            vehicleBrand: trip.vehicle?.brand ?? '',
+            vehicleColor: trip.vehicle?.color ?? '',
           });
         });
     }
@@ -313,7 +312,7 @@ export class PublishTripPage {
           paymentMethod: String(v.paymentMethod ?? '').trim(),
           ruleTexts,
           notes: v.notes?.trim() || undefined,
-          vehicleInfo: {
+          vehicle: {
             plate: v.vehiclePlate.trim(),
             model: v.vehicleModel.trim(),
             brand: v.vehicleBrand.trim(),
@@ -322,9 +321,7 @@ export class PublishTripPage {
           rules,
         });
       } else {
-        await this.trips.publishTrip({
-          driverUid: this.driverUid,
-          driverName: this.driverName,
+        await firstValueFrom(this.trips.publishTrip({
           routeName: v.routeName.trim(),
           originZone: v.originZone.trim(),
           destinationZone: v.destinationZone.trim(),
@@ -336,17 +333,15 @@ export class PublishTripPage {
           seatsTotal: Number(v.seatsTotal),
           price: Number(v.price),
           paymentMethod: String(v.paymentMethod ?? '').trim(),
-          ruleTexts,
           notes: v.notes?.trim() || undefined,
-          vehicleInfo: {
+          vehicle: {
             plate: v.vehiclePlate.trim(),
             model: v.vehicleModel.trim(),
             brand: v.vehicleBrand.trim(),
             color: v.vehicleColor.trim(),
           },
           rules,
-          status: 'open',
-        });
+        }));
       }
 
       const toast = await this.toastCtrl.create({

@@ -3,8 +3,10 @@ import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
+import { BehaviorSubject, switchMap, firstValueFrom } from 'rxjs';
 
 import { TripsService } from '../../../core/services/trips.service';
+import { TripRequestsService } from '../../../core/services/trip-requests.service';
 import { ReviewsService } from '../../../core/services/reviews.service';
 import { ReportsService } from '../../../core/services/reports.service';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -22,6 +24,7 @@ export class RideRequestsPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly trips = inject(TripsService);
+  private readonly tripRequests = inject(TripRequestsService);
   private readonly reviews = inject(ReviewsService);
   private readonly reports = inject(ReportsService);
   private readonly auth = inject(AuthService);
@@ -31,7 +34,11 @@ export class RideRequestsPage {
   private readonly cdr = inject(ChangeDetectorRef);
 
   readonly tripId = this.route.snapshot.paramMap.get('tripId') ?? '';
-  readonly requests$ = this.trips.requests$(this.tripId);
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
+  
+  readonly requests$ = this.refresh$.pipe(
+    switchMap(() => this.tripRequests.getByTrip(this.tripId)),
+  );
 
   trip: Trip | null = null;
   currentUid: string | null = null;
@@ -46,13 +53,15 @@ export class RideRequestsPage {
       if (this.currentUid) this.checkActionsStatus();
     });
 
-    this.trips
-      .trip$(this.tripId)
-      .pipe(takeUntilDestroyed())
-      .subscribe(trip => {
-        this.trip = trip ?? null;
-        if (this.trip) this.checkActionsStatus();
-      });
+    // Cargar viaje one-shot
+    if (this.tripId) {
+      this.trips.getById(this.tripId)
+        .pipe(takeUntilDestroyed())
+        .subscribe(trip => {
+          this.trip = trip ?? null;
+          if (this.trip) this.checkActionsStatus();
+        });
+    }
 
     this.requests$.pipe(takeUntilDestroyed()).subscribe(reqs => {
       if (reqs) this.checkActionsStatus();
@@ -90,31 +99,25 @@ export class RideRequestsPage {
   }
 
   ionViewWillEnter(): void {
+    this.refresh$.next();
     this.checkActionsStatus();
   }
 
   private async checkActionsStatus(): Promise<void> {
     if (!this.tripId || !this.currentUid) return;
     
-    // Obtenemos todas las solicitudes actuales de forma síncrona si es posible, 
-    // o esperamos a que el observable emita.
-    // Para ser más seguros, pedimos las solicitudes una vez al servicio.
-    const reqs = await this.trips.getRequestsOnce(this.tripId);
-    if (!reqs || reqs.length === 0) return;
+    try {
+      const reqs = await firstValueFrom(this.tripRequests.getByTrip(this.tripId));
+      if (!reqs || reqs.length === 0) return;
 
-    const newRatedMap: Record<string, boolean> = { ...this.ratedMap };
-    const newReportedMap: Record<string, boolean> = { ...this.reportedMap };
+      const newRatedMap: Record<string, boolean> = { ...this.ratedMap };
+      const newReportedMap: Record<string, boolean> = { ...this.reportedMap };
+      let changed = false;
 
-    let changed = false;
-
-    // Procesamos todos los pasajeros que fueron aceptados
-    await Promise.all(
-      reqs.map(async req => {
-        if (req.status !== 'accepted') return;
-
+      for (const req of reqs) {
+        if (req.status !== 'accepted') continue;
         const passengerUid = req.passengerUid;
 
-        // Estado inmediato desde la solicitud (persistente y siempre disponible al cargar la lista)
         const ratedFromRequest = req.driverRated === true;
         const reportedFromRequest = req.driverReported === true;
 
@@ -127,29 +130,28 @@ export class RideRequestsPage {
           changed = true;
         }
 
-        // Fallback para calificaciones: si por alguna razón el flag no existe, consultamos reviews (permitido por rules).
+        // Fallback: check reviews via API
         if (!ratedFromRequest) {
           try {
-            const rated = await this.reviews.hasReviewed(this.tripId, this.currentUid!, passengerUid);
+            const reviews = await firstValueFrom(this.reviews.getByTrip(this.tripId));
+            const rated = reviews.some(r => r.fromUid === this.currentUid && r.toUid === passengerUid);
             if (rated && !newRatedMap[passengerUid]) {
               newRatedMap[passengerUid] = true;
               changed = true;
-              // Best-effort para persistir y que se vea en próximos refrescos
-              await this.trips.markPassengerRated(this.tripId, passengerUid);
             }
           } catch {
             // Ignorar
           }
         }
+      }
 
-        // Reportes: por rules, el conductor no puede leer /reports; el estado debe venir del request (driverReported).
-      }),
-    );
-
-    if (changed) {
-      this.ratedMap = newRatedMap;
-      this.reportedMap = newReportedMap;
-      this.cdr.detectChanges();
+      if (changed) {
+        this.ratedMap = newRatedMap;
+        this.reportedMap = newReportedMap;
+        this.cdr.detectChanges();
+      }
+    } catch {
+      // Ignorar errores de carga
     }
   }
 
@@ -162,7 +164,8 @@ export class RideRequestsPage {
   }
 
   async accept(req: TripRequest): Promise<void> {
-    await this.trips.setRequestStatus(this.tripId, req.passengerUid, 'accepted');
+    await firstValueFrom(this.tripRequests.acceptRequest(req.id));
+    this.refresh$.next();
     const toast = await this.toastCtrl.create({
       message: 'Solicitud aceptada.',
       duration: 1800,
@@ -173,7 +176,8 @@ export class RideRequestsPage {
   }
 
   async reject(req: TripRequest): Promise<void> {
-    await this.trips.setRequestStatus(this.tripId, req.passengerUid, 'rejected');
+    await firstValueFrom(this.tripRequests.rejectRequest(req.id));
+    this.refresh$.next();
     const toast = await this.toastCtrl.create({
       message: 'Solicitud rechazada.',
       duration: 1800,
@@ -231,19 +235,13 @@ export class RideRequestsPage {
               if (!this.currentUid) return false;
               if (this.reportedMap[passengerUid]) return true;
               
-              await this.reports.createReport({
-                reporterUid: this.currentUid,
+              await firstValueFrom(this.reports.createReport({
                 reportedUid: passengerUid,
                 tripId: this.tripId,
                 reason: data.reason.trim()
-              });
+              }));
 
               this.reportedMap[passengerUid] = true;
-              try {
-                await this.trips.markPassengerReported(this.tripId, passengerUid);
-              } catch {
-                // Best-effort
-              }
 
               const toast = await this.toastCtrl.create({
                 message: 'Reporte enviado. Un administrador revisará el caso.', duration: 3000, color: 'success', position: 'top'
@@ -254,11 +252,6 @@ export class RideRequestsPage {
               const msg = (e as any)?.message || '';
               if (msg.toLowerCase().includes('ya reportaste')) {
                 this.reportedMap[passengerUid] = true;
-                try {
-                  await this.trips.markPassengerReported(this.tripId, passengerUid);
-                } catch {
-                  // Best-effort
-                }
                 const toast = await this.toastCtrl.create({
                   message: 'Este pasajero ya fue reportado para este viaje.',
                   duration: 2200,

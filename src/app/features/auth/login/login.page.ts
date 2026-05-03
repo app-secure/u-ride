@@ -111,7 +111,7 @@ export class LoginPage {
       msg = `Usa tu correo institucional @${this.domain}.`;
     }
     if (raw.includes('PROFILE_WRITE_FAILED')) {
-      msg = 'Sesión iniciada, pero Firestore bloquea el perfil (rules/permisos). Revisa las reglas en Firebase Console.';
+      msg = 'Sesión iniciada, pero no se pudo sincronizar el perfil con el servidor. Verifica la conexión.';
     }
     if (raw.includes('auth/invalid-credential')) {
       msg = 'Credenciales inválidas.';

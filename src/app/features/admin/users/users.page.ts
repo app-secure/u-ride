@@ -2,8 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { UsersService } from '../../../core/services/users.service';
@@ -24,13 +24,11 @@ export class AdminUsersPage {
 
   readonly user$ = this.authSvc.user$;
 
-  readonly users$: Observable<UserProfile[]> = this.usersSvc.users$().pipe(
-    map(users =>
-      [...(users ?? [])]
-        .filter(u => !!u?.uid)
-        .sort((a, b) => String(a.displayName ?? '').localeCompare(String(b.displayName ?? ''))),
-    ),
-  );
+  /**
+   * STUB: No hay endpoint para listar todos los usuarios.
+   * Se mantiene como observable vacío hasta que se implemente el endpoint en el backend.
+   */
+  readonly users$: Observable<UserProfile[]> = of([]);
 
   async logout(): Promise<void> {
     await this.authSvc.logout();
@@ -50,13 +48,9 @@ export class AdminUsersPage {
         {
           text: 'Guardar',
           handler: async data => {
-            await this.usersSvc.updateProfile(u.uid, {
-              displayName: String(data?.displayName ?? '').trim(),
-              career: String(data?.career ?? '').trim(),
-              zone: String(data?.zone ?? '').trim(),
-              phone: String(data?.phone ?? '').trim() || undefined,
-            });
-            await this.toast('Usuario actualizado.', 'success');
+            // STUB: Admin edit requires backend endpoint
+            console.warn('[AdminUsersPage] editUser: stub — no admin endpoint yet');
+            await this.toast('Funcionalidad pendiente: endpoint de admin.', 'warning');
             return true;
           },
         },
@@ -78,8 +72,9 @@ export class AdminUsersPage {
           text: next ? 'Desactivar' : 'Activar',
           role: next ? 'destructive' : 'confirm',
           handler: async () => {
-            await this.usersSvc.updateProfile(u.uid, { disabled: next });
-            await this.toast(next ? 'Usuario desactivado.' : 'Usuario activado.', next ? 'warning' : 'success');
+            // STUB: Toggle disabled requires backend endpoint
+            console.warn('[AdminUsersPage] toggleDisabled: stub — no admin endpoint yet');
+            await this.toast('Funcionalidad pendiente: endpoint de admin.', 'warning');
           },
         },
       ],

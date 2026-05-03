@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { ReportsService } from '../../../core/services/reports.service';
-import { AuditLogService } from '../../../core/services/audit-log.service';
 
 @Component({
   selector: 'app-create-report',
@@ -19,7 +19,6 @@ export class CreateReportPage {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly reports = inject(ReportsService);
-  private readonly audit = inject(AuditLogService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toastCtrl = inject(ToastController);
@@ -41,19 +40,13 @@ export class CreateReportPage {
     }
     this.saving = true;
     try {
-      const user = await this.auth.getCurrentUserOrThrow();
       const v = this.form.getRawValue();
-      await this.reports.createReport({
-        reporterUid: user.uid,
+      await firstValueFrom(this.reports.createReport({
         reportedUid: this.reportedUid,
         tripId: this.tripId ?? undefined,
         reason: v.reason.trim(),
         evidenceUrl: v.evidenceUrl?.trim() || undefined,
-      });
-      await this.audit.log(user.uid, 'report.create', { 
-        reportedUid: this.reportedUid,
-        tripId: this.tripId 
-      });
+      }));
 
       const toast = await this.toastCtrl.create({
         message: 'Reporte enviado. Gracias por ayudar a mantener la comunidad segura.',

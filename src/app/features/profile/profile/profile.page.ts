@@ -5,10 +5,7 @@ import { RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { of, switchMap } from 'rxjs';
-
-import { Storage } from '@angular/fire/storage';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { of, switchMap, firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { UsersService } from '../../../core/services/users.service';
@@ -26,7 +23,6 @@ export class ProfilePage {
   private readonly auth = inject(AuthService);
   private readonly users = inject(UsersService);
   private readonly toastCtrl = inject(ToastController);
-  private readonly storage = inject(Storage);
   private readonly location = inject(Location);
 
   uid: string | null = null;
@@ -45,6 +41,7 @@ export class ProfilePage {
   uploadingPhoto = false;
 
   get ratingAvg(): number {
+    if (this.profile?.averageRating) return this.profile.averageRating;
     const sum = this.profile?.ratingSum ?? 0;
     const count = this.profile?.ratingCount ?? 0;
     if (!count) return 0;
@@ -100,7 +97,8 @@ export class ProfilePage {
     }
     this.saving = true;
     try {
-      await this.users.updateProfile(this.uid, this.form.getRawValue());
+      const updated = await firstValueFrom(this.users.updateProfile(this.form.getRawValue()));
+      this.profile = updated;
       const toast = await this.toastCtrl.create({
         message: 'Perfil actualizado.',
         duration: 1800,
@@ -137,11 +135,11 @@ export class ProfilePage {
       return;
     }
 
-    // Limitamos a 500KB porque Firestore tiene un límite de 1MB por documento entero.
+    // Limitamos a 500KB para evitar problemas con el backend.
     const maxBytes = 500 * 1024; 
     if (file.size > maxBytes) {
       const toast = await this.toastCtrl.create({
-        message: 'Para no usar Storage, la imagen debe ser ligera (máx 500 KB). Usa un avatar más pequeño.',
+        message: 'La imagen debe ser ligera (máx 500 KB). Usa un avatar más pequeño.',
         duration: 3500,
         position: 'top',
         color: 'warning',
@@ -160,11 +158,11 @@ export class ProfilePage {
         reader.readAsDataURL(file);
       });
 
-      // Guardamos el texto gigante (Base64) en Firestore
-      await this.users.updateProfile(this.uid, { photoUrl: base64Url });
+      // Guardamos el Base64 vía API REST
+      await firstValueFrom(this.users.updateProfile({ photoUrl: base64Url }));
 
       const toast = await this.toastCtrl.create({
-        message: 'Foto de perfil actualizada sin usar Firebase Storage.',
+        message: 'Foto de perfil actualizada.',
         duration: 1800,
         position: 'top',
         color: 'success',

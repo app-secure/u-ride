@@ -2,6 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { BehaviorSubject, switchMap, map } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 import { ReportsService } from '../../../core/services/reports.service';
 import { UsersService } from '../../../core/services/users.service';
@@ -21,8 +23,13 @@ export class ReportsPage {
   private readonly authSvc = inject(AuthService);
   private readonly toastCtrl = inject(ToastController);
 
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
+
   readonly user$ = this.authSvc.user$;
-  readonly reports$ = this.reportsSvc.reports$('open');
+  readonly reports$ = this.refresh$.pipe(
+    switchMap(() => this.reportsSvc.getAll(1, 50)),
+    map(result => result.items),
+  );
   busy = false;
 
   async logout(): Promise<void> {
@@ -32,11 +39,8 @@ export class ReportsPage {
   async markWarned(report: Report): Promise<void> {
     this.busy = true;
     try {
-      await this.reportsSvc.resolveReport(report.id, {
-        status: 'resolved',
-        action: 'warned',
-        adminNotes: 'Advertencia aplicada.',
-      });
+      await firstValueFrom(this.reportsSvc.resolveReport(report.id, 'warned', 'Advertencia aplicada.'));
+      this.refresh$.next();
       await this.toast('Reporte resuelto: advertencia.', 'success');
     } finally {
       this.busy = false;
@@ -46,13 +50,10 @@ export class ReportsPage {
   async suspend7d(report: Report): Promise<void> {
     this.busy = true;
     try {
-      const until = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-      await this.users.updateProfile(report.reportedUid, { suspendedUntil: until });
-      await this.reportsSvc.resolveReport(report.id, {
-        status: 'resolved',
-        action: 'suspended',
-        adminNotes: `Suspendido hasta ${until}`,
-      });
+      const until = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      await firstValueFrom(this.users.suspendUser(report.reportedUid, until));
+      await firstValueFrom(this.reportsSvc.resolveReport(report.id, 'suspended', `Suspendido hasta ${until.toISOString()}`));
+      this.refresh$.next();
       await this.toast('Reporte resuelto: suspensión 7 días.', 'warning');
     } finally {
       this.busy = false;
