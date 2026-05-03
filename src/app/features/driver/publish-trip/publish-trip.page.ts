@@ -297,7 +297,7 @@ export class PublishTripPage {
           return;
         }
 
-        await this.trips.updateTrip(this.editTripId, {
+        await firstValueFrom(this.trips.updateTrip(this.editTripId, {
           routeName: v.routeName.trim(),
           originZone: v.originZone.trim(),
           destinationZone: v.destinationZone.trim(),
@@ -319,7 +319,7 @@ export class PublishTripPage {
             color: v.vehicleColor.trim(),
           },
           rules,
-        });
+        }));
       } else {
         await firstValueFrom(this.trips.publishTrip({
           routeName: v.routeName.trim(),

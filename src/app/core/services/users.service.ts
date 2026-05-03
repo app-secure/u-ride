@@ -5,6 +5,7 @@ import { Observable, map } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import type { UserProfile, UserProfileUpdate } from '../models/user-profile.model';
+import type { PagedResult } from '../models/paged-result.model';
 
 /** Forma del DTO que devuelve el backend (usa firebaseUid en vez de uid). */
 interface UserProfileApiDto {
@@ -171,5 +172,59 @@ export class UsersService {
    */
   suspendUser(uid: string, until: Date): Observable<any> {
     return this.http.post(`${this.base}/${uid}/suspend`, { until: until.toISOString() });
+  }
+
+  // ─── Admin ───
+
+  /**
+   * [Admin] Lista todos los usuarios con paginación.
+   * GET /api/users?page=1&pageSize=50
+   */
+  getAllUsers(page = 1, pageSize = 50): Observable<PagedResult<UserProfile>> {
+    return this.http.get<{
+      items: UserProfileApiDto[];
+      totalCount: number;
+      page: number;
+      pageSize: number;
+      totalPages: number;
+    }>(`${this.base}`, { params: { page: page.toString(), pageSize: pageSize.toString() } }).pipe(
+      map(result => ({
+        items: result.items.map(dto => this.mapProfile(dto)),
+        totalCount: result.totalCount,
+        page: result.page,
+        pageSize: result.pageSize,
+        totalPages: result.totalPages ?? Math.ceil(result.totalCount / result.pageSize),
+      })),
+    );
+  }
+
+  /**
+   * [Admin] Actualiza el perfil de cualquier usuario.
+   * PUT /api/users/{uid}
+   */
+  adminUpdateUser(uid: string, patch: UserProfileUpdate): Observable<UserProfile> {
+    const body: Partial<SyncUserDto> = {
+      displayName: patch.displayName,
+      career: patch.career,
+      zone: patch.zone,
+      phone: patch.phone,
+    };
+    const cleanBody: Record<string, any> = {};
+    for (const [k, v] of Object.entries(body)) {
+      if (v !== undefined) cleanBody[k] = v;
+    }
+    return this.http.put<UserProfileApiDto>(`${this.base}/${uid}`, cleanBody).pipe(
+      map(dto => this.mapProfile(dto)),
+    );
+  }
+
+  /**
+   * [Admin] Activa/desactiva un usuario.
+   * POST /api/users/{uid}/toggle-disabled
+   */
+  toggleDisabled(uid: string): Observable<UserProfile> {
+    return this.http.post<UserProfileApiDto>(`${this.base}/${uid}/toggle-disabled`, {}).pipe(
+      map(dto => this.mapProfile(dto)),
+    );
   }
 }

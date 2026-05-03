@@ -2,7 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
@@ -22,13 +23,18 @@ export class AdminUsersPage {
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
 
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
+
   readonly user$ = this.authSvc.user$;
 
-  /**
-   * STUB: No hay endpoint para listar todos los usuarios.
-   * Se mantiene como observable vacío hasta que se implemente el endpoint en el backend.
-   */
-  readonly users$: Observable<UserProfile[]> = of([]);
+  readonly users$: Observable<UserProfile[]> = this.refresh$.pipe(
+    switchMap(() => this.usersSvc.getAllUsers(1, 100)),
+    map(result =>
+      [...result.items]
+        .filter(u => !!u?.uid)
+        .sort((a, b) => String(a.displayName ?? '').localeCompare(String(b.displayName ?? ''))),
+    ),
+  );
 
   async logout(): Promise<void> {
     await this.authSvc.logout();
@@ -48,9 +54,18 @@ export class AdminUsersPage {
         {
           text: 'Guardar',
           handler: async data => {
-            // STUB: Admin edit requires backend endpoint
-            console.warn('[AdminUsersPage] editUser: stub — no admin endpoint yet');
-            await this.toast('Funcionalidad pendiente: endpoint de admin.', 'warning');
+            try {
+              await firstValueFrom(this.usersSvc.adminUpdateUser(u.uid, {
+                displayName: String(data?.displayName ?? '').trim(),
+                career: String(data?.career ?? '').trim(),
+                zone: String(data?.zone ?? '').trim(),
+                phone: String(data?.phone ?? '').trim() || undefined,
+              }));
+              this.refresh$.next();
+              await this.toast('Usuario actualizado.', 'success');
+            } catch {
+              await this.toast('Error al actualizar usuario.', 'danger');
+            }
             return true;
           },
         },
@@ -72,9 +87,13 @@ export class AdminUsersPage {
           text: next ? 'Desactivar' : 'Activar',
           role: next ? 'destructive' : 'confirm',
           handler: async () => {
-            // STUB: Toggle disabled requires backend endpoint
-            console.warn('[AdminUsersPage] toggleDisabled: stub — no admin endpoint yet');
-            await this.toast('Funcionalidad pendiente: endpoint de admin.', 'warning');
+            try {
+              await firstValueFrom(this.usersSvc.toggleDisabled(u.uid));
+              this.refresh$.next();
+              await this.toast(next ? 'Usuario desactivado.' : 'Usuario activado.', next ? 'warning' : 'success');
+            } catch {
+              await this.toast('Error al cambiar estado.', 'danger');
+            }
           },
         },
       ],

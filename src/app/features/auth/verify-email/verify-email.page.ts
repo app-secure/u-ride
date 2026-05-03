@@ -25,9 +25,27 @@ export class VerifyEmailPage {
   private readonly toastCtrl = inject(ToastController);
 
   loading = false;
+  private emailSentOnLoad = false;
 
   get email(): string {
     return this.auth.currentUser?.email ?? '';
+  }
+
+  /**
+   * Envía el correo de verificación automáticamente al cargar la página.
+   */
+  async ionViewWillEnter(): Promise<void> {
+    if (this.emailSentOnLoad) return;
+    const user = this.auth.currentUser;
+    if (user && !user.emailVerified) {
+      try {
+        await sendEmailVerification(user);
+        this.emailSentOnLoad = true;
+      } catch (e: any) {
+        // Silenciar error si ya se envió recientemente (Firebase rate limit)
+        console.warn('[VerifyEmailPage] auto-send failed:', e?.code ?? e);
+      }
+    }
   }
 
   async resend(): Promise<void> {

@@ -2,13 +2,12 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
-import { TripsService } from '../../../core/services/trips.service';
-
-type TripRuleDoc = { id: string; text: string };
+import { TripsService, TripRuleDoc } from '../../../core/services/trips.service';
 
 @Component({
   selector: 'app-admin-rules',
@@ -23,11 +22,14 @@ export class AdminRulesPage {
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
 
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
+
   readonly user$ = this.authSvc.user$;
 
-  readonly rules$: Observable<TripRuleDoc[]> = this.trips
-    .tripRulesDocs$()
-    .pipe(map(items => items.sort((a, b) => a.text.localeCompare(b.text))));
+  readonly rules$: Observable<TripRuleDoc[]> = this.refresh$.pipe(
+    switchMap(() => this.trips.tripRulesDocs$()),
+    map(items => items.sort((a, b) => a.text.localeCompare(b.text))),
+  );
 
   async logout(): Promise<void> {
     await this.authSvc.logout();
@@ -44,7 +46,8 @@ export class AdminRulesPage {
           handler: async data => {
             const text = String(data?.text ?? '').trim();
             if (!text) return false;
-            await this.trips.createTripRule(text);
+            await firstValueFrom(this.trips.createTripRule(text));
+            this.refresh$.next();
             await this.toast('Regla creada.', 'success');
             return true;
           },
@@ -65,7 +68,8 @@ export class AdminRulesPage {
           handler: async data => {
             const text = String(data?.text ?? '').trim();
             if (!text) return false;
-            await this.trips.updateTripRule(r.id, text);
+            await firstValueFrom(this.trips.updateTripRule(r.id, text));
+            this.refresh$.next();
             await this.toast('Regla actualizada.', 'success');
             return true;
           },
@@ -85,7 +89,8 @@ export class AdminRulesPage {
           text: 'Eliminar',
           role: 'destructive',
           handler: async () => {
-            await this.trips.deleteTripRule(r.id);
+            await firstValueFrom(this.trips.deleteTripRule(r.id));
+            this.refresh$.next();
             await this.toast('Regla eliminada.', 'medium');
           },
         },

@@ -2,13 +2,12 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
-import { TripsService } from '../../../core/services/trips.service';
-
-type TripRouteDoc = { id: string; name: string };
+import { TripsService, TripRouteDoc } from '../../../core/services/trips.service';
 
 @Component({
   selector: 'app-admin-routes',
@@ -23,11 +22,14 @@ export class AdminRoutesPage {
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
 
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
+
   readonly user$ = this.authSvc.user$;
 
-  readonly routes$: Observable<TripRouteDoc[]> = this.trips
-    .tripRoutesDocs$()
-    .pipe(map(items => items.sort((a, b) => a.name.localeCompare(b.name))));
+  readonly routes$: Observable<TripRouteDoc[]> = this.refresh$.pipe(
+    switchMap(() => this.trips.tripRoutesDocs$()),
+    map(items => items.sort((a, b) => a.name.localeCompare(b.name))),
+  );
 
   async logout(): Promise<void> {
     await this.authSvc.logout();
@@ -44,7 +46,8 @@ export class AdminRoutesPage {
           handler: async data => {
             const name = String(data?.name ?? '').trim();
             if (!name) return false;
-            await this.trips.createTripRoute(name);
+            await firstValueFrom(this.trips.createTripRoute(name));
+            this.refresh$.next();
             await this.toast('Ruta creada.', 'success');
             return true;
           },
@@ -65,7 +68,8 @@ export class AdminRoutesPage {
           handler: async data => {
             const name = String(data?.name ?? '').trim();
             if (!name) return false;
-            await this.trips.updateTripRoute(r.id, name);
+            await firstValueFrom(this.trips.updateTripRoute(r.id, name));
+            this.refresh$.next();
             await this.toast('Ruta actualizada.', 'success');
             return true;
           },
@@ -85,7 +89,8 @@ export class AdminRoutesPage {
           text: 'Eliminar',
           role: 'destructive',
           handler: async () => {
-            await this.trips.deleteTripRoute(r.id);
+            await firstValueFrom(this.trips.deleteTripRoute(r.id));
+            this.refresh$.next();
             await this.toast('Ruta eliminada.', 'medium');
           },
         },

@@ -45,8 +45,16 @@ export class AuthService {
     const cred = await createUserWithEmailAndPassword(this.auth, normalized, payload.password);
     
     if (cred.user) {
+      const displayName = `${payload.firstName.trim()} ${payload.lastName.trim()}`;
+
+      // Establecer displayName en Firebase Auth para que persista en el token
       try {
-        const displayName = `${payload.firstName.trim()} ${payload.lastName.trim()}`;
+        await updateProfile(cred.user, { displayName });
+      } catch (e) {
+        console.warn('[AuthService.register] updateProfile on Firebase failed:', e);
+      }
+
+      try {
         // Sincronizar usuario con el backend vía API REST
         await firstValueFrom(
           this.users.syncUserWithDetails(cred.user, {

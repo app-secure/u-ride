@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { environment } from '../../../environments/environment';
@@ -15,101 +15,107 @@ export interface TripSearchFilters {
   pageSize?: number;
 }
 
+export interface TripRouteDoc {
+  id: string;
+  name: string;
+}
+
+export interface TripRuleDoc {
+  id: string;
+  text: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TripsService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/trips`;
 
-  private static readonly DEFAULT_TRIP_ROUTES: string[] = [
-    'Izamba - Huachi Chico - Querochaca',
-    'Ingahurco -Huahi Chico - Querochaca',
-    'Ingahurco -Huachi Chico',
-    'Huachi Chico- Querochaca',
-    'Huachi Chico -Ingahurco',
-  ];
-
-  private static readonly DEFAULT_TRIP_RULES: string[] = [
-    'Puntualidad',
-    'Respeto y buen trato',
-    'No compartir datos sensibles',
-  ];
-
-  // ─── Rutas y Reglas (stubs — sin endpoint backend) ───
+  // ─── Rutas (API REST) ───
 
   /**
-   * Retorna las rutas disponibles.
-   * STUB: retorna lista estática hasta que se implemente endpoint backend.
+   * Lista todas las rutas predefinidas.
+   * GET /api/trips/routes
    */
   tripRoutes$(): Observable<string[]> {
-    return of(TripsService.DEFAULT_TRIP_ROUTES);
-  }
-
-  /**
-   * STUB: Retorna documentos de rutas para admin.
-   */
-  tripRoutesDocs$(): Observable<Array<{ id: string; name: string }>> {
-    return of(
-      TripsService.DEFAULT_TRIP_ROUTES.map((name, i) => ({ id: `route-${i}`, name })),
+    return this.http.get<TripRouteDoc[]>(`${this.base}/routes`).pipe(
+      map(routes => routes.map(r => r.name)),
     );
   }
 
   /**
-   * STUB: Crear ruta (sin endpoint backend).
+   * Lista documentos de rutas (id + name) para admin.
+   * GET /api/trips/routes
    */
-  async createTripRoute(_name: string): Promise<void> {
-    console.warn('[TripsService] createTripRoute: stub — no backend endpoint yet');
+  tripRoutesDocs$(): Observable<TripRouteDoc[]> {
+    return this.http.get<TripRouteDoc[]>(`${this.base}/routes`);
   }
 
   /**
-   * STUB: Actualizar ruta (sin endpoint backend).
+   * Crea una nueva ruta.
+   * POST /api/trips/routes
    */
-  async updateTripRoute(_id: string, _name: string): Promise<void> {
-    console.warn('[TripsService] updateTripRoute: stub — no backend endpoint yet');
+  createTripRoute(name: string): Observable<TripRouteDoc> {
+    return this.http.post<TripRouteDoc>(`${this.base}/routes`, { name });
   }
 
   /**
-   * STUB: Eliminar ruta (sin endpoint backend).
+   * Actualiza una ruta existente.
+   * PUT /api/trips/routes/{id}
    */
-  async deleteTripRoute(_id: string): Promise<void> {
-    console.warn('[TripsService] deleteTripRoute: stub — no backend endpoint yet');
+  updateTripRoute(id: string, name: string): Observable<TripRouteDoc> {
+    return this.http.put<TripRouteDoc>(`${this.base}/routes/${id}`, { name });
   }
 
   /**
-   * Retorna las reglas disponibles.
-   * STUB: retorna lista estática.
+   * Elimina una ruta.
+   * DELETE /api/trips/routes/{id}
+   */
+  deleteTripRoute(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/routes/${id}`);
+  }
+
+  // ─── Reglas (API REST) ───
+
+  /**
+   * Lista todas las reglas predefinidas.
+   * GET /api/trips/rules
    */
   tripRules$(): Observable<string[]> {
-    return of(TripsService.DEFAULT_TRIP_RULES);
-  }
-
-  /**
-   * STUB: Retorna documentos de reglas para admin.
-   */
-  tripRulesDocs$(): Observable<Array<{ id: string; text: string }>> {
-    return of(
-      TripsService.DEFAULT_TRIP_RULES.map((text, i) => ({ id: `rule-${i}`, text })),
+    return this.http.get<TripRuleDoc[]>(`${this.base}/rules`).pipe(
+      map(rules => rules.map(r => r.text)),
     );
   }
 
   /**
-   * STUB: Crear regla (sin endpoint backend).
+   * Lista documentos de reglas (id + text) para admin.
+   * GET /api/trips/rules
    */
-  async createTripRule(_text: string): Promise<void> {
-    console.warn('[TripsService] createTripRule: stub — no backend endpoint yet');
+  tripRulesDocs$(): Observable<TripRuleDoc[]> {
+    return this.http.get<TripRuleDoc[]>(`${this.base}/rules`);
   }
 
   /**
-   * STUB: Actualizar regla (sin endpoint backend).
+   * Crea una nueva regla.
+   * POST /api/trips/rules
    */
-  async updateTripRule(_id: string, _text: string): Promise<void> {
-    console.warn('[TripsService] updateTripRule: stub — no backend endpoint yet');
+  createTripRule(text: string): Observable<TripRuleDoc> {
+    return this.http.post<TripRuleDoc>(`${this.base}/rules`, { text });
   }
 
   /**
-   * STUB: Eliminar regla (sin endpoint backend).
+   * Actualiza una regla existente.
+   * PUT /api/trips/rules/{id}
    */
-  async deleteTripRule(_id: string): Promise<void> {
-    console.warn('[TripsService] deleteTripRule: stub — no backend endpoint yet');
+  updateTripRule(id: string, text: string): Observable<TripRuleDoc> {
+    return this.http.put<TripRuleDoc>(`${this.base}/rules/${id}`, { text });
+  }
+
+  /**
+   * Elimina una regla.
+   * DELETE /api/trips/rules/{id}
+   */
+  deleteTripRule(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/rules/${id}`);
   }
 
   // ─── Viajes (API REST) ───
@@ -161,25 +167,24 @@ export class TripsService {
     return this.http.patch<Trip>(`${this.base}/${id}/status`, { status });
   }
 
-  // ─── Stubs para funcionalidades sin endpoint backend ───
-
   /**
-   * STUB: Eliminar viaje (sin endpoint DELETE en backend).
+   * Actualiza un viaje existente.
+   * PUT /api/trips/{id}
    */
-  async deleteTrip(_tripId: string): Promise<void> {
-    console.warn('[TripsService] deleteTrip: stub — no backend endpoint yet');
+  updateTrip(tripId: string, patch: Partial<Trip>): Observable<Trip> {
+    return this.http.put<Trip>(`${this.base}/${tripId}`, patch);
   }
 
   /**
-   * STUB: Actualizar viaje parcialmente (sin endpoint PATCH genérico en backend).
+   * Elimina un viaje.
+   * DELETE /api/trips/{id}
    */
-  async updateTrip(_tripId: string, _patch: Partial<Trip>): Promise<void> {
-    console.warn('[TripsService] updateTrip: stub — no backend endpoint yet');
+  deleteTrip(tripId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${tripId}`);
   }
 
   /**
-   * STUB: Completar viaje con lógica de contadores y notificaciones.
-   * Actualmente el backend lo maneja al cambiar estado a 'completed'.
+   * Completa un viaje (cambiar estado a 'completed').
    */
   async completeTrip(tripId: string): Promise<void> {
     await this.updateTripStatus(tripId, 'completed').toPromise();

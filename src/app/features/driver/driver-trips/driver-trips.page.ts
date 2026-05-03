@@ -124,7 +124,7 @@ export class DriverTripsPage {
           role: 'destructive',
           handler: async () => {
             try {
-              await this.tripsSvc.deleteTrip(trip.id);
+              await firstValueFrom(this.tripsSvc.deleteTrip(trip.id));
               this.refresh$.next();
               await this.presentToast('Viaje eliminado.', 'success');
             } catch {
