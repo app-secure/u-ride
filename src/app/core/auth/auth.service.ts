@@ -15,6 +15,7 @@ import {
   updateProfile,
   OAuthProvider,
   signInWithPopup,
+  sendPasswordResetEmail,
 } from '@angular/fire/auth';
 import { Observable, firstValueFrom } from 'rxjs';
 
@@ -160,6 +161,11 @@ export class AuthService {
   async logout(): Promise<void> {
     await signOut(this.auth);
     await this.router.navigateByUrl('/auth/login');
+  }
+
+  async resetPassword(email: string): Promise<void> {
+    const normalized = email.trim().toLowerCase();
+    await sendPasswordResetEmail(this.auth, normalized);
   }
 
   async refreshCurrentUser(): Promise<User | null> {

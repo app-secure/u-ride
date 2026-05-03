@@ -175,6 +175,22 @@
   font-size: 22px;
 }
 
+.forgot-password-link {
+  text-align: right;
+  margin-top: 8px;
+  
+  a {
+    color: var(--ion-color-primary);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    
+    &:active {
+      opacity: 0.7;
+    }
+  }
+}
+
 .auth-footer {
   display: flex;
   justify-content: center;

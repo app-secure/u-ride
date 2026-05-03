@@ -43,6 +43,10 @@
             <span class="error-message fade-in-up"
               *ngIf="form.get('password')?.invalid && form.get('password')?.touched">Contraseña obligatoria</span>
           </div>
+          
+          <div class="forgot-password-link">
+            <a routerLink="/auth/forgot-password">¿Olvidaste tu contraseña?</a>
+          </div>
         </div>
 
       <div class="actions-section fade-in-up" style="animation-delay: 0.3s">
