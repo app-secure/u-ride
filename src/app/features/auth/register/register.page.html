@@ -28,19 +28,19 @@
         <div class="uride-input-group">
           <label class="uride-label">Nombres:</label>
           <ion-item class="uride-input-item">
-            <ion-input autocomplete="given-name" formControlName="firstName" placeholder="Ej: Cristian"></ion-input>
+            <ion-input autocomplete="given-name" inputmode="text" formControlName="firstName" placeholder="Ej: Cristian" (keydown)="onNameKeydown($event)" (paste)="onNamePaste($event)"></ion-input>
           </ion-item>
           <span class="error-message fade-in-up"
-            *ngIf="form.get('firstName')?.invalid && form.get('firstName')?.touched">Campo obligatorio</span>
+            *ngIf="form.get('firstName')?.hasError('required') && form.get('firstName')?.touched">Campo obligatorio</span>
         </div>
 
         <div class="uride-input-group">
           <label class="uride-label">Apellidos:</label>
           <ion-item class="uride-input-item">
-            <ion-input autocomplete="family-name" formControlName="lastName" placeholder="Ej: Jurado"></ion-input>
+            <ion-input autocomplete="family-name" inputmode="text" formControlName="lastName" placeholder="Ej: Jurado" (keydown)="onNameKeydown($event)" (paste)="onNamePaste($event)"></ion-input>
           </ion-item>
           <span class="error-message fade-in-up"
-            *ngIf="form.get('lastName')?.invalid && form.get('lastName')?.touched">Campo obligatorio</span>
+            *ngIf="form.get('lastName')?.hasError('required') && form.get('lastName')?.touched">Campo obligatorio</span>
         </div>
       </div>
 
@@ -102,10 +102,12 @@
         <div class="uride-input-group">
           <label class="uride-label">Teléfono móvil:</label>
           <ion-item class="uride-input-item">
-            <ion-input inputmode="tel" autocomplete="tel" formControlName="phone" placeholder="10 dígitos"></ion-input>
+            <ion-input inputmode="numeric" autocomplete="tel" formControlName="phone" placeholder="10 dígitos" (keydown)="onPhoneKeydown($event)" (paste)="onPhonePaste($event)"></ion-input>
           </ion-item>
-          <span class="error-message fade-in-up" *ngIf="form.get('phone')?.invalid && form.get('phone')?.touched">El
-            celular debe ser válido</span>
+          <span class="error-message fade-in-up" *ngIf="form.get('phone')?.hasError('required') && form.get('phone')?.touched">El
+            teléfono es obligatorio</span>
+          <span class="error-message fade-in-up" *ngIf="form.get('phone')?.hasError('pattern') && form.get('phone')?.touched">El
+            teléfono debe tener exactamente 10 dígitos</span>
         </div>
 
         <div class="uride-input-group">

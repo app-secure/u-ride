@@ -1,7 +1,7 @@
 <ion-content [fullscreen]="true" class="map-content">
   <div class="map-full" #mapEl aria-label="Mapa del viaje"></div>
 
-  <ion-modal [isOpen]="isModalOpen" [initialBreakpoint]="0.32" [breakpoints]="[0.18, 0.32, 0.6, 0.9]" [handle]="true"
+  <ion-modal #tripModal [isOpen]="isModalOpen" [initialBreakpoint]="0.32" [breakpoints]="[0.18, 0.32, 0.6, 0.9]" [handle]="true"
     [showBackdrop]="false" [backdropDismiss]="false" (didPresent)="onSheetChanged()"
     (ionBreakpointDidChange)="onSheetChanged()">
     <ng-template>
@@ -173,12 +173,12 @@
                 {{ sharingTrip ? 'Dejar de compartir trayecto' : 'Compartir trayecto' }}
               </button>
 
-              <button class="btn-success" *ngIf="canFinalize" (click)="completeTrip()">
+              <button class="btn-success" *ngIf="canFinalize" [disabled]="isCompletingTrip || isCancellingTrip" (click)="completeTrip()">
                 Finalizar viaje
               </button>
 
               <button class="btn-outline" style="border-color: #ef4444; color: #ef4444; margin-top: 12px;"
-                *ngIf="canFinalize" (click)="cancelTrip()">
+                *ngIf="canCancelTrip" [disabled]="isCompletingTrip || isCancellingTrip" (click)="cancelTrip()">
                 Cancelar viaje
               </button>
             </div>
@@ -189,7 +189,7 @@
   </ion-modal>
 
   <!-- Checkout / Payment Modal -->
-  <ion-modal [isOpen]="isPaymentModalOpen" (didDismiss)="closePaymentModal()">
+  <ion-modal #paymentModal [isOpen]="isPaymentModalOpen" (didDismiss)="closePaymentModal()">
     <ng-template>
       <ion-header class="ion-no-border">
         <ion-toolbar>

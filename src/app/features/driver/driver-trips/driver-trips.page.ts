@@ -49,6 +49,10 @@ export class DriverTripsPage {
     ))
   );
 
+  ionViewWillEnter(): void {
+    this.refresh$.next();
+  }
+
   doRefresh(event: any): void {
     this.refresh$.next();
     setTimeout(() => event.target.complete(), 600);

@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators, type ValidationErrors } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators, type ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 
@@ -22,14 +22,30 @@ export class RegisterPage {
 
   readonly domain = environment.institutionEmailDomain;
 
+  private noNumbersValidator(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) {
+      return null;
+    }
+    const hasNumbers = /\d/.test(control.value);
+    return hasNumbers ? { hasNumbers: true } : null;
+  }
+
+  private onlyNumbersValidator(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) {
+      return null;
+    }
+    const hasLetters = /[a-zA-Z]/.test(control.value);
+    return hasLetters ? { hasLetters: true } : null;
+  }
+
   readonly form = this.fb.nonNullable.group({
-    firstName: ['', [Validators.required, Validators.minLength(2)]],
-    lastName: ['', [Validators.required, Validators.minLength(2)]],
+    firstName: ['', [Validators.required, Validators.minLength(2), (c: AbstractControl) => this.noNumbersValidator(c)]],
+    lastName: ['', [Validators.required, Validators.minLength(2), (c: AbstractControl) => this.noNumbersValidator(c)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     password2: ['', [Validators.required, Validators.minLength(6)]],
     career: ['', [Validators.required, Validators.minLength(2)]],
-    phone: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
+    phone: ['', [Validators.required, Validators.pattern(/^\d{10}$/), (c: AbstractControl) => this.onlyNumbersValidator(c)]],
     zone: ['', [Validators.required, Validators.minLength(2)]],
   });
 
@@ -43,6 +59,22 @@ export class RegisterPage {
 
   togglePassword2(): void {
     this.showPassword2 = !this.showPassword2;
+  }
+
+  onNameKeydown(event: KeyboardEvent): void {
+    this.blockInvalidInput(event, /\d/);
+  }
+
+  onPhoneKeydown(event: KeyboardEvent): void {
+    this.blockInvalidInput(event, /[^\d]/);
+  }
+
+  onNamePaste(event: ClipboardEvent): void {
+    this.blockInvalidPaste(event, /\d/);
+  }
+
+  onPhonePaste(event: ClipboardEvent): void {
+    this.blockInvalidPaste(event, /[^\d]/);
   }
 
   async submit(): Promise<void> {
@@ -99,6 +131,41 @@ export class RegisterPage {
     const value = String(email ?? '').trim().toLowerCase();
     if (!value) return null;
     return value.endsWith(`@${domain}`) ? null : { institutionEmail: true };
+  }
+
+  private blockInvalidInput(event: KeyboardEvent, invalidPattern: RegExp): void {
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+      return;
+    }
+
+    const allowedKeys = [
+      'Backspace',
+      'Delete',
+      'Tab',
+      'Escape',
+      'Enter',
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'Home',
+      'End',
+    ];
+
+    if (allowedKeys.includes(event.key)) {
+      return;
+    }
+
+    if (invalidPattern.test(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  private blockInvalidPaste(event: ClipboardEvent, invalidPattern: RegExp): void {
+    const pastedText = event.clipboardData?.getData('text') ?? '';
+    if (invalidPattern.test(pastedText)) {
+      event.preventDefault();
+    }
   }
 
   private mapRegisterErrorMessage(e: unknown): string {

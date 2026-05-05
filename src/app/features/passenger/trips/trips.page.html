@@ -25,7 +25,7 @@
             <label>Fecha</label>
             <div class="input-wrapper">
               <ion-icon name="calendar-outline"></ion-icon>
-              <input type="date" formControlName="date" placeholder="dd/mm/aaaa" />
+              <input type="date" formControlName="date" placeholder="dd/mm/aaaa" [min]="getTodayDate()" />
             </div>
           </div>
         </div>

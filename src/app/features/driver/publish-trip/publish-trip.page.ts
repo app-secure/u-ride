@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators, type ValidationErrors, type ValidatorFn } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -39,6 +39,7 @@ export class PublishTripPage {
 
   readonly routeOptions$ = this.trips.tripRoutes$();
   readonly ruleOptions$ = this.trips.tripRules$();
+  readonly paymentMethods = ['Efectivo', 'Tarjeta', 'Transferencia'];
 
   readonly publishForm = this.fb.nonNullable.group({
     routeName: ['', [Validators.required]],
@@ -55,7 +56,7 @@ export class PublishTripPage {
     paymentMethod: ['', Validators.required],
     ruleTexts: [[] as string[]],
     notes: [''],
-    vehiclePlate: ['', [Validators.required]],
+    vehiclePlate: ['', [Validators.required, Validators.pattern(/^[A-Z]{3}-\d{4}$/)]],
     vehicleModel: ['', [Validators.required]],
     vehicleBrand: ['', [Validators.required]],
     vehicleColor: ['', [Validators.required]],
@@ -68,6 +69,8 @@ export class PublishTripPage {
   }
 
   constructor() {
+    this.publishForm.addValidators(this.departureDateTimeValidator());
+
     this.auth.user$
       .pipe(
         switchMap(user => (user ? this.users.profile$(user.uid) : of(undefined))),
@@ -214,6 +217,95 @@ export class PublishTripPage {
     if (checked) next.add(text);
     else next.delete(text);
     this.publishForm.controls.ruleTexts.setValue(Array.from(next));
+  }
+
+  todayDate(): string {
+    return this.formatDate(new Date());
+  }
+
+  minTimeForSelectedDate(): string | null {
+    if (this.publishForm.controls.date.value !== this.todayDate()) {
+      return null;
+    }
+
+    const now = new Date();
+    now.setSeconds(0, 0);
+    return this.formatTime(now);
+  }
+
+  onVehiclePlateInput(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) return;
+
+    const formatted = this.formatVehiclePlate(input.value);
+    input.value = formatted;
+    this.publishForm.controls.vehiclePlate.setValue(formatted);
+  }
+
+  onTimeChange(): void {
+    const selectedDate = this.publishForm.controls.date.value;
+    const selectedTime = this.publishForm.controls.time.value;
+
+    if (!selectedDate || !selectedTime) {
+      return;
+    }
+
+    if (selectedDate !== this.todayDate()) {
+      return;
+    }
+
+    const selectedDateTime = new Date(`${selectedDate}T${selectedTime}:00`);
+    const now = new Date();
+    now.setSeconds(0, 0);
+
+    if (selectedDateTime < now) {
+      const currentTime = this.formatTime(now);
+      this.publishForm.controls.time.setValue(currentTime, { emitEvent: false });
+    }
+  }
+
+  private departureDateTimeValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const date = String(control.get('date')?.value ?? '').trim();
+      const time = String(control.get('time')?.value ?? '').trim();
+      if (!date || !time) return null;
+
+      const selected = new Date(`${date}T${time}:00`);
+      if (Number.isNaN(selected.getTime())) return null;
+
+      const now = new Date();
+      now.setSeconds(0, 0);
+
+      return selected < now ? { departureInPast: true } : null;
+    };
+  }
+
+  private formatVehiclePlate(value: string): string {
+    const letters = (value.match(/[A-Z]/gi) ?? []).join('').toUpperCase().slice(0, 3);
+    const numbers = (value.match(/\d/g) ?? []).join('').slice(0, 4);
+
+    if (!letters) {
+      return '';
+    }
+
+    if (letters.length < 3) {
+      return letters;
+    }
+
+    return numbers.length > 0 ? `${letters}-${numbers}` : letters;
+  }
+
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private formatTime(date: Date): string {
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
   }
 
   async onSubmit(): Promise<void> {
