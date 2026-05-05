@@ -135,11 +135,11 @@ export class ProfilePage {
       return;
     }
 
-    // Limitamos a 500KB para evitar problemas con el backend.
-    const maxBytes = 500 * 1024; 
+    // Limitamos a 5MB.
+    const maxBytes = 5 * 1024 * 1024; 
     if (file.size > maxBytes) {
       const toast = await this.toastCtrl.create({
-        message: 'La imagen debe ser ligera (máx 500 KB). Usa un avatar más pequeño.',
+        message: 'La imagen debe pesar menos de 5MB.',
         duration: 3500,
         position: 'top',
         color: 'warning',
@@ -150,16 +150,14 @@ export class ProfilePage {
 
     this.uploadingPhoto = true;
     try {
-      // Leemos el archivo y lo convertimos a texto Base64
-      const base64Url = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = error => reject(error);
-        reader.readAsDataURL(file);
-      });
+      // Subimos a Cloudinary
+      const secureUrl = await firstValueFrom(this.users.uploadProfilePicture(file));
 
-      // Guardamos el Base64 vía API REST
-      await firstValueFrom(this.users.updateProfile({ photoUrl: base64Url }));
+      // Guardamos la URL resultante vía API REST
+      const updatedProfile = await firstValueFrom(this.users.updateProfile({ photoUrl: secureUrl }));
+      if (this.profile) {
+        this.profile.photoUrl = updatedProfile.photoUrl;
+      }
 
       const toast = await this.toastCtrl.create({
         message: 'Foto de perfil actualizada.',

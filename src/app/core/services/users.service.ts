@@ -227,4 +227,19 @@ export class UsersService {
       map(dto => this.mapProfile(dto)),
     );
   }
+
+  /**
+   * Sube una imagen a Cloudinary usando Unsigned Upload
+   */
+  uploadProfilePicture(file: File): Observable<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'uride_profiles');
+    
+    const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dyfjz9q5h/image/upload';
+    
+    return this.http.post<any>(cloudinaryUrl, formData).pipe(
+      map(res => res.secure_url)
+    );
+  }
 }
