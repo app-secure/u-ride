@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { of } from 'rxjs';
 
+import { AuthService } from '../../../core/auth/auth.service';
 import { ReportsService } from '../../../core/services/reports.service';
 import { UsersService } from '../../../core/services/users.service';
 import { ReportsPage } from './reports.page';
@@ -18,16 +19,23 @@ describe('ReportsPage', () => {
       providers: [
         provideRouter([]),
         {
+          provide: AuthService,
+          useValue: {
+            user$: of({ uid: 'uid' }),
+            logout: jasmine.createSpy('logout').and.resolveTo(),
+          },
+        },
+        {
           provide: ReportsService,
           useValue: {
-            reports$: jasmine.createSpy('reports$').and.returnValue(of([])),
-            resolveReport: jasmine.createSpy('resolveReport').and.resolveTo(),
+            getAll: jasmine.createSpy('getAll').and.returnValue(of({ items: [] })),
+            resolveReport: jasmine.createSpy('resolveReport').and.returnValue(of(undefined)),
           },
         },
         {
           provide: UsersService,
           useValue: {
-            updateProfile: jasmine.createSpy('updateProfile').and.resolveTo(),
+            suspendUser: jasmine.createSpy('suspendUser').and.returnValue(of(undefined)),
           },
         },
       ],

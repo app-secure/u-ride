@@ -4,6 +4,8 @@ import { provideRouter } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { of } from 'rxjs';
 
+import { AuthService } from '../../../core/auth/auth.service';
+import { TripRequestsService } from '../../../core/services/trip-requests.service';
 import { TripsService } from '../../../core/services/trips.service';
 import { TripsPage } from './trips.page';
 
@@ -17,9 +19,23 @@ describe('TripsPage', () => {
       providers: [
         provideRouter([]),
         {
+          provide: AuthService,
+          useValue: {
+            user$: of(null),
+          },
+        },
+        {
           provide: TripsService,
           useValue: {
-            trips$: jasmine.createSpy('trips$').and.returnValue(of([])),
+            tripRoutes$: jasmine.createSpy('tripRoutes$').and.returnValue(of([])),
+            searchTrips: jasmine.createSpy('searchTrips').and.returnValue(of({ items: [] })),
+          },
+        },
+        {
+          provide: TripRequestsService,
+          useValue: {
+            getMyRequests: jasmine.createSpy('getMyRequests').and.returnValue(of([])),
+            cancelRequest: jasmine.createSpy('cancelRequest').and.returnValue(of(undefined)),
           },
         },
       ],

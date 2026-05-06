@@ -16,7 +16,7 @@ describe('ProfilePage', () => {
   let mockLocation: jasmine.SpyObj<Location>;
 
   beforeEach(async () => {
-    mockUsersService = jasmine.createSpyObj('UsersService', ['updateProfile', 'profile$']);
+    mockUsersService = jasmine.createSpyObj('UsersService', ['updateProfile', 'profile$', 'refreshMyProfile']);
     mockUsersService.updateProfile.and.returnValue(of({} as any));
     mockUsersService.profile$.and.returnValue(of({
       uid: '123',
@@ -58,7 +58,7 @@ describe('ProfilePage', () => {
     });
 
     await component.save();
-    
+
     expect(mockUsersService.updateProfile).toHaveBeenCalledWith(jasmine.objectContaining({
       displayName: 'Cristian Editado',
       zone: 'Huachi'

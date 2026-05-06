@@ -33,7 +33,10 @@ describe('PublishTripPage', () => {
         {
           provide: TripsService,
           useValue: {
-            publishTrip: jasmine.createSpy('publishTrip').and.resolveTo('tripId'),
+            publishTrip: jasmine.createSpy('publishTrip').and.returnValue(of(undefined)),
+            tripRoutes$: jasmine.createSpy('tripRoutes$').and.returnValue(of([])),
+            tripRules$: jasmine.createSpy('tripRules$').and.returnValue(of([])),
+            getById: jasmine.createSpy('getById').and.returnValue(of(undefined)),
           },
         },
       ],
