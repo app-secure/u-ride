@@ -1,99 +1,139 @@
 <div class="app-shell">
-  <!-- Mostrar la cabecera sólo si el rol ya fue seleccionado. En RoleSelectionPage no se muestra -->
+
+  <!-- HEADER -->
   <ion-header class="main-header ion-no-border" *ngIf="currentRole && !isAdminArea">
-    <ion-toolbar>
+    <ion-toolbar class="glass-toolbar">
+
+      <!-- LEFT -->
       <div class="header-left" slot="start">
-        <img src="assets/logo-uride.png" alt="U-Ride Logo" class="logo" />
+        <img src="assets/logo-uride.png" class="logo" />
         <span class="system-name">U-Ride</span>
       </div>
-      
-      <div class="header-right" slot="end" style="display: flex; align-items: center; gap: 8px;">
-        <!-- NOTIFICATIONS BELL -->
-        <ion-button id="notifications-trigger" fill="clear" color="dark" style="position: relative; margin: 0; --padding-start: 8px; --padding-end: 8px;">
-          <ion-icon name="notifications-outline" slot="icon-only" style="font-size: 28px;"></ion-icon>
-          <ion-badge *ngIf="unreadNotifs > 0" color="danger" style="position: absolute; top: 4px; right: 2px; font-size: 10px; border-radius: 50%; padding: 3px; min-width: 18px; min-height: 18px; display: flex; align-items: center; justify-content: center;">
+
+      <!-- RIGHT -->
+      <div class="header-right" slot="end">
+
+        <!-- NOTIFICATIONS -->
+        <ion-button id="notifications-trigger" fill="clear" class="icon-btn">
+          <ion-icon name="notifications-outline"></ion-icon>
+
+          <ion-badge *ngIf="unreadNotifs > 0" class="notif-badge">
             {{ unreadNotifs }}
           </ion-badge>
         </ion-button>
 
-        <ion-popover trigger="notifications-trigger" alignment="end" side="bottom" class="modern-popover" (willPresent)="onNotificationsOpen()">
+        <ion-popover trigger="notifications-trigger" side="bottom" alignment="end">
           <ng-template>
-            <ion-content class="ion-padding" style="--background: #fff; min-width: 280px; max-height: 400px;">
-              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 8px;">
-                <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #0f172a;">Notificaciones</h3>
+            <div class="notif-panel">
+
+              <div class="notif-header">
+                <h3>Notificaciones</h3>
               </div>
-              
+
               <ng-container *ngIf="notifications$ | async as notifs">
-                <div *ngIf="notifs.length === 0" style="text-align: center; padding: 20px 10px; color: #64748b;">
-                  <ion-icon name="notifications-off-outline" style="font-size: 32px; opacity: 0.5;"></ion-icon>
-                  <p style="margin: 8px 0 0; font-size: 14px;">No tienes notificaciones nuevas</p>
+
+                <div class="empty-state" *ngIf="notifs.length === 0">
+                  <ion-icon name="notifications-off-outline"></ion-icon>
+                  <p>No tienes notificaciones</p>
                 </div>
-                
-                <div *ngFor="let n of notifs" (click)="handleNotificationAction(n)" 
-                     [style.opacity]="n.read ? '0.7' : '1'"
-                     [style.background]="n.read ? 'transparent' : '#f0f9ff'"
-                     style="display: flex; gap: 12px; padding: 12px 8px; cursor: pointer; border-radius: 8px; transition: background 0.2s; margin-bottom: 4px;" 
-                     onmouseover="this.style.background='#f8fafc'" 
-                     onmouseout="this.style.background=this.getAttribute('data-read') === 'true' ? 'transparent' : '#f0f9ff'"
-                     [attr.data-read]="n.read">
-                  
-                  <div [style.background]="n.type === 'trip_completed' ? '#fef3c7' : '#dcfce7'" 
-                       [style.color]="n.type === 'trip_completed' ? '#d97706' : '#16a34a'" 
-                       style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <ion-icon [name]="n.type === 'trip_completed' ? 'star' : 'checkmark-circle'" style="font-size: 18px;"></ion-icon>
+
+                <div
+                  class="notif-item"
+                  *ngFor="let n of notifs"
+                  (click)="handleNotificationAction(n)"
+                  [class.unread]="!n.read"
+                >
+
+                  <div class="icon" [ngClass]="n.type">
+                    <ion-icon [name]="n.type === 'trip_completed' ? 'star' : 'checkmark-circle'"></ion-icon>
                   </div>
-                  
-                  <div style="display: flex; flex-direction: column;">
-                    <span style="font-weight: 600; font-size: 14px; color: #0f172a;">{{ n.title }}</span>
-                    <span style="font-size: 13px; color: #475569; margin-top: 2px; line-height: 1.3;">{{ n.message }}</span>
-                    <span style="font-size: 11px; color: #94a3b8; margin-top: 4px;">{{ n.createdAt | date:'shortTime' }}</span>
+
+                  <div class="content">
+                    <h4>{{ n.title }}</h4>
+                    <p>{{ n.message }}</p>
+                    <span>{{ n.createdAt | date:'shortTime' }}</span>
                   </div>
+
                 </div>
+
               </ng-container>
-            </ion-content>
+
+            </div>
           </ng-template>
         </ion-popover>
 
-        <div class="user-profile-btn" id="profile-popover-trigger">
-          <span class="display-name">{{ (user$ | async)?.email }}</span>
-          <ion-icon name="settings-outline" class="settings-icon"></ion-icon>
-        </div>
-        
-        <ion-button fill="clear" color="danger" (click)="logout()" class="header-logout-btn">
-          <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
-        </ion-button>
-      </div>
-    </ion-toolbar>
+        <!-- PROFILE -->
+        <div class="user-chip" id="profile-popover-trigger">
 
-    <!-- Popover del Perfil movido adentro del ngIf para que el trigger funcione -->
-    <ion-popover trigger="profile-popover-trigger" alignment="end" [dismissOnSelect]="false" #profilePopover>
-      <ng-template>
-        <div class="popover-wrapper">
-          <div class="popover-header">
-            <p class="role-label">Rol actual:</p>
-            <p class="role-value">
-              <ion-icon [name]="currentRole === 'passenger' ? 'person' : 'car-sport'"></ion-icon>
-              {{ currentRole === 'passenger' ? 'Pasajero' : 'Conductor' }}
-            </p>
+          <div class="avatar">
+            {{ (user$ | async)?.email?.charAt(0) | uppercase }}
           </div>
-          
-          <ion-list lines="none" class="popover-actions">
-            <ion-item button (click)="toggleRole(profilePopover)">
-              <ion-icon name="swap-horizontal" slot="start"></ion-icon>
-              <ion-label>Cambiar a {{ currentRole === 'passenger' ? 'Conductor' : 'Pasajero' }}</ion-label>
-            </ion-item>
 
-            <ion-item button (click)="goToProfile(profilePopover)">
-              <ion-icon name="person" slot="start"></ion-icon>
-              <ion-label>Perfil</ion-label>
-            </ion-item>
-          </ion-list>
+          <div class="user-info">
+            <span class="email">{{ (user$ | async)?.email }}</span>
+            <span class="role">{{ currentRole }}</span>
+          </div>
+
+          <ion-icon name="chevron-down-outline"></ion-icon>
+
         </div>
-      </ng-template>
-    </ion-popover>
+
+        <!-- LOGOUT -->
+        <ion-button fill="clear" class="logout-btn" (click)="logout()">
+          <ion-icon name="log-out-outline"></ion-icon>
+        </ion-button>
+
+      </div>
+
+    </ion-toolbar>
   </ion-header>
 
+  <!-- PROFILE POPOVER -->
+  <ion-popover trigger="profile-popover-trigger" side="bottom" alignment="end">
+    <ng-template>
+
+      <div class="profile-popover">
+
+        <div class="profile-header">
+
+          <div class="big-avatar">
+            {{ (user$ | async)?.email?.charAt(0) | uppercase }}
+          </div>
+
+          <div>
+            <h4>{{ (user$ | async)?.email }}</h4>
+            <span>Rol: {{ currentRole }}</span>
+          </div>
+
+        </div>
+
+        <div class="menu">
+
+          <button (click)="toggleRole()">
+            <ion-icon name="swap-horizontal-outline"></ion-icon>
+            Cambiar rol
+          </button>
+
+          <button (click)="goToProfile()">
+            <ion-icon name="person-outline"></ion-icon>
+            Perfil
+          </button>
+
+          <button class="danger" (click)="logout()">
+            <ion-icon name="log-out-outline"></ion-icon>
+            Cerrar sesión
+          </button>
+
+        </div>
+
+      </div>
+
+    </ng-template>
+  </ion-popover>
+
+  <!-- CONTENT -->
   <ion-content>
-    <ion-router-outlet id="main-content" [animated]="false"></ion-router-outlet>
+    <ion-router-outlet></ion-router-outlet>
   </ion-content>
+
 </div>

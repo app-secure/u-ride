@@ -1,744 +1,411 @@
+/* =========================
+   MAP
+========================= */
 ion-content.map-content {
-	--padding-start: 0;
-	--padding-end: 0;
-	--padding-top: 0;
-	--padding-bottom: 0;
+  --padding: 0;
 }
 
 .map-full {
-	position: absolute;
-	inset: 0;
+  position: absolute;
+  inset: 0;
+  filter: saturate(1.15) contrast(1.05);
 }
 
-.sheet-content {
-	--padding-start: 0;
-	--padding-end: 0;
-	--padding-top: 0;
-	--padding-bottom: 0;
-}
-
-.sheet-inner {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: 12px 16px 24px;
-}
-
-.sheet-back-row {
-  margin-bottom: 4px;
-
-  .sheet-back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #374151;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 4px 0 8px;
-    transition: color 0.2s;
-
-    ion-icon {
-      font-size: 18px;
-    }
-
-    &:hover {
-      color: #111827;
-    }
-  }
-
-  .sheet-back-divider {
-    height: 1px;
-    background: #e5e7eb;
-    margin-bottom: 8px;
-  }
-}
-
-
-:global(.car-marker) {
-	width: 18px;
-	height: 18px;
-	border-radius: 50%;
-	background: var(--ion-color-primary);
-	border: 2px solid var(--ion-background-color);
-	box-sizing: border-box;
-}
-
-:global(.bus-marker) {
-	width: 56px;
-	height: 56px;
-	border-radius: 50%;
-	background: var(--ion-color-primary);
-	color: var(--ion-color-primary-contrast);
-	border: 3px solid var(--ion-background-color);
-	box-sizing: border-box;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 30px;
-	line-height: 1;
-}
-
-:global(.pin) {
-	position: relative;
-	width: 36px;
-	height: 46px;
-	transform: translateZ(0);
-}
-
-:global(.pin-body) {
-	position: absolute;
-	left: 50%;
-	top: 0;
-	transform: translateX(-50%);
-	width: 34px;
-	height: 34px;
-	border-radius: 50%;
-	border: 3px solid var(--ion-background-color);
-	box-sizing: border-box;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-weight: 700;
-	font-size: 14px;
-	color: var(--ion-color-primary-contrast);
-}
-
-:global(.pin)::after {
-	content: '';
-	position: absolute;
-	left: 50%;
-	top: 28px;
-	transform: translateX(-50%);
-	width: 0;
-	height: 0;
-	border-left: 10px solid transparent;
-	border-right: 10px solid transparent;
-	border-top: 16px solid var(--ion-color-primary);
-}
-
-:global(.pin-origin .pin-body) {
-	background: var(--ion-color-success);
-	color: var(--ion-color-success-contrast);
-}
-
-:global(.pin-origin)::after {
-	border-top-color: var(--ion-color-success);
-}
-
-:global(.pin-destination .pin-body) {
-	background: var(--ion-color-danger);
-	color: var(--ion-color-danger-contrast);
-}
-
-:global(.pin-destination)::after {
-	border-top-color: var(--ion-color-danger);
-}
-
-:global(.place-marker) {
-	width: 22px;
-	height: 22px;
-	border-radius: 50%;
-	border: 3px solid var(--ion-background-color);
-	box-sizing: border-box;
-}
-
-:global(.origin-marker) {
-	background: var(--ion-color-success);
-}
-
-:global(.destination-marker) {
-	background: var(--ion-color-tertiary);
-}
-
-/* Modern Sheet Styles */
+/* =========================
+   SHEET MODERNA (GLASS PREMIUM)
+========================= */
 .modern-sheet {
-  background: white;
-  border-radius: 24px 24px 0 0;
-  padding: 16px 24px 32px;
-  position: relative;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 28px 28px 0 0;
+  padding: 20px 22px 36px;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.12);
 }
 
-.loading-spinner {
-  display: block;
-  margin: 40px auto;
-  color: #000000;
-}
-
-.pending-message {
-  display: flex;
+/* =========================
+   BACK BUTTON
+========================= */
+.sheet-back-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: #fffbeb;
-  border: 1.5px solid #fcd34d;
-  border-radius: 10px;
-  padding: 10px 14px;
-  color: #92400e;
+  gap: 6px;
   font-size: 14px;
   font-weight: 600;
+  color: #475569;
+  transition: 0.2s ease;
 
   ion-icon {
-    font-size: 20px;
-    color: #f59e0b;
-    flex-shrink: 0;
+    font-size: 18px;
+  }
+
+  &:hover {
+    color: #0f172a;
+    transform: translateX(-3px);
   }
 }
 
-.accepted-message {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f0fdf4;
-  border: 1.5px solid #86efac;
-  border-radius: 10px;
-  padding: 10px 14px;
-  color: #166534;
-  font-size: 14px;
-  font-weight: 600;
-
-  ion-icon {
-    font-size: 20px;
-    flex-shrink: 0;
-  }
-}
-
+/* =========================
+   HEADER DRIVER
+========================= */
 .trip-header-section {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
+  align-items: center;
+  margin-bottom: 18px;
 }
 
 .driver-profile-large {
   display: flex;
   align-items: center;
-  gap: 16px;
-  
+  gap: 14px;
+
   .avatar-box {
-    width: 56px;
-    height: 56px;
-    background: #f1f5f9;
-    border-radius: 50%;
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #eef2f7, #ffffff);
     display: flex;
     align-items: center;
     justify-content: center;
-    
+    box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+
     ion-icon {
       font-size: 28px;
       color: #64748b;
     }
   }
-  
+
   .driver-info {
     h2 {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 800;
+      margin: 0;
       color: #0f172a;
-      margin: 0 0 4px 0;
+      letter-spacing: -0.3px;
     }
-    
+
     .rating-badge {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      font-size: 14px;
+      margin-top: 6px;
+      font-size: 13px;
       font-weight: 600;
-      color: #1e293b;
       background: #fef3c7;
-      padding: 4px 8px;
-      border-radius: 8px;
-      
-      ion-icon {
-        color: #f59e0b;
-      }
-
-      &.new-driver {
-        background: #f1f5f9;
-        color: #64748b;
-        ion-icon { color: #94a3b8; }
-      }
+      color: #92400e;
+      padding: 4px 10px;
+      border-radius: 999px;
     }
   }
 }
 
-.status-badge {
-  font-size: 13px;
-  font-weight: 700;
-  padding: 6px 12px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  
-  &.open { background: #dcfce7; color: #16a34a; }
-  &.completed { background: #f1f5f9; color: #64748b; }
-  &.cancelled { background: #fee2e2; color: #ef4444; }
-}
-
-.trip-route-title {
+/* =========================
+   STATUS + PRICE
+========================= */
+.status-and-price {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #eff6ff;
-  padding: 14px 18px;
-  border-radius: 14px;
-  margin-bottom: 16px;
-  border: 1px solid #dbeafe;
-  
-  ion-icon {
-    font-size: 22px;
-    color: #3b82f6;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+
+  &.open {
+    background: #dcfce7;
+    color: #166534;
   }
-  
-  span {
-    font-size: 17px;
-    font-weight: 700;
-    color: #1e40af;
-    letter-spacing: -0.3px;
+
+  &.completed {
+    background: #e2e8f0;
+    color: #334155;
   }
 }
 
+.trip-price-tag {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 8px 18px rgba(16,185,129,0.25);
+}
+
+/* =========================
+   ROUTE CARD
+========================= */
 .route-details-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 24px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid #eef2f7;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+  margin-bottom: 18px;
 }
 
+/* =========================
+   TIMELINE
+========================= */
 .route-timeline {
-  display: flex;
-  flex-direction: column;
   position: relative;
-  margin-bottom: 20px;
-  
+  padding-left: 18px;
+
   .timeline-line {
     position: absolute;
-    left: 7px;
-    top: 24px;
-    bottom: 24px;
+    left: 6px;
+    top: 18px;
+    bottom: 18px;
     width: 2px;
-    background: #cbd5e1;
+    background: linear-gradient(#22c55e, #ef4444);
+    opacity: 0.25;
   }
-  
+
   .timeline-point {
     display: flex;
-    gap: 16px;
-    position: relative;
-    z-index: 1;
-    
-    &.origin { margin-bottom: 24px; }
-    
+    gap: 12px;
+    margin-bottom: 16px;
+
     .dot {
-      width: 16px;
-      height: 16px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
-      margin-top: 4px;
+      margin-top: 5px;
     }
-    
-    &.origin .dot { background: #10b981; border: 3px solid #d1fae5; }
-    &.destination .dot { background: #ef4444; border: 3px solid #fee2e2; }
-    
-    .info {
-      display: flex;
-      flex-direction: column;
-      
-      .label {
-        font-size: 13px;
-        font-weight: 600;
-        color: #64748b;
-        text-transform: uppercase;
-        margin-bottom: 4px;
-      }
-      
-      .value {
-        font-size: 16px;
-        font-weight: 700;
-        color: #0f172a;
-      }
+
+    &.origin .dot {
+      background: #22c55e;
+      box-shadow: 0 0 0 4px #dcfce7;
     }
-  }
-}
 
-.trip-meta-info {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  padding-top: 16px;
-  border-top: 1px dashed #cbd5e1;
-  
-  .meta-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #475569;
-    
-    ion-icon {
-      font-size: 18px;
-      color: #64748b;
+    &.destination .dot {
+      background: #ef4444;
+      box-shadow: 0 0 0 4px #fee2e2;
     }
-  }
-}
 
-.vehicle-info {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px dashed #cbd5e1;
-  
-  h4 {
-    font-size: 13px;
-    font-weight: 700;
-    color: #64748b;
-    text-transform: uppercase;
-    margin: 0 0 8px 0;
-  }
-  
-  .vehicle-details {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    
-    .v-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #f1f5f9;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #334155;
-      
-      ion-icon {
-        color: #5a4ff3;
-        font-size: 16px;
-      }
+    .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #94a3b8;
+      font-weight: 700;
     }
-  }
-}
 
-.notes-section {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 24px;
-  
-  h3 {
-    font-size: 14px;
-    font-weight: 700;
-    color: #92400e;
-    margin: 0 0 8px 0;
-  }
-  
-  p {
-    font-size: 15px;
-    color: #b45309;
-    margin: 0;
-    line-height: 1.5;
-  }
-}
-
-.location-status {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: #f1f5f9;
-  border-radius: 12px;
-  margin-bottom: 24px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #475569;
-  
-  ion-icon {
-    font-size: 24px;
-  }
-  
-  &.has-location {
-    background: #f0fdf4;
-    color: #16a34a;
-    ion-icon { color: #16a34a; }
-  }
-  
-  &.stale {
-    background: #fff7ed;
-    color: #c2410c;
-    ion-icon { color: #ea580c; }
-  }
-}
-
-.rules-section {
-  margin-bottom: 32px;
-  
-  h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #0f172a;
-    margin: 0 0 4px 0;
-  }
-  
-  .rules-subtitle {
-    font-size: 14px;
-    color: #64748b;
-    margin: 0 0 16px 0;
-  }
-  
-  .rules-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    
-    li {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .value {
       font-size: 15px;
-      font-weight: 500;
-      color: #334155;
-      
-      ion-icon {
-        font-size: 20px;
-        color: #10b981;
-      }
+      font-weight: 700;
+      color: #0f172a;
     }
   }
 }
+
+/* =========================
+   BUTTON SYSTEM (UNIFICADO)
+========================= */
+/* =========================
+   BUTTON SYSTEM PRO
+========================= */
 
 .action-buttons {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  
-  button {
-    width: 100%;
-    padding: 16px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-    
-    &.btn-primary {
-      background: #000000;
-      color: white;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      
-      &:hover { background: #111827; }
-    }
-    
-    &.btn-warning {
-      background: #f59e0b;
-      color: white;
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
-      
-      &:hover { background: #d97706; }
-    }
-    
-    &.btn-success {
-      background: #10b981;
-      color: white;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-      
-      &:hover { background: #059669; }
-    }
-    
-    &.btn-outline {
-      background: transparent;
-      border: 2px solid #e2e8f0;
-      color: #475569;
-      
-      &:hover {
-        background: #f8fafc;
-        border-color: #cbd5e1;
-      }
-    }
+  margin-top: 18px;
+}
+
+/* BASE */
+.btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  padding: 15px 16px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 15px;
+
+  transition: all 0.25s ease;
+  cursor: pointer;
+
+  border: 1px solid transparent;
+}
+
+/* =========================
+   PRIMARY (acción principal)
+========================= */
+.btn-primary {
+  background: #0f172a; /* azul-negro premium */
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.25);
+
+  &:hover {
+    transform: translateY(-2px);
+    background: #1e293b;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.35);
   }
 }
 
-/* Dark Mode */
+/* =========================
+   SUCCESS (positivo real)
+========================= */
+.btn-success {
+  background: #16a34a;
+  color: white;
+  box-shadow: 0 10px 22px rgba(22, 163, 74, 0.25);
+
+  &:hover {
+    background: #15803d;
+    transform: translateY(-2px);
+  }
+}
+
+/* =========================
+   WARNING (atención)
+========================= */
+.btn-warning {
+  background: #f59e0b;
+  color: #111827;
+  box-shadow: 0 10px 22px rgba(245, 158, 11, 0.25);
+
+  &:hover {
+    background: #d97706;
+    transform: translateY(-2px);
+  }
+}
+
+/* =========================
+   DANGER (cancelar / destructivo)
+========================= */
+.btn-danger {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 10px 22px rgba(239, 68, 68, 0.25);
+
+  border: 1px solid #fca5a5;
+
+  &:hover {
+    background: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(239, 68, 68, 0.35);
+  }
+}
+
+/* =========================
+   OUTLINE (secundario elegante)
+========================= */
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid #cbd5e1;
+  color: #334155;
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
+  }
+}
+
+/* =========================
+   DARK MODE REAL (MEJOR CONTRASTE)
+========================= */
 @media (prefers-color-scheme: dark) {
-  .modern-sheet { background: #1e293b; }
-  .driver-profile-large .avatar-box { background: #0f172a; }
-  .driver-profile-large .driver-info h2 { color: #f8fafc; }
-  .route-details-card { background: #0f172a; border-color: #334155; }
-  .route-timeline .timeline-line { background: #334155; }
-  .route-timeline .timeline-point .info .value { color: #f8fafc; }
-  .trip-meta-info { border-color: #334155; }
-  .trip-meta-info .meta-item { color: #cbd5e1; }
-  .notes-section { background: rgba(245, 158, 11, 0.1); border-color: #92400e; }
-  .notes-section h3 { color: #fcd34d; }
-  .notes-section p { color: #fde68a; }
-  .location-status { background: #0f172a; color: #cbd5e1; }
-  .rules-section h3 { color: #f8fafc; }
-  .rules-section .rules-list li { color: #cbd5e1; }
-  .action-buttons button.btn-outline { border-color: #334155; color: #cbd5e1; }
-  .payment-modal ion-toolbar { --background: #0f172a; --color: #f8fafc; }
-  .payment-content { --background: #0f172a; }
-  .summary-card { background: #1e293b; border-color: #334155; }
-  .summary-card h3 { color: #f8fafc; }
-  .summary-row span { color: #cbd5e1; }
-  .summary-row strong { color: #f8fafc; }
-  .summary-card .divider { background: #334155; }
-  .payment-method-card { background: #1e293b; border-color: #334155; }
-  .payment-method-card h3 { color: #f8fafc; }
-  .simulated-card { background: #0f172a; border-color: #334155; }
-  .simulated-card .card-name { color: #f8fafc; }
-  .trip-route-title {
-    background: #1e3a8a33;
-    border-color: #1e40af;
-    span { color: #60a5fa; }
-    ion-icon { color: #60a5fa; }
+
+  .btn-primary {
+    background: #e5e7eb;
+    color: #111827;
+
+    &:hover {
+      background: #ffffff;
+    }
+  }
+
+  .btn-success {
+    background: #22c55e;
+  }
+
+  .btn-warning {
+    background: #fbbf24;
+    color: #111827;
+  }
+
+  .btn-danger {
+    background: #f87171;
+  }
+
+  .btn-outline {
+    border-color: #374151;
+    color: #e5e7eb;
+
+    &:hover {
+      background: #1f2937;
+    }
+  }
+
+/* danger modifier */
+.danger {
+  border-color: #fecaca !important;
+  color: #ef4444 !important;
+
+  &:hover {
+    background: #fef2f2 !important;
   }
 }
-
-.status-and-price {
+}
+/* =========================
+   MESSAGES
+========================= */
+.pending-message,
+.accepted-message {
   display: flex;
   align-items: center;
-  gap: 12px;
-  
-  .trip-price-tag {
-    background: #ecfdf5;
-    color: #059669;
-    font-weight: 800;
-    font-size: 18px;
-    padding: 6px 12px;
-    border-radius: 12px;
-    border: 1px solid #a7f3d0;
-    display: flex;
-    align-items: center;
-    
-    .currency {
-      font-size: 14px;
-      margin-right: 2px;
-    }
-  }
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.payment-content {
-  --background: #f8fafc;
-  --padding-start: 0;
-  --padding-end: 0;
-  --padding-top: 0;
-  --padding-bottom: 0;
+.pending-message {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
 }
 
-.payment-summary {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  
-  .summary-card, .payment-method-card {
-    background: white;
-    border-radius: 16px;
-    padding: 20px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    
-    h3 {
-      font-size: 16px;
-      font-weight: 700;
-      color: #0f172a;
-      margin: 0 0 16px 0;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #f1f5f9;
-    }
+.accepted-message {
+  background: #ecfdf5;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+/* =========================
+   DARK MODE MEJORADO
+========================= */
+@media (prefers-color-scheme: dark) {
+
+  .modern-sheet {
+    background: rgba(17, 24, 39, 0.96);
+    color: #e5e7eb;
   }
-  
-  .summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    
-    span {
-      color: #64748b;
-      font-size: 15px;
-    }
-    
-    strong {
-      color: #1e293b;
-      font-size: 15px;
-      font-weight: 600;
-    }
-    
-    &.total {
-      margin-top: 16px;
-      margin-bottom: 0;
-      
-      span {
-        font-weight: 600;
-        color: #0f172a;
-      }
-      
-      .total-price {
-        font-size: 24px;
-        font-weight: 800;
-        color: #10b981;
-      }
-    }
+
+  .route-details-card {
+    background: #111827;
+    border-color: #1f2937;
   }
-  
-  .divider {
-    height: 1px;
-    background: #e2e8f0;
-    margin: 16px 0;
-    border-style: dashed;
+
+  .driver-info h2 {
+    color: #f9fafb;
   }
-  
-  .simulated-card {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
-    border-radius: 12px;
-    
-    ion-icon[name="card"] {
-      font-size: 28px;
-      color: #000000;
-    }
-    
-    .card-details {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      
-      .card-name {
-        font-weight: 600;
-        color: #1e293b;
-        font-size: 15px;
-      }
-      
-      .card-balance {
-        font-size: 13px;
-        color: #64748b;
-        margin-top: 2px;
-      }
-    }
-    
-    ion-icon[name="checkmark-circle"] {
-      font-size: 24px;
-    }
+
+  .btn-outline {
+    border-color: #374151;
+    color: #d1d5db;
   }
-  
-  .pay-button {
-    margin-top: 8px;
-    padding: 18px;
-    font-size: 18px;
-    background: #10b981;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    
-    &:hover, &:active {
-      background: #059669;
-    }
+
+  .btn-outline:hover {
+    background: #1f2937;
   }
 }
