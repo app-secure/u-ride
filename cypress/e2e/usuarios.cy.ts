@@ -32,8 +32,8 @@ const selectRoleIfNeeded = (roleLabel: 'Viajar' | 'Conducir', targetPath: string
 
 describe('Módulo de Usuarios - U-Ride (E2E)', () => {
 
-  const EMAIL = 'sjimenez6271@uta.edu.ec';
-  const PASSWORD = 'crysjurado21';
+  const EMAIL = 'mramirez1561@uta.edu.ec';
+  const PASSWORD = 'Manuelr@mirez21';
 
   // ─────────────────────────────────────────────
   // RF1 - Iniciar Sesión
@@ -93,9 +93,8 @@ describe('Módulo de Usuarios - U-Ride (E2E)', () => {
 
       cy.get('ion-checkbox.terms-checkbox').click({ force: true });
 
-      clickIonButton('Crear cuenta');
-
-      cy.get('ion-toast', { timeout: 8000 }).should('exist');
+      cy.contains('.error-message', 'El correo debe terminar en @').should('be.visible');
+      cy.get('ion-button.submit-button').should('have.attr', 'disabled');
       cy.wait(2000);
     });
 
