@@ -76,36 +76,38 @@ export class SidebarShellPage {
     return this.roleState.currentRole;
   }
 
-  async toggleRole(popover: any): Promise<void> {
-    await popover.dismiss();
-    
-    const loading = await this.loadingCtrl.create({
-      message: 'Cambiando de rol...',
-      spinner: 'crescent',
-      cssClass: 'role-loading',
-    });
-    await loading.present();
+  async toggleRole(): Promise<void> {
 
-    const newRole: AppRole = this.currentRole === 'passenger' ? 'driver' : 'passenger';
-    
-    // Simular un pequeño retardo para el efecto visual solicitado
-    setTimeout(async () => {
-      this.roleState.setRole(newRole);
-      
-      if (newRole === 'passenger') {
-        await this.router.navigateByUrl('/app/trips');
-      } else {
-        await this.router.navigateByUrl('/app/my-trips');
-      }
-      
-      await loading.dismiss();
-    }, 800);
-  }
+  await this.popoverCtrl.dismiss().catch(() => {});
 
-  async goToProfile(popover: any): Promise<void> {
-    await popover.dismiss();
-    await this.router.navigateByUrl('/app/profile');
-  }
+  const loading = await this.loadingCtrl.create({
+    message: 'Cambiando de rol...',
+    spinner: 'crescent',
+    cssClass: 'role-loading',
+  });
+
+  await loading.present();
+
+  const newRole: AppRole =
+    this.currentRole === 'passenger' ? 'driver' : 'passenger';
+
+  setTimeout(async () => {
+    this.roleState.setRole(newRole);
+
+    if (newRole === 'passenger') {
+      await this.router.navigateByUrl('/app/trips');
+    } else {
+      await this.router.navigateByUrl('/app/my-trips');
+    }
+
+    await loading.dismiss();
+  }, 800);
+}
+
+ async goToProfile(): Promise<void> {
+  await this.popoverCtrl.dismiss().catch(() => {});
+  await this.router.navigateByUrl('/app/profile');
+}
 
   async logout(popover?: any): Promise<void> {
     if (popover) {

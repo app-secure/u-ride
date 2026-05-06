@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   institutionEmailDomain: 'uta.edu.ec',
-  apiUrl: 'https://localhost:7248/api',
+  apiUrl: 'http://localhost:5132/api',
   firebase: {
     apiKey: 'AIzaSyB8eELUMGPKrccEIgIipGw23ijL9kgnmx4',
     authDomain: 'u-ride-b1089.firebaseapp.com',

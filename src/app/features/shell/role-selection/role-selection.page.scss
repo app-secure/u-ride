@@ -1,139 +1,234 @@
+/* =========================
+   BACKGROUND PREMIUM
+========================= */
 .uride-content {
-  --background: #f8fafc;
+  --background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
 }
 
+/* =========================
+   HEADER BRAND
+========================= */
+.uride-header {
+  ion-toolbar {
+    --background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(10px);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 12px;
+
+    img {
+      height: 28px;
+    }
+
+    span {
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.3px;
+    }
+  }
+
+  .logout-btn {
+    --background: transparent;
+    color: #ef4444;
+    font-size: 20px;
+  }
+}
+
+/* =========================
+   CONTAINER
+========================= */
 .role-selection-container {
-  max-width: 600px;
+  max-width: 650px;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: 48px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 80vh;
 }
 
+/* =========================
+   HEADER TEXT
+========================= */
 .header-section {
   text-align: center;
-  margin-bottom: 48px;
-  
-  .logo {
-    height: 64px;
-    width: auto;
-    object-fit: contain;
-    margin-bottom: 24px;
-  }
-  
+  margin-bottom: 40px;
+
   h1 {
-    font-size: 28px;
-    font-weight: 800;
+    font-size: 30px;
+    font-weight: 900;
     color: #0f172a;
-    margin: 0 0 8px 0;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
   }
-  
+
   p {
-    font-size: 16px;
     color: #64748b;
-    margin: 0;
+    font-size: 15px;
   }
 }
 
+/* =========================
+   GRID
+========================= */
 .roles-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 18px;
   width: 100%;
-  
-  @media (min-width: 600px) {
+
+  @media (min-width: 700px) {
     grid-template-columns: 1fr 1fr;
   }
 }
 
+/* =========================
+   CARD BASE (PRO UX)
+========================= */
 .role-card {
-  background: white;
-  border: 2px solid transparent;
-  border-radius: 24px;
-  padding: 32px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  position: relative;
+  border-radius: 26px;
+  padding: 28px 22px;
   text-align: center;
+
+  border: 2px solid transparent;
+  background: white;
+
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+
+  transition: all 0.25s ease;
+
+  overflow: hidden;
+
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.12);
   }
-  
-  .icon-box {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 24px;
-    transition: transform 0.3s ease;
-    
-    ion-icon {
-      font-size: 40px;
-    }
-  }
-  
-  &:hover .icon-box {
-    transform: scale(1.1);
-  }
-  
+
   h2 {
     font-size: 20px;
-    font-weight: 700;
-    margin: 0 0 8px 0;
+    font-weight: 800;
+    margin: 10px 0 6px 0;
   }
-  
+
   p {
     font-size: 14px;
-    margin: 0;
-    line-height: 1.5;
+    color: #64748b;
+    line-height: 1.4;
   }
-  
-  &.passenger, &.driver {
-    .icon-box {
-      background: #f1f5f9;
-      color: #0f172a;
-    }
-    h2 { color: #0f172a; }
-    p { color: #64748b; }
-    
-    &:hover { border-color: var(--ion-color-warning); }
+
+  /* pequeño badge de recomendación */
+  .hint {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    padding: 4px 10px;
+    border-radius: 999px;
+
+    background: #dcfce7;
+    color: #166534;
   }
 }
 
+/* =========================
+   ICON BOX (MEJOR VISUAL)
+========================= */
+.icon-box {
+  width: 82px;
+  height: 82px;
+  border-radius: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 16px auto;
+
+  ion-icon {
+    font-size: 40px;
+  }
+}
+
+/* =========================
+   PASSENGER (PRIORIDAD)
+========================= */
+.passenger {
+  .icon-box {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+  }
+
+  border-color: rgba(34,197,94,0.2);
+
+  &:hover {
+    border-color: #22c55e;
+  }
+}
+
+/* =========================
+   DRIVER
+========================= */
+.driver {
+  .icon-box {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+  }
+
+  &:hover {
+    border-color: #3b82f6;
+  }
+}
+
+/* =========================
+   ANIMATION
+========================= */
 .fade-in-up {
+  animation: fadeInUp 0.6s ease forwards;
   opacity: 0;
-  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Dark mode */
+/* =========================
+   DARK MODE
+========================= */
 @media (prefers-color-scheme: dark) {
-  .uride-content { --background: #0f172a; }
-  .header-section h1 { color: #f8fafc; }
+  .uride-content {
+    --background: #0f172a;
+  }
+
   .role-card {
-    background: #1e293b;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    
-    &.passenger, &.driver {
-      .icon-box {
-        background: #0f172a;
-        color: #f8fafc;
-      }
-      h2 { color: #f8fafc; }
+    background: #111827;
+    color: #f8fafc;
+
+    p {
+      color: #94a3b8;
     }
+  }
+
+  .header-section h1 {
+    color: #f8fafc;
+  }
+
+  .uride-header ion-toolbar {
+    --background: rgba(15,23,42,0.6);
   }
 }
