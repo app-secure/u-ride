@@ -22,7 +22,12 @@
           </ion-badge>
         </ion-button>
 
-        <ion-popover trigger="notifications-trigger" side="bottom" alignment="end">
+        <ion-popover
+          *ngIf="currentRole && !isAdminArea && !isRoleArea"
+          trigger="notifications-trigger"
+          side="bottom"
+          alignment="end"
+        >
           <ng-template>
             <div class="notif-panel">
 
@@ -66,12 +71,22 @@
         <div class="user-chip" id="profile-popover-trigger">
 
           <div class="avatar">
-            {{ (user$ | async)?.email?.charAt(0) | uppercase }}
+            <ng-container *ngIf="profile$ | async as profile; else chipAvatarFallback">
+              <img
+                *ngIf="profile.photoUrl; else chipAvatarFallback"
+                [src]="profile.photoUrl"
+                alt="Foto de perfil"
+              />
+            </ng-container>
+            <ng-template #chipAvatarFallback>
+              <ion-icon name="person"></ion-icon>
+            </ng-template>
           </div>
 
           <div class="user-info">
-            <span class="email">{{ (user$ | async)?.email }}</span>
-            <span class="role">{{ currentRole }}</span>
+            <span class="email">{{ (user$ | async)?.displayName }}</span>
+            <!-- Uso del diccionario -->
+            <span class="role">{{ roleTranslations[currentRole] || currentRole }}</span>
           </div>
 
           <ion-icon name="chevron-down-outline"></ion-icon>
@@ -89,7 +104,13 @@
   </ion-header>
 
   <!-- PROFILE POPOVER -->
-  <ion-popover trigger="profile-popover-trigger" side="bottom" alignment="end">
+  <ion-popover
+    *ngIf="currentRole && !isAdminArea && !isRoleArea"
+    trigger="profile-popover-trigger"
+    side="bottom"
+    alignment="end"
+    cssClass="profile-popover-overlay"
+  >
     <ng-template>
 
       <div class="profile-popover">
@@ -97,12 +118,23 @@
         <div class="profile-header">
 
           <div class="big-avatar">
-            {{ (user$ | async)?.email?.charAt(0) | uppercase }}
+            <ng-container *ngIf="profile$ | async as profile; else popoverAvatarFallback">
+              <img
+                *ngIf="profile.photoUrl; else popoverAvatarFallback"
+                [src]="profile.photoUrl"
+                alt="Foto de perfil"
+              />
+            </ng-container>
+            <ng-template #popoverAvatarFallback>
+              <ion-icon name="person"></ion-icon>
+            </ng-template>
           </div>
 
           <div>
-            <h4>{{ (user$ | async)?.email }}</h4>
-            <span>Rol: {{ currentRole }}</span>
+            <h4 class="email">{{ (user$ | async)?.displayName }}</h4>
+            <span>{{ (user$ | async)?.email }}</span>
+            <div></div>
+            <span>Rol: {{ roleTranslations[currentRole] || currentRole }}</span>
           </div>
 
         </div>

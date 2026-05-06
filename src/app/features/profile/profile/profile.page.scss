@@ -72,9 +72,12 @@
 }
 
 .edit-btn {
-  color: #000000; 
+  color: #f8fafc;
 }
-.edit-btn:hover { background: #eef2ff; }
+.edit-btn ion-icon {
+  color: inherit;
+}
+.edit-btn:hover { background: rgba(255, 255, 255, 0.12); }
 
 .cancel-btn {
   color: #475569;

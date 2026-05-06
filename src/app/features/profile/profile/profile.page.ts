@@ -99,6 +99,7 @@ export class ProfilePage {
     try {
       const updated = await firstValueFrom(this.users.updateProfile(this.form.getRawValue()));
       this.profile = updated;
+      this.users.refreshMyProfile();
       const toast = await this.toastCtrl.create({
         message: 'Perfil actualizado.',
         duration: 1800,
@@ -158,6 +159,7 @@ export class ProfilePage {
       if (this.profile) {
         this.profile.photoUrl = updatedProfile.photoUrl;
       }
+      this.users.refreshMyProfile();
 
       const toast = await this.toastCtrl.create({
         message: 'Foto de perfil actualizada.',

@@ -3,7 +3,7 @@ import { Component, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { IonicModule, LoadingController, PopoverController } from '@ionic/angular';
 import { Observable, of, BehaviorSubject } from 'rxjs';
-import { filter, switchMap, map, catchError, startWith } from 'rxjs/operators';
+import { filter, switchMap, catchError, startWith, shareReplay } from 'rxjs/operators';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { TripsService } from '../../../core/services/trips.service';
@@ -11,6 +11,8 @@ import type { Trip } from '../../../core/models/trip.model';
 import { RoleStateService, AppRole } from '../../../core/services/role-state.service';
 import { NotificationsService } from '../../../core/services/notifications.service';
 import { AppNotification } from '../../../core/models/notification.model';
+import { UsersService } from '../../../core/services/users.service';
+import type { UserProfile } from '../../../core/models/user-profile.model';
 
 @Component({
   selector: 'app-sidebar-shell',
@@ -19,6 +21,7 @@ import { AppNotification } from '../../../core/models/notification.model';
   standalone: true,
   imports: [CommonModule, IonicModule],
 })
+
 export class SidebarShellPage {
   private readonly auth = inject(AuthService);
   private readonly roleState = inject(RoleStateService);
@@ -27,9 +30,22 @@ export class SidebarShellPage {
   private readonly popoverCtrl = inject(PopoverController);
   private readonly trips = inject(TripsService);
   private readonly notifications = inject(NotificationsService);
+  private readonly users = inject(UsersService);
+
+  // Define tu diccionario de roles en la clase de tu componente
+  roleTranslations: { [key: string]: string } = {
+    'driver': 'Conductor',
+    'passenger': 'Pasajero',
+    'admin': 'Administrador' // Por si acaso lo necesitas en el futuro
+  };
 
   readonly user$ = this.auth.user$;
   readonly role$: Observable<AppRole> = this.roleState.role$;
+  readonly profile$: Observable<UserProfile | null> = this.auth.user$.pipe(
+    switchMap(user => (user ? this.users.myProfile$ : of(null))),
+    startWith(null),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
 
   private readonly refreshNotifs$ = new BehaviorSubject<void>(undefined);
 
@@ -115,6 +131,7 @@ export class SidebarShellPage {
     if (popover) {
       await popover.dismiss();
     }
+    await this.popoverCtrl.dismiss().catch(() => {});
     await this.auth.logout();
     this.roleState.setRole(null);
     await this.router.navigateByUrl('/auth/login');

@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import type { User } from '@angular/fire/auth';
-import { Observable, map } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, map, shareReplay, switchMap } from 'rxjs/operators';
 
 import { environment } from '../../../environments/environment';
 import type { UserProfile, UserProfileUpdate } from '../models/user-profile.model';
@@ -46,6 +47,21 @@ interface SyncUserDto {
 export class UsersService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/users`;
+  private readonly myProfileRefresh$ = new BehaviorSubject<void>(undefined);
+
+  readonly myProfile$: Observable<UserProfile | null> = this.myProfileRefresh$.pipe(
+    switchMap(() => this.getMyProfile().pipe(
+      catchError((err: any) => {
+        console.error('[UsersService] getMyProfile failed:', err);
+        return of(null);
+      }),
+    )),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+
+  refreshMyProfile(): void {
+    this.myProfileRefresh$.next();
+  }
 
   /**
    * Mapea el DTO del backend (firebaseUid) al modelo del frontend (uid).
@@ -235,9 +251,9 @@ export class UsersService {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', 'uride_profiles');
-    
+
     const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dyfjz9q5h/image/upload';
-    
+
     return this.http.post<any>(cloudinaryUrl, formData).pipe(
       map(res => res.secure_url)
     );
