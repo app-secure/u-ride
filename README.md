@@ -53,18 +53,3 @@ Para compilar la APK o probar en un emulador:
 ```bash
 npx cap open android
 ```
-
----
-
-## 🛠️ Tecnologías Utilizadas
-*   **Framework**: Ionic + Angular
-*   **Autenticación**: Firebase Auth Nativo (Microsoft)
-*   **Base de Datos**: Firebase Firestore
-*   **Notificaciones**: Sistema de alertas en tiempo real integrado.
-*   **Mapas**: Leaflet / OpenStreetMap
-
----
-
-## 📄 Notas para el Equipo
-*   **Login en Android**: Se ha implementado `@capacitor-firebase/authentication` para que el inicio de sesión con el correo institucional sea nativo y estable.
-*   **Reglas de Firestore**: Antes de probar, asegúrate de que las reglas en la consola de Firebase estén actualizadas según el último archivo de configuración.
