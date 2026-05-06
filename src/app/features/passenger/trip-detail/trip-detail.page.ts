@@ -2,7 +2,7 @@ import { Component, ElementRef, ViewChild, inject, DestroyRef } from '@angular/c
 import { Capacitor } from '@capacitor/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonicModule, AlertController, ToastController } from '@ionic/angular';
+import { IonicModule, AlertController, ToastController, ModalController } from '@ionic/angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { of, switchMap, firstValueFrom } from 'rxjs';
 
@@ -44,6 +44,7 @@ export class TripDetailPage {
   private readonly tripRequests = inject(TripRequestsService);
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
+  private readonly modalCtrl = inject(ModalController);
   private readonly roleState = inject(RoleStateService);
   private readonly reviews = inject(ReviewsService);
   private readonly reports = inject(ReportsService);
@@ -52,6 +53,8 @@ export class TripDetailPage {
   readonly defaultRuleTexts: string[] = ['Puntualidad', 'Respeto y buen trato', 'No compartir datos sensibles'];
 
   @ViewChild('mapEl') private readonly mapEl?: ElementRef<HTMLElement>;
+  @ViewChild('tripModal') private readonly tripModal?: any;
+  @ViewChild('paymentModal') private readonly paymentModal?: any;
 
   private map?: L.Map;
   private originMarker?: L.Marker;
@@ -76,6 +79,8 @@ export class TripDetailPage {
   // Payment state
   isPaymentModalOpen = false;
   processingPayment = false;
+  isCompletingTrip = false;
+  isCancellingTrip = false;
 
   // Live tracking / compartir trayecto
   sharingTrip = false;
@@ -101,11 +106,20 @@ export class TripDetailPage {
     // Cargar viaje one-shot
     this.loadTrip();
 
-    // Seguridad: Si el usuario pierde la sesión (logout), cerramos el modal.
+    // Seguridad: Si el usuario pierde la sesión (logout), cerramos el modal y navegamos de vuelta.
     this.auth.user$.pipe(takeUntilDestroyed()).subscribe(user => {
       if (!user) {
         this.isModalOpen = false;
+        this.isPaymentModalOpen = false;
         this.sharingTrip = false;
+        
+        // Dismiss todos los modales abiertos de forma explícita
+        this.modalCtrl.dismiss(null, 'logout').catch(() => {});
+        
+        // Navega de vuelta al login
+        setTimeout(() => {
+          this.router.navigate(['/auth/login']).catch(() => {});
+        }, 150);
       }
     });
   }
@@ -402,7 +416,11 @@ export class TripDetailPage {
   }
 
   get canFinalize(): boolean {
-    return !!this.trip && this.isDriver && this.trip.status !== 'completed' && this.trip.status !== 'cancelled';
+    return !!this.trip && this.isDriver && this.trip.status === 'open';
+  }
+
+  get canCancelTrip(): boolean {
+    return !!this.trip && this.isDriver && this.trip.status === 'open';
   }
 
   get canShareTrip(): boolean {
@@ -545,6 +563,9 @@ export class TripDetailPage {
     try {
       await firstValueFrom(this.tripRequests.createRequest(this.tripId));
       
+      // Actualizar el estado local para reflejar que la solicitud fue enviada
+      this.myRequestStatus = 'pending';
+      
       this.closePaymentModal();
       
       const toast = await this.toastCtrl.create({
@@ -578,6 +599,7 @@ export class TripDetailPage {
   async completeTrip(): Promise<void> {
     if (!this.tripId || !this.trip) return;
     if (!this.isDriver) return;
+    if (!this.canFinalize || this.isCompletingTrip) return;
 
     const alert = await this.alertCtrl.create({
       header: 'Finalizar viaje',
@@ -591,19 +613,29 @@ export class TripDetailPage {
     const { role } = await alert.onDidDismiss();
     if (role !== 'confirm') return;
 
-    await this.trips.completeTrip(this.tripId);
-    const toast = await this.toastCtrl.create({
-      message: 'Viaje finalizado. Ya pueden calificar.',
-      duration: 2200,
-      position: 'top',
-      color: 'success',
-    });
-    await toast.present();
+    this.isCompletingTrip = true;
+    try {
+      await this.trips.completeTrip(this.tripId);
+
+      // Reflejar estado local inmediatamente para ocultar acciones de viaje abierto.
+      this.trip = this.trip ? { ...this.trip, status: 'completed' } : this.trip;
+
+      const toast = await this.toastCtrl.create({
+        message: 'Viaje finalizado. Ya pueden calificar.',
+        duration: 2200,
+        position: 'top',
+        color: 'success',
+      });
+      await toast.present();
+    } finally {
+      this.isCompletingTrip = false;
+    }
   }
 
   async cancelTrip(): Promise<void> {
     if (!this.tripId || !this.trip) return;
     if (!this.isDriver) return;
+    if (!this.canCancelTrip || this.isCancellingTrip) return;
 
     const alert = await this.alertCtrl.create({
       header: 'Cancelar Viaje',
@@ -614,8 +646,12 @@ export class TripDetailPage {
           text: 'Sí, cancelar', 
           role: 'destructive',
           handler: async () => {
+            this.isCancellingTrip = true;
             try {
               await firstValueFrom(this.trips.updateTripStatus(this.tripId, 'cancelled'));
+
+              this.trip = this.trip ? { ...this.trip, status: 'cancelled' } : this.trip;
+
               const toast = await this.toastCtrl.create({
                 message: 'Viaje cancelado correctamente.',
                 duration: 2500,
@@ -632,6 +668,8 @@ export class TripDetailPage {
                 position: 'top'
               });
               await toast.present();
+            } finally {
+              this.isCancellingTrip = false;
             }
           }
         }

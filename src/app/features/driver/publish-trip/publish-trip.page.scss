@@ -216,7 +216,7 @@
     &.icon-gray { color: #94a3b8; }
   }
   
-  input, select, textarea {
+  input, select, textarea, ion-select {
     flex: 1;
     background: transparent;
     border: none;
@@ -251,6 +251,14 @@
   
   input, select {
     height: 48px;
+  }
+
+  ion-select {
+    min-height: 48px;
+    --padding-start: 0;
+    --padding-end: 0;
+    --placeholder-color: #94a3b8;
+    width: 100%;
   }
   
   textarea {
@@ -385,7 +393,7 @@
       background: #1e293b;
     }
     
-    input, select, textarea {
+    input, select, textarea, ion-select {
       color: #f8fafc;
     }
     

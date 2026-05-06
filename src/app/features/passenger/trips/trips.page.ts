@@ -32,6 +32,7 @@ export class TripsPage {
   /** Mapa de tripId -> estado de solicitud del usuario */
   myRequestsMap: Record<string, { status: string; requestId: string }> = {};
 
+  private readonly currentUid$ = new BehaviorSubject<string | null>(null);
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
 
   readonly routes$ = this.tripsSvc.tripRoutes$();
@@ -41,24 +42,34 @@ export class TripsPage {
     date: [''],
   });
 
+  getTodayDate(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   readonly trips$ = combineLatest([
     this.filters.valueChanges.pipe(startWith(this.filters.getRawValue())),
+    this.currentUid$,
     this.refresh$,
   ]).pipe(
     debounceTime(250),
-    switchMap(([v]) =>
+    switchMap(([v, uid]) =>
       this.tripsSvc.searchTrips({
         originZone: v.routeName?.trim() ? v.routeName.trim() : undefined,
         departureDate: v.date ? v.date : undefined,
         pageSize: 50,
-      }),
+      }).pipe(map(result => ({ items: result.items, uid }))),
     ),
-    map(result => result.items),
+    map(({ items, uid }) => items.filter(trip => trip.driverUid !== uid)),
   );
 
   constructor() {
     this.auth.user$.subscribe(user => {
       this.currentUid = user?.uid ?? null;
+      this.currentUid$.next(this.currentUid);
       if (user) {
         this.loadMyRequests();
       }

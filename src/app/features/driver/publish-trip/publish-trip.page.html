@@ -77,7 +77,7 @@
             <label>Fecha</label>
             <div class="custom-input-box">
               <ion-icon name="calendar-outline" class="icon-gray"></ion-icon>
-              <input type="date" formControlName="date" />
+              <input type="date" formControlName="date" [min]="todayDate()" />
             </div>
           </div>
 
@@ -85,7 +85,7 @@
             <label>Hora de Salida</label>
             <div class="custom-input-box">
               <ion-icon name="time-outline" class="icon-gray"></ion-icon>
-              <input type="time" formControlName="time" />
+              <input type="time" formControlName="time" (change)="onTimeChange()" />
             </div>
           </div>
         </div>
@@ -118,8 +118,10 @@
             <label>Placa</label>
             <div class="custom-input-box">
               <ion-icon name="barcode-outline" class="icon-gray"></ion-icon>
-              <input type="text" formControlName="vehiclePlate" placeholder="Ej: ABC-1234" />
+              <input type="text" formControlName="vehiclePlate" placeholder="Ej: ABC-1234" maxlength="8" autocapitalize="characters" (input)="onVehiclePlateInput($event)" />
             </div>
+            <span class="hint">Formato obligatorio: 3 letras, guion y 4 números.</span>
+            <span class="error-message" *ngIf="publishForm.controls.vehiclePlate.hasError('pattern') && publishForm.controls.vehiclePlate.touched">La placa debe tener el formato ABC-1234.</span>
           </div>
 
           <div class="input-group">
@@ -166,7 +168,13 @@
           <label>Indica cómo se realizará el pago</label>
           <div class="custom-input-box">
             <ion-icon name="card-outline" class="icon-gray"></ion-icon>
-            <input type="text" formControlName="paymentMethod" placeholder="Ej: Efectivo, Transferencia..." />
+            <ion-select
+              formControlName="paymentMethod"
+              interface="popover"
+              placeholder="Seleccionar método"
+            >
+              <ion-select-option *ngFor="let method of paymentMethods" [value]="method">{{ method }}</ion-select-option>
+            </ion-select>
           </div>
           <span class="hint" *ngIf="!hasPrice">Ingresa primero el costo para habilitar el método de pago</span>
         </div>
