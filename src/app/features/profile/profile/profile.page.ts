@@ -16,7 +16,7 @@ import type { UserProfile } from '../../../core/models/user-profile.model';
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, IonicModule, ReactiveFormsModule],
 })
 export class ProfilePage {
   private readonly fb = inject(FormBuilder);
@@ -136,7 +136,7 @@ export class ProfilePage {
     }
 
     // Limitamos a 5MB.
-    const maxBytes = 5 * 1024 * 1024; 
+    const maxBytes = 5 * 1024 * 1024;
     if (file.size > maxBytes) {
       const toast = await this.toastCtrl.create({
         message: 'La imagen debe pesar menos de 5MB.',

@@ -17,7 +17,10 @@
   align-items: center;
   gap: 10px;
 
-  .logo { height: 32px; }
+  .logo {
+    height: 32px;
+    padding-left: 8px;
+  }
 
   .system-name {
     font-weight: 900;

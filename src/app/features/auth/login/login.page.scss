@@ -9,8 +9,8 @@
   justify-content: flex-start; /* Avoid top clipping on small screens */
   align-items: center;
   min-height: 100%;
-  padding-top: 24px;
-  padding-bottom: 16px;
+  padding-top: 10px;
+  padding-bottom: 8px;
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
@@ -63,7 +63,7 @@
 .hero-section {
   text-align: center;
   margin-top: 0px;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .hero-logo {
@@ -110,13 +110,13 @@
   align-items: center;
   text-align: center;
   margin: 24px 0;
-  
+
   &::before, &::after {
     content: '';
     flex: 1;
     border-bottom: 1px solid #e2e8f0;
   }
-  
+
   span {
     padding: 0 16px;
     color: #64748b;
@@ -140,17 +140,17 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   ion-icon {
     font-size: 20px;
     color: #00a4ef;
   }
-  
+
   &:hover:not(:disabled) {
     background: #f8fafc;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
-  
+
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -178,13 +178,13 @@
 .forgot-password-link {
   text-align: right;
   margin-top: 8px;
-  
+
   a {
     color: var(--ion-color-primary);
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
-    
+
     &:active {
       opacity: 0.7;
     }

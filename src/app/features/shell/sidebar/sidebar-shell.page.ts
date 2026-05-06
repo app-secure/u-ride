@@ -47,16 +47,18 @@ export class SidebarShellPage {
   unreadNotifs = 0;
 
   isAdminArea = false;
+  isRoleArea = false;
 
   constructor() {
     this.isAdminArea = this.router.url.startsWith('/app/admin');
+    this.isRoleArea = this.router.url.startsWith('/app/role');
     this.router.events
       .pipe(
-        filter((e: any): e is NavigationEnd => e instanceof NavigationEnd),
-        map(() => this.router.url.startsWith('/app/admin')),
+        filter((e: any): e is NavigationEnd => e instanceof NavigationEnd)
       )
-      .subscribe((isAdmin: boolean) => {
-        this.isAdminArea = isAdmin;
+      .subscribe(() => {
+        this.isAdminArea = this.router.url.startsWith('/app/admin');
+        this.isRoleArea = this.router.url.startsWith('/app/role');
       });
 
     this.notifications$.subscribe(notifs => {
