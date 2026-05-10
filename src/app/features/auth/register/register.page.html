@@ -142,13 +142,25 @@
 
       <div class="actions-section fade-in-up" style="animation-delay: 0.5s">
         <ion-item lines="none" class="terms-item">
-          <ion-checkbox mode="ios" color="tertiary" slot="start" class="terms-checkbox"></ion-checkbox>
+          <ion-checkbox
+            mode="ios"
+            color="tertiary"
+            slot="start"
+            class="terms-checkbox"
+            formControlName="termsAccepted"
+          ></ion-checkbox>
           <ion-label class="terms-label ion-text-wrap">
             Acepto los <span class="text-tertiary">Términos de Servicio</span> y
             la <span class="text-tertiary">Política de Privacidad</span> de
             U-Ride.
           </ion-label>
         </ion-item>
+        <div class="field-errors">
+          <span class="error-message fade-in-up"
+            *ngIf="form.get('termsAccepted')?.hasError('required') && form.get('termsAccepted')?.touched">
+            Debes aceptar los términos para continuar
+          </span>
+        </div>
 
         <ion-button type="submit" expand="block" [disabled]="loading || form.invalid" class="submit-button">
           <ion-icon name="arrow-forward" slot="end" *ngIf="!loading"></ion-icon>

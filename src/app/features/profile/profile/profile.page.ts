@@ -34,7 +34,7 @@ export class ProfilePage {
     displayName: ['', [Validators.required, Validators.minLength(2)]],
     career: ['', [Validators.required, Validators.minLength(2)]],
     zone: ['', [Validators.required, Validators.minLength(2)]],
-    phone: [''],
+    phone: ['', [Validators.maxLength(10), Validators.pattern(/^\d{0,10}$/)]],
   });
 
   saving = false;

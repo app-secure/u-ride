@@ -77,6 +77,7 @@ export class RegisterPage {
     career: ['', [Validators.required, Validators.minLength(2)]],
     phone: ['', [Validators.required, Validators.pattern(/^\d{10}$/), (c: AbstractControl) => this.onlyNumbersValidator(c)]],
     zone: ['', [Validators.required, Validators.minLength(2)]],
+    termsAccepted: [false, [Validators.requiredTrue]],
   }, {
     validators: [(group: AbstractControl) => this.passwordsMatchValidator(group)],
   });
