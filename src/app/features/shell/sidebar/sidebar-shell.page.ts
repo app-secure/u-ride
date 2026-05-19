@@ -87,7 +87,13 @@ export class SidebarShellPage {
     const user = await this.auth.getUser();
     if (user && this.unreadNotifs > 0) {
       await this.notifications.markAllAsRead(user.uid, this.currentNotifs);
+      this.refreshNotifs$.next();
     }
+  }
+
+  async goToNotificationsHistory(): Promise<void> {
+    await this.popoverCtrl.dismiss().catch(() => {});
+    await this.router.navigateByUrl('/app/notifications');
   }
 
   get currentRole(): AppRole {
@@ -141,6 +147,7 @@ export class SidebarShellPage {
     const user = await this.auth.getUser();
     if (user && !notif.read && notif.id) {
       await this.notifications.markAsRead(user.uid, notif.id);
+      this.refreshNotifs$.next();
     }
 
     await this.popoverCtrl.dismiss().catch(() => {});
@@ -149,11 +156,15 @@ export class SidebarShellPage {
       // Ir a calificar
       await this.router.navigate(['/app/rate', notif.tripId, notif.driverUid]);
     } else if (notif.tripId) {
-      // Ir al detalle del viaje
-      if (this.currentRole !== 'passenger') {
-        this.roleState.setRole('passenger');
+      // Ir al detalle según rol
+      if (this.currentRole === 'driver') {
+        await this.router.navigate(['/app/requests', notif.tripId]);
+      } else {
+        if (this.currentRole !== 'passenger') {
+          this.roleState.setRole('passenger');
+        }
+        await this.router.navigate(['/app/trips', notif.tripId]);
       }
-      await this.router.navigate(['/app/trips', notif.tripId]);
     }
   }
 }

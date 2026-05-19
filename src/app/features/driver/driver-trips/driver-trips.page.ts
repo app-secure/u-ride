@@ -3,11 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { Router, RouterLink } from '@angular/router';
-import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
-import { map, switchMap, startWith } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
 
-import { AuthService } from '../../../core/auth/auth.service';
 import { TripsService } from '../../../core/services/trips.service';
 import type { Trip } from '../../../core/models/trip.model';
 
@@ -19,43 +16,75 @@ import type { Trip } from '../../../core/models/trip.model';
   imports: [CommonModule, IonicModule, FormsModule, RouterLink],
 })
 export class DriverTripsPage {
-  private readonly auth = inject(AuthService);
   private readonly tripsSvc = inject(TripsService);
   private readonly router = inject(Router);
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
 
-  private readonly segmentSubject = new BehaviorSubject<'active' | 'completed'>('active');
-  private readonly refresh$ = new BehaviorSubject<void>(undefined);
-  
+  private _segment: 'active' | 'completed' = 'active';
+  private readonly pageSize = 10;
+  private nextIndex = 0;
+
+  allTrips: Trip[] = [];
+  filteredTrips: Trip[] = [];
+  trips: Trip[] = [];
+  loading = true;
+  hasMore = false;
+
   get segment(): 'active' | 'completed' {
-    return this.segmentSubject.value;
+    return this._segment;
   }
-  
+
   set segment(val: 'active' | 'completed') {
-    this.segmentSubject.next(val);
+    this._segment = val;
+    this.applyFilterAndReset();
   }
-
-  readonly myTrips$: Observable<Trip[]> = this.refresh$.pipe(
-    switchMap(() => this.tripsSvc.getMyTrips()),
-  );
-
-  readonly filteredTrips$: Observable<Trip[]> = combineLatest([
-    this.myTrips$,
-    this.segmentSubject.asObservable()
-  ]).pipe(
-    map(([trips, segment]) => trips.filter(t => 
-      segment === 'active' ? t.status === 'open' : (t.status === 'completed' || t.status === 'cancelled')
-    ))
-  );
 
   ionViewWillEnter(): void {
-    this.refresh$.next();
+    this.loadTrips();
   }
 
   doRefresh(event: any): void {
-    this.refresh$.next();
-    setTimeout(() => event.target.complete(), 600);
+    this.loadTrips().finally(() => event.target.complete());
+  }
+
+  loadMore(event: any): void {
+    this.loadNextChunk(event);
+  }
+
+  private async loadTrips(): Promise<void> {
+    this.loading = true;
+    try {
+      this.allTrips = await firstValueFrom(this.tripsSvc.getMyTrips());
+      this.applyFilterAndReset();
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  private applyFilterAndReset(): void {
+    this.filteredTrips = (this.allTrips ?? []).filter(t =>
+      this.segment === 'active'
+        ? t.status === 'open'
+        : (t.status === 'completed' || t.status === 'cancelled')
+    );
+    this.trips = [];
+    this.nextIndex = 0;
+    this.hasMore = this.filteredTrips.length > 0;
+    this.loadNextChunk();
+  }
+
+  private loadNextChunk(event?: any): void {
+    if (!this.hasMore) {
+      event?.target?.complete?.();
+      return;
+    }
+
+    const next = this.filteredTrips.slice(this.nextIndex, this.nextIndex + this.pageSize);
+    this.trips = [...this.trips, ...next];
+    this.nextIndex += next.length;
+    this.hasMore = this.nextIndex < this.filteredTrips.length;
+    event?.target?.complete?.();
   }
 
   async cancelTrip(trip: Trip): Promise<void> {
@@ -70,7 +99,7 @@ export class DriverTripsPage {
           handler: async () => {
             try {
               await firstValueFrom(this.tripsSvc.updateTripStatus(trip.id, 'cancelled'));
-              this.refresh$.next();
+              await this.loadTrips();
               await this.presentToast('Viaje cancelado correctamente.', 'success');
             } catch (e: any) {
               await this.presentToast('Error al cancelar el viaje.', 'danger');
@@ -93,7 +122,7 @@ export class DriverTripsPage {
           handler: async () => {
             try {
               await firstValueFrom(this.tripsSvc.updateTripStatus(trip.id, 'completed'));
-              this.refresh$.next();
+              await this.loadTrips();
               await this.presentToast('Viaje finalizado. Ahora puedes calificar/reportar pasajeros.', 'success');
             } catch (e: any) {
               await this.presentToast('Error al finalizar el viaje.', 'danger');
@@ -129,7 +158,7 @@ export class DriverTripsPage {
           handler: async () => {
             try {
               await firstValueFrom(this.tripsSvc.deleteTrip(trip.id));
-              this.refresh$.next();
+              await this.loadTrips();
               await this.presentToast('Viaje eliminado.', 'success');
             } catch {
               await this.presentToast('Error al eliminar el viaje.', 'danger');

@@ -32,12 +32,11 @@
       </form>
     </div>
 
-    <ng-container *ngIf="trips$ | async as trips; else loading">
-      <div class="trips-list-header">
-        <h2>Viajes Disponibles</h2>
-      </div>
+    <div class="trips-list-header">
+      <h2>Viajes Disponibles</h2>
+    </div>
 
-      <div class="empty-state modern-card" *ngIf="trips.length === 0">
+    <div class="empty-state modern-card" *ngIf="!loading && trips.length === 0">
         <div class="empty-icon-box">
           <ion-icon name="search-outline"></ion-icon>
         </div>
@@ -45,7 +44,7 @@
         <p>No hay viajes disponibles con esos filtros. Intenta cambiar tu búsqueda.</p>
       </div>
 
-      <div class="modern-card trip-card" *ngFor="let trip of trips">
+    <div class="modern-card trip-card" *ngFor="let trip of trips">
         <div class="trip-card-inner">
           <div class="driver-info">
             <div class="driver-avatar">
@@ -119,14 +118,22 @@
           </div>
         </div>
       </div>
-    </ng-container>
 
-    <ng-template #loading>
-      <div class="loading-state">
-        <ion-spinner name="crescent"></ion-spinner>
-        <p>Buscando viajes...</p>
-      </div>
-    </ng-template>
+    <div class="loading-state" *ngIf="loading && trips.length === 0">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Buscando viajes...</p>
+    </div>
+
+    <ion-infinite-scroll
+      threshold="120px"
+      [disabled]="loading || !hasMore"
+      (ionInfinite)="loadMore($event)"
+    >
+      <ion-infinite-scroll-content
+        loadingSpinner="crescent"
+        loadingText="Cargando más viajes..."
+      ></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
 
   </div>
 </ion-content>
