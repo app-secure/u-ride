@@ -217,13 +217,6 @@
       color: #f9fafb;
     }
   }
-
-  .reload-btn {
-    --border-radius: 12px;
-    font-weight: 700;
-    text-transform: none;
-    margin: 0;
-  }
 }
 
 // ====== HISTORIAL PASAJERO (SCOPED, MISMO DISEÑO QUE CONDUCTOR) ======
@@ -262,19 +255,6 @@
       margin: 0;
     }
 
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .reload-btn {
-      --border-radius: 12px;
-      font-weight: 600;
-      text-transform: none;
-      margin: 0;
-    }
   }
 
   .custom-segment {

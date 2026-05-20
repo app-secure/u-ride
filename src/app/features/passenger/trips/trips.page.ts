@@ -223,13 +223,20 @@ export class TripsPage {
   }
 
   doRefresh(event: any): void {
+    if (this.mainSegment === 'recent') {
+      this.loadRecentTrips().finally(() => event.target.complete());
+      return;
+    }
+
+    // Por defecto, refrescar búsqueda de viajes
+    this.lastQueryKey = '';
     this.resetAndLoad();
     this.loadMyRequests();
     setTimeout(() => event.target.complete(), 600);
   }
 
+  // Métodos explícitos de recarga (útiles si luego se reintroduce botón)
   reloadSearchTrips(): void {
-    // Forzar recarga aun si los filtros no cambiaron
     this.lastQueryKey = '';
     this.resetAndLoad();
     this.loadMyRequests();

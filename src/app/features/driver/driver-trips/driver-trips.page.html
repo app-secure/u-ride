@@ -1,4 +1,8 @@
 <ion-content [fullscreen]="true" class="uride-content">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <div class="driver-trips-dashboard fade-in-up">
     <div class="header-section">
       <div class="title-row">
@@ -9,10 +13,6 @@
         <div class="header-actions">
           <ion-button routerLink="/app/profile/vehicles" fill="solid" class="vehicles-btn">
             <ion-icon name="car-sport-outline" slot="icon-only"></ion-icon>
-          </ion-button>
-          <ion-button fill="outline" color="medium" class="reload-btn" (click)="reloadTrips()">
-            <ion-icon name="refresh-outline" slot="start"></ion-icon>
-            Recargar
           </ion-button>
           <ion-button routerLink="/app/publish" color="primary" class="publish-btn">
             <ion-icon name="add-circle-outline" slot="start"></ion-icon>

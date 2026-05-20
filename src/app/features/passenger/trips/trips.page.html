@@ -1,4 +1,8 @@
 <ion-content [fullscreen]="true" class="uride-content">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <div class="trips-dashboard fade-in-up">
 
     <div class="section-switch">
@@ -46,10 +50,6 @@
 
       <div class="trips-list-header">
         <h2>Viajes Disponibles</h2>
-        <ion-button fill="outline" color="medium" class="reload-btn" (click)="reloadSearchTrips()">
-          <ion-icon name="refresh-outline" slot="start"></ion-icon>
-          Recargar
-        </ion-button>
       </div>
 
       <div class="empty-state modern-card" *ngIf="!loading && trips.length === 0">
@@ -173,12 +173,6 @@
               <div>
                 <h2 class="title">Mis Viajes</h2>
                 <p class="subtitle">Viajes recientes como pasajero</p>
-              </div>
-              <div class="header-actions">
-                <ion-button fill="outline" color="medium" class="reload-btn" (click)="reloadRecentTrips()">
-                  <ion-icon name="refresh-outline" slot="start"></ion-icon>
-                  Recargar
-                </ion-button>
               </div>
             </div>
 

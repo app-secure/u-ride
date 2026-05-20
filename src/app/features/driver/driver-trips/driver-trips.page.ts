@@ -44,10 +44,6 @@ export class DriverTripsPage {
     this.loadTrips();
   }
 
-  reloadTrips(): void {
-    void this.loadTrips();
-  }
-
   doRefresh(event: any): void {
     this.loadTrips().finally(() => event.target.complete());
   }
