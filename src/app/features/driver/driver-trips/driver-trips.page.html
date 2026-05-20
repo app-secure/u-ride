@@ -10,6 +10,10 @@
           <ion-button routerLink="/app/profile/vehicles" fill="solid" class="vehicles-btn">
             <ion-icon name="car-sport-outline" slot="icon-only"></ion-icon>
           </ion-button>
+          <ion-button fill="outline" color="medium" class="reload-btn" (click)="reloadTrips()">
+            <ion-icon name="refresh-outline" slot="start"></ion-icon>
+            Recargar
+          </ion-button>
           <ion-button routerLink="/app/publish" color="primary" class="publish-btn">
             <ion-icon name="add-circle-outline" slot="start"></ion-icon>
             Publicar Viaje

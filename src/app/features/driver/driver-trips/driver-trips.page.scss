@@ -51,6 +51,13 @@
     height: 38px;
     width: 38px;
   }
+
+  .reload-btn {
+    --border-radius: 12px;
+    font-weight: 600;
+    text-transform: none;
+    margin: 0;
+  }
 }
 
 .custom-segment {
