@@ -10,7 +10,9 @@ import { startWith } from 'rxjs/operators';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UsersService } from '../../../core/services/users.service';
 import { TripsService } from '../../../core/services/trips.service';
+import { VehiclesService } from '../../../core/services/vehicles.service';
 import type { Trip, TripRuleSet } from '../../../core/models/trip.model';
+import type { Vehicle } from '../../../core/models/vehicle.model';
 import { LocationPickerModalComponent, type LocationPickerResult } from './location-picker-modal.component';
 
 @Component({
@@ -25,6 +27,7 @@ export class PublishTripPage {
   private readonly auth = inject(AuthService);
   private readonly users = inject(UsersService);
   private readonly trips = inject(TripsService);
+  private readonly vehiclesService = inject(VehiclesService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toastCtrl = inject(ToastController);
@@ -33,6 +36,7 @@ export class PublishTripPage {
 
   driverUid: string | null = null;
   driverName = '';
+  myVehicles: Vehicle[] = [];
 
   readonly editTripId = this.route.snapshot.paramMap.get('tripId');
   tripToEdit: Trip | null = null;
@@ -76,10 +80,15 @@ export class PublishTripPage {
         switchMap(user => (user ? this.users.profile$(user.uid) : of(undefined))),
         takeUntilDestroyed(),
       )
-      .subscribe(profile => {
+      .subscribe(async profile => {
         if (!profile) return;
         this.driverUid = profile.uid;
         this.driverName = profile.displayName || 'Conductor/a';
+        try {
+          this.myVehicles = await firstValueFrom(this.vehiclesService.getVehicles());
+        } catch(e) {
+          console.error('Error al cargar vehículos', e);
+        }
       });
 
     if (this.editTripId) {
@@ -136,6 +145,19 @@ export class PublishTripPage {
         }
         paymentCtrl.updateValueAndValidity({ emitEvent: false });
       });
+  }
+
+  onVehicleSelected(event: any): void {
+    const selectedVehicle = event.detail.value as Vehicle;
+    if (selectedVehicle) {
+      this.publishForm.patchValue({
+        vehicleBrand: selectedVehicle.brand,
+        vehicleModel: selectedVehicle.modelOrBusNumber,
+        vehiclePlate: selectedVehicle.plate,
+        vehicleColor: selectedVehicle.color,
+        seatsTotal: selectedVehicle.seats,
+      });
+    }
   }
 
   private async searchPlacesEc(query: string): Promise<Array<{ label: string; lat: number; lng: number }>> {

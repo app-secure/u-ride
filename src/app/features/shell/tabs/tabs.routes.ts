@@ -37,6 +37,10 @@ export const TABS_ROUTES: Routes = [
     loadComponent: () => import('../../profile/profile/profile.page').then(m => m.ProfilePage),
   },
   {
+    path: 'profile/vehicles',
+    loadComponent: () => import('../../profile/vehicles/vehicles.page').then(m => m.VehiclesPage),
+  },
+  {
     path: 'report/:reportedUid',
     loadComponent: () => import('../../reports/create-report/create-report.page').then(m => m.CreateReportPage),
   },

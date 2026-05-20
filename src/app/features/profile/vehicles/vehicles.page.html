@@ -1,0 +1,51 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Mis Vehículos</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openModal()" color="primary">
+        <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="isLoading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando vehículos...</p>
+  </div>
+
+  <div *ngIf="!isLoading && vehicles.length === 0" class="empty-state">
+    <ion-icon name="car-outline" class="empty-icon"></ion-icon>
+    <h3>No tienes vehículos</h3>
+    <p>Agrega un vehículo para empezar a ofrecer viajes.</p>
+    <ion-button (click)="openModal()" shape="round" color="primary">
+      <ion-icon name="add" slot="start"></ion-icon>
+      Agregar Vehículo
+    </ion-button>
+  </div>
+
+  <ion-list *ngIf="!isLoading && vehicles.length > 0" lines="none" class="vehicle-list">
+    <ion-item-sliding *ngFor="let vehicle of vehicles">
+      <ion-item class="vehicle-card" detail="false" button (click)="openModal(vehicle)">
+        <ion-icon name="car-sport-outline" slot="start" color="primary" class="vehicle-icon"></ion-icon>
+        <ion-label>
+          <h2>{{ vehicle.brand }} - {{ vehicle.modelOrBusNumber }}</h2>
+          <p>Placa: {{ vehicle.plate }} | Color: {{ vehicle.color }}</p>
+          <p>Asientos: {{ vehicle.seats }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="danger" (click)="deleteVehicle(vehicle)">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+  </ion-list>
+</ion-content>
