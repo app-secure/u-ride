@@ -29,6 +29,10 @@ export const TABS_ROUTES: Routes = [
     loadComponent: () => import('../../driver/ride-requests/ride-requests.page').then(m => m.RideRequestsPage),
   },
   {
+    path: 'notifications',
+    loadComponent: () => import('../../notifications/notifications.page').then(m => m.NotificationsPage),
+  },
+  {
     path: 'profile',
     loadComponent: () => import('../../profile/profile/profile.page').then(m => m.ProfilePage),
   },

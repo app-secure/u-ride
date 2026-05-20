@@ -79,6 +79,8 @@ export class AuthService {
     try {
       // Sincronizar usuario con el backend vía API REST
       await firstValueFrom(this.users.syncUser(cred.user));
+
+      this.printSwaggerToken();
     } catch (e) {
       console.warn('[AuthService.login] syncUser failed:', e);
       throw new Error('PROFILE_WRITE_FAILED');
@@ -191,5 +193,33 @@ export class AuthService {
 
   async getUser(): Promise<User | null> {
     return this.auth.currentUser ?? await firstValueFrom(this.user$);
+  }
+
+  async printSwaggerToken(): Promise<void> {
+    try {
+      let token: string | undefined;
+
+      if (Capacitor.isNativePlatform()) {
+        // Si estás en emulador o dispositivo físico
+        const result = await FirebaseAuthentication.getIdToken({ forceRefresh: true });
+        token = result.token;
+      } else {
+        // Si estás probando en la Web con 'ionic serve'
+        const currentElement = this.auth.currentUser;
+        if (currentElement) {
+          token = await currentElement.getIdToken(true);
+        }
+      }
+
+      if (token) {
+        console.log("================= SWAGGER TOKEN =================");
+        console.log(token);
+        console.log("=================================================");
+      } else {
+        console.warn('[AuthService] No se pudo obtener el token porque no hay usuario activo.');
+      }
+    } catch (error) {
+      console.error('[AuthService] Error al generar token para Swagger:', error);
+    }
   }
 }

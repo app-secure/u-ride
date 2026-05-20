@@ -22,9 +22,7 @@
       </ion-segment>
     </div>
 
-    <ng-container *ngIf="filteredTrips$ | async as trips; else loading">
-      
-      <div class="empty-state modern-card" *ngIf="trips.length === 0">
+    <div class="empty-state modern-card" *ngIf="!loading && filteredTrips.length === 0">
         <div class="empty-icon-box">
           <ion-icon name="car-outline"></ion-icon>
         </div>
@@ -32,7 +30,7 @@
         <p>No tienes viajes {{ segment === 'active' ? 'activos' : 'en el historial' }}.</p>
       </div>
 
-      <div class="modern-card trip-card" *ngFor="let trip of trips">
+    <div class="modern-card trip-card" *ngFor="let trip of trips">
         <div class="trip-card-inner">
           <div class="trip-header">
             <span class="status-badge" [ngClass]="trip.status">
@@ -95,13 +93,20 @@
         </div>
       </div>
 
-    </ng-container>
+    <div class="loading-state" *ngIf="loading && trips.length === 0">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando tus viajes...</p>
+    </div>
 
-    <ng-template #loading>
-      <div class="loading-state">
-        <ion-spinner name="crescent"></ion-spinner>
-        <p>Cargando tus viajes...</p>
-      </div>
-    </ng-template>
+    <ion-infinite-scroll
+      threshold="120px"
+      [disabled]="loading || !hasMore"
+      (ionInfinite)="loadMore($event)"
+    >
+      <ion-infinite-scroll-content
+        loadingSpinner="crescent"
+        loadingText="Cargando más viajes..."
+      ></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
   </div>
 </ion-content>
