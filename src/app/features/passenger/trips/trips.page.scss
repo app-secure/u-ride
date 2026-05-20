@@ -1,5 +1,9 @@
 .uride-content {
   --background: #f8fafc;
+  
+  @media (prefers-color-scheme: dark) {
+    --background: #0f172a;
+  }
 }
 
 .trips-dashboard {
@@ -11,10 +15,17 @@
 
 .modern-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   border: 1px solid #f1f5f9;
   margin-bottom: 24px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  @media (prefers-color-scheme: dark) {
+    background: #1f2937;
+    border-color: #374151;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
 }
 
 .search-container {
@@ -25,6 +36,10 @@
     font-weight: 700;
     color: #0f172a;
     margin: 0 0 20px 0;
+    
+    @media (prefers-color-scheme: dark) {
+      color: #f9fafb;
+    }
   }
 }
 
@@ -50,6 +65,10 @@
       font-weight: 700;
       color: #475569;
       padding-left: 4px;
+      
+      @media (prefers-color-scheme: dark) {
+        color: #d1d5db;
+      }
     }
   }
 
@@ -58,14 +77,24 @@
     align-items: center;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 0 12px;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     height: 48px;
+    
+    @media (prefers-color-scheme: dark) {
+      background: #374151;
+      border-color: #4b5563;
+    }
     
     &:focus-within {
       border-color: #000000;
-      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+      
+      @media (prefers-color-scheme: dark) {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+      }
     }
     
     ion-icon {
@@ -73,6 +102,10 @@
       font-size: 20px;
       margin-right: 8px;
       flex-shrink: 0;
+      
+      @media (prefers-color-scheme: dark) {
+        color: #9ca3af;
+      }
     }
     
     input {
@@ -85,7 +118,17 @@
       outline: none;
       width: 100%;
       
-      &::placeholder { color: #94a3b8; }
+      @media (prefers-color-scheme: dark) {
+        color: #f3f4f6;
+      }
+      
+      &::placeholder { 
+        color: #94a3b8;
+        
+        @media (prefers-color-scheme: dark) {
+          color: #9ca3af;
+        }
+      }
     }
 
     &.select-wrapper {
@@ -105,6 +148,11 @@
         font-weight: 600;
         color: #1e293b;
         
+        @media (prefers-color-scheme: dark) {
+          color: #f3f4f6;
+          --placeholder-color: #9ca3af;
+        }
+        
         &::part(container) {
           width: 100%;
         }
@@ -117,7 +165,6 @@
           padding: 8px 0;
         }
 
-        /* Ajuste para que el popover sea más ancho */
         &::part(icon) {
           margin-inline-start: 8px;
         }
@@ -127,7 +174,7 @@
 }
 
 .btn-search {
-  display: none; /* Eliminado según solicitud */
+  display: none;
 }
 
 .trips-list-header {
@@ -137,16 +184,24 @@
     font-weight: 700;
     color: #0f172a;
     margin: 0;
+    
+    @media (prefers-color-scheme: dark) {
+      color: #f9fafb;
+    }
   }
 }
 
 .trip-card {
-  padding: 24px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+    
+    @media (prefers-color-scheme: dark) {
+      box-shadow: 0 12px 28px rgba(0,0,0,0.4);
+    }
   }
   
   .trip-card-inner {
@@ -156,34 +211,79 @@
   }
 }
 
+// ====== DRIVER HEADER ROW ======
+.driver-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
 .driver-info {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1;
   
-  .driver-avatar {
-    width: 48px;
-    height: 48px;
-    background: #e2e8f0;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .driver-avatar-wrapper {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
     
-    ion-icon {
-      font-size: 24px;
-      color: #64748b;
+    .driver-photo {
+      width: 100%;
+      height: 100%;
+      border-radius: 14px;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      border: 2px solid #f1f5f9;
+      
+      @media (prefers-color-scheme: dark) {
+        border-color: #374151;
+      }
+    }
+    
+    .driver-avatar-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #e2e8f0, #f1f5f9);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      border: 2px solid #f1f5f9;
+      
+      @media (prefers-color-scheme: dark) {
+        background: linear-gradient(135deg, #374151, #4b5563);
+        border-color: #4b5563;
+      }
+      
+      ion-icon {
+        font-size: 28px;
+        color: #64748b;
+        
+        @media (prefers-color-scheme: dark) {
+          color: #9ca3af;
+        }
+      }
     }
   }
   
   .driver-details {
     display: flex;
     flex-direction: column;
+    gap: 4px;
 
     .driver-name {
       font-weight: 700;
       font-size: 16px;
       color: #1e293b;
+      
+      @media (prefers-color-scheme: dark) {
+        color: #f3f4f6;
+      }
     }
 
     .driver-rating {
@@ -192,45 +292,416 @@
       display: flex;
       align-items: center;
       gap: 4px;
+      
+      @media (prefers-color-scheme: dark) {
+        color: #d1d5db;
+      }
     }
   }
+}
 
+// ====== STATUS BADGE WRAPPER ======
+.status-badge-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  
   .price-badge {
-    margin-left: auto;
-    background: #ecfdf5;
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
     color: #059669;
     font-weight: 800;
     font-size: 18px;
-    padding: 6px 12px;
+    padding: 8px 14px;
     border-radius: 12px;
     border: 1px solid #a7f3d0;
     display: flex;
     align-items: center;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+    
+    @media (prefers-color-scheme: dark) {
+      background: linear-gradient(135deg, #065f46, #047857);
+      color: #86efac;
+      border-color: #059669;
+    }
     
     .currency {
       font-size: 14px;
       margin-right: 2px;
     }
   }
+  
+  .trip-status-indicator {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 80px;
+    text-align: center;
+    transition: all 0.3s ease;
+    
+    &.none {
+      background: transparent;
+      color: transparent;
+      visibility: hidden;
+    }
+    
+    &.pending {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      
+      @media (prefers-color-scheme: dark) {
+        background: #92400e;
+        color: #fef3c7;
+        border-color: #b45309;
+      }
+    }
+    
+    &.accepted {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+      animation: slideInRight 0.4s ease;
+      
+      @media (prefers-color-scheme: dark) {
+        background: #166534;
+        color: #dcfce7;
+        border-color: #22c55e;
+      }
+    }
+    
+    &.rejected {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+      
+      @media (prefers-color-scheme: dark) {
+        background: #7f1d1d;
+        color: #fee2e2;
+        border-color: #ef4444;
+      }
+    }
+  }
 }
 
 .trip-route {
   display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
+  flex-wrap: nowrap;
+  gap: 16px;
+  align-items: center;
   
   .route-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 15px;
+    gap: 6px;
+    font-size: 13px;
+    flex: 0 1 auto;
     
-    .icon-origin { color: #10b981; }
-    .icon-destination { color: #ef4444; }
+    .icon-origin { 
+      color: #10b981;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .icon-destination { 
+      color: #ef4444;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    
+    .route-label {
+      font-weight: 600;
+      color: #64748b;
+      flex-shrink: 0;
+      
+      @media (prefers-color-scheme: dark) {
+        color: #d1d5db;
+      }
+    }
+    
+    .route-value {
+      color: #1e293b;
+      font-weight: 500;
+      
+      @media (prefers-color-scheme: dark) {
+        color: #f3f4f6;
+      }
+    }
+  }
+}
+
+.trip-time {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  
+  .time-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+    
+    @media (prefers-color-scheme: dark) {
+      color: #d1d5db;
+    }
+    
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+}
+
+.trip-notes {
+  font-size: 14px;
+  color: #475569;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border-left: 3px solid #e2e8f0;
+  
+  @media (prefers-color-scheme: dark) {
+    background: #374151;
+    color: #e5e7eb;
+    border-left-color: #4b5563;
+  }
+  
+  .notes-label {
+    font-weight: 700;
+    color: #1e293b;
+    
+    @media (prefers-color-scheme: dark) {
+      color: #f3f4f6;
+    }
+  }
+}
+
+.trip-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  gap: 12px;
+  
+  @media (prefers-color-scheme: dark) {
+    border-top-color: #374151;
+  }
+  
+  .availability {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    
+    @media (prefers-color-scheme: dark) {
+      color: #f9fafb;
+    }
+    
+    ion-icon {
+      font-size: 18px;
+      color: #64748b;
+      
+      @media (prefers-color-scheme: dark) {
+        color: #9ca3af;
+      }
+    }
+  }
+  
+  .btn-primary {
+    background: #000000;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    
+    @media (prefers-color-scheme: dark) {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    
+    &:hover {
+      background: #111827;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      
+      @media (prefers-color-scheme: dark) {
+        background: #ffffff;
+        box-shadow: 0 8px 20px rgba(255,255,255,0.2);
+      }
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  
+  .empty-icon-box {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    
+    @media (prefers-color-scheme: dark) {
+      background: linear-gradient(135deg, #374151, #4b5563);
+    }
+    
+    ion-icon {
+      font-size: 40px;
+      color: #94a3b8;
+      
+      @media (prefers-color-scheme: dark) {
+        color: #9ca3af;
+      }
+    }
+  }
+  
+  h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+    
+    @media (prefers-color-scheme: dark) {
+      color: #f9fafb;
+    }
+  }
+  
+  p {
+    font-size: 15px;
+    color: #64748b;
+    margin: 0;
+    
+    @media (prefers-color-scheme: dark) {
+      color: #d1d5db;
+    }
+  }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  gap: 16px;
+  color: #64748b;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@media (min-width: 768px) {
+  .trip-card-inner {
+    display: grid !important;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto auto;
+    gap: 16px 32px !important;
+    align-items: start;
+    
+    .driver-header-row {
+      grid-column: 1 / 2;
+      grid-row: 1 / 2;
+    }
+    
+    .trip-route {
+      grid-column: 1 / 2;
+      grid-row: 2 / 3;
+    }
+    
+    .trip-time {
+      grid-column: 1 / 2;
+      grid-row: 3 / 4;
+    }
+    
+    .trip-notes {
+      grid-column: 1 / -1;
+      grid-row: 4 / 5;
+    }
+    
+    .trip-actions {
+      grid-column: 2 / 3;
+      grid-row: 1 / 4;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-end;
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+      gap: 16px;
+      
+      .btn-primary {
+        margin-top: 16px;
+        width: 100%;
+      }
+    }
+  }
+}
+
+.trip-route {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  align-items: center;
+  
+  .route-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    flex: 0 1 auto;
+    
+    .icon-origin { 
+      color: #10b981;
+      flex-shrink: 0;
+    }
+    .icon-destination { 
+      color: #ef4444;
+      flex-shrink: 0;
+    }
     
     .route-label {
       font-weight: 600;
       color: #1e293b;
+      flex-shrink: 0;
     }
     
     .route-value {

@@ -76,9 +76,20 @@ export class TripDetailPage {
   // Estado de la solicitud del pasajero actual ('none' | 'pending' | 'accepted' | 'rejected' | 'cancelled_by_passenger')
   myRequestStatus: string = 'none';
 
-  // Payment state
+  // Payment state - Nueva experiencia de pago
   isPaymentModalOpen = false;
+  paymentStep: 'selection' | 'qr' | 'processing' | 'success' = 'selection'; // selection -> qr/processing -> success
+  selectedPaymentMethod: 'card' | 'transfer' | 'qr' | 'cash' | 'institutional' | null = null;
   processingPayment = false;
+  paymentReferenceCode = '';
+  qrExpirationTime = 120; // 2 minutos
+  paymentMethods: Array<{ id: 'card' | 'transfer' | 'qr' | 'cash' | 'institutional'; label: string; icon: string; color: string }> = [
+    { id: 'card', label: 'Tarjeta de crédito/débito', icon: 'card-outline', color: '#3b82f6' },
+    { id: 'transfer', label: 'Transferencia bancaria', icon: 'swap-horizontal-outline', color: '#8b5cf6' },
+    { id: 'qr', label: 'Pago con QR', icon: 'qr-code-outline', color: '#10b981' },
+    { id: 'cash', label: 'Efectivo', icon: 'cash-outline', color: '#f59e0b' },
+    { id: 'institutional', label: 'Pago institucional', icon: 'school-outline', color: '#06b6d4' },
+  ];
   isCompletingTrip = false;
   isCancellingTrip = false;
 
@@ -530,18 +541,27 @@ export class TripDetailPage {
     const rules = (Array.isArray(this.trip.ruleTexts) && this.trip.ruleTexts.length > 0)
       ? this.trip.ruleTexts
       : this.defaultRuleTexts;
-    const rulesMsg = rules.map(r => `• ${r}`).join('\n\n');
+    
+    const rulesMsg = rules.map(r => `• ${r}`).join('\n');
 
     const alert = await this.alertCtrl.create({
       header: 'Reglas mínimas de seguridad',
       message: rulesMsg,
+      cssClass: 'compact-rules-alert',
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { 
+          text: 'Cancelar', 
+          role: 'cancel',
+          cssClass: 'alert-cancel-btn'
+        },
         { 
           text: 'Aceptar y continuar', 
           role: 'confirm',
+          cssClass: 'alert-confirm-btn',
           handler: () => {
             this.isPaymentModalOpen = true;
+            this.paymentStep = 'selection';
+            this.selectedPaymentMethod = null;
           }
         },
       ],
@@ -549,36 +569,79 @@ export class TripDetailPage {
     await alert.present();
   }
 
-  closePaymentModal(): void {
-    this.isPaymentModalOpen = false;
+  selectPaymentMethod(method: 'card' | 'transfer' | 'qr' | 'cash' | 'institutional'): void {
+    this.selectedPaymentMethod = method;
+    if (method === 'qr') {
+      this.paymentStep = 'qr';
+      this.generatePaymentQR();
+    } else {
+      this.processPayment();
+    }
   }
 
-  async confirmPaymentAndRequest(): Promise<void> {
+  generatePaymentQR(): void {
+    // Generar código de referencia falso
+    this.paymentReferenceCode = this.generateReferenceCode();
+    this.qrExpirationTime = 120;
+    
+    // Simular countdown
+    const interval = setInterval(() => {
+      this.qrExpirationTime--;
+      if (this.qrExpirationTime <= 0) {
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    // Auto-confirmar después de 3 segundos (simulando escaneo)
+    setTimeout(() => {
+      clearInterval(interval);
+      this.processPayment();
+    }, 3000);
+  }
+
+  async processPayment(): Promise<void> {
     if (!this.trip || !this.currentUid) return;
+    this.paymentStep = 'processing';
     this.processingPayment = true;
     
-    // Simular el tiempo de procesamiento del pago
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Simular procesamiento (2-3 segundos)
+    const delay = 2000 + Math.random() * 1000;
+    await new Promise(resolve => setTimeout(resolve, delay));
 
     try {
+      // Crear solicitud de viaje
       await firstValueFrom(this.tripRequests.createRequest(this.tripId));
       
-      // Actualizar el estado local para reflejar que la solicitud fue enviada
+      // Actualizar estado local
       this.myRequestStatus = 'pending';
+      this.paymentStep = 'success';
+      this.paymentReferenceCode = this.generateReferenceCode();
       
-      this.closePaymentModal();
-      
+      // Auto-cerrar después de 4 segundos
+      setTimeout(() => {
+        this.closePaymentModal();
+      }, 4000);
+
+      // Toast de éxito
       const toast = await this.toastCtrl.create({
-        message: 'Pago exitoso y solicitud enviada al conductor/a.',
-        duration: 2500,
+        message: '✓ Pago procesado exitosamente. Solicitud enviada.',
+        duration: 3000,
         position: 'top',
         color: 'success',
       });
       await toast.present();
     } catch (e: any) {
+      this.paymentStep = 'selection';
+      this.selectedPaymentMethod = null;
+      
+      let errorMessage = 'Error al procesar el pago. Intenta de nuevo.';
+      if (e?.status === 409) {
+        errorMessage = 'Ya existe una solicitud pendiente para este viaje.';
+      }
+
       const toast = await this.toastCtrl.create({
-        message: 'Hubo un error al procesar el pago o la solicitud.',
-        duration: 2500,
+        message: errorMessage,
+        duration: 3500,
         position: 'top',
         color: 'danger',
       });
@@ -586,6 +649,20 @@ export class TripDetailPage {
     } finally {
       this.processingPayment = false;
     }
+  }
+
+  private generateReferenceCode(): string {
+    return 'REF-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+  }
+
+  closePaymentModal(): void {
+    this.isPaymentModalOpen = false;
+    this.paymentStep = 'selection';
+    this.selectedPaymentMethod = null;
+  }
+
+  async confirmPaymentAndRequest(): Promise<void> {
+    // Deprecated - usar selectPaymentMethod directamente
   }
 
   openRequests(): void {

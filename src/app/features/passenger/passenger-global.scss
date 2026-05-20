@@ -1,0 +1,94 @@
+/* =========================
+   GLOBAL PASSENGER MODULE STYLES
+========================= */
+
+/* Toast customizados mejorados */
+.payment-success-toast {
+  --background: linear-gradient(135deg, #10b981, #059669);
+  --color: white;
+  --font-weight: 700;
+
+  @media (prefers-color-scheme: dark) {
+    --background: linear-gradient(135deg, #059669, #047857);
+  }
+}
+
+.payment-error-toast {
+  --background: linear-gradient(135deg, #ef4444, #dc2626);
+  --color: white;
+  --font-weight: 700;
+
+  @media (prefers-color-scheme: dark) {
+    --background: linear-gradient(135deg, #dc2626, #991b1b);
+  }
+}
+
+/* Fade-in animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Smooth transitions para dark mode */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Ajustes para mejor legibilidad en dark mode */
+@media (prefers-color-scheme: dark) {
+  ion-card {
+    background: #1f2937;
+    color: #f3f4f6;
+  }
+
+  ion-card-header {
+    color: #f9fafb;
+  }
+
+  ion-item {
+    --background: #1f2937;
+    --color: #f3f4f6;
+  }
+
+  ion-input,
+  ion-select,
+  ion-textarea {
+    --background: #374151;
+    --color: #f3f4f6;
+
+    &::placeholder {
+      color: #9ca3af;
+    }
+  }
+
+  ion-button {
+    --background: #374151;
+    --color: #f3f4f6;
+  }
+}
+
+/* Íconos con mejor visibilidad */
+ion-icon {
+  @media (prefers-color-scheme: dark) {
+    filter: brightness(0.95) contrast(1.1);
+  }
+}
+
+/* Bordes y sombras mejoradas */
+.modern-card,
+.payment-card,
+.route-details-card {
+  @media (prefers-color-scheme: dark) {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+}
