@@ -29,7 +29,7 @@ bootstrapApplication(AppComponent, {
     importProvidersFrom(IonicModule.forRoot()),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(withInterceptors([tokenInterceptor])),
-    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideFirebaseApp(() => initializeApp((environment as any).firebaseConfig || (environment as any).firebase)),
     provideAuth(() => getAuth()),
   ],
 }).catch(err => console.log(err));

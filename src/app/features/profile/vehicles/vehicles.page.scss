@@ -1,0 +1,67 @@
+ion-content {
+  --background: var(--ion-color-light);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  text-align: center;
+  color: var(--ion-color-medium);
+
+  .empty-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+  }
+
+  h3 {
+    margin: 0 0 10px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+  }
+
+  p {
+    margin: 0 0 30px;
+    font-size: 14px;
+    max-width: 80%;
+  }
+}
+
+.vehicle-list {
+  background: transparent;
+
+  .vehicle-card {
+    --background: white;
+    --border-radius: 12px;
+    --padding-start: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+    &::part(native) {
+      border-radius: 12px;
+    }
+
+    .vehicle-icon {
+      font-size: 32px;
+      margin-right: 16px;
+      padding: 8px;
+      background: rgba(var(--ion-color-primary-rgb), 0.1);
+      border-radius: 50%;
+    }
+
+    h2 {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    p {
+      color: var(--ion-color-medium);
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+  }
+}

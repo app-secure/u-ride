@@ -16,7 +16,7 @@ import type { UserProfile } from '../../../core/models/user-profile.model';
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, ReactiveFormsModule],
+  imports: [CommonModule, IonicModule, ReactiveFormsModule, RouterLink],
 })
 export class ProfilePage {
   private readonly fb = inject(FormBuilder);
