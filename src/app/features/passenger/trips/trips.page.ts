@@ -3,14 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
-import { BehaviorSubject, combineLatest, of } from 'rxjs';
-import { debounceTime, startWith, switchMap, map } from 'rxjs/operators';
+import { debounceTime, startWith } from 'rxjs/operators';
 
 import { TripsService } from '../../../core/services/trips.service';
 import { TripRequestsService } from '../../../core/services/trip-requests.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import type { Trip } from '../../../core/models/trip.model';
-import type { TripRequest } from '../../../core/models/trip-request.model';
 
 @Component({
   selector: 'app-trips',
@@ -28,12 +26,18 @@ export class TripsPage {
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
 
+  private readonly pageSize = 25;
+  private page = 1;
+  private lastQueryKey = '';
+  private isFetching = false;
+
   currentUid: string | null = null;
   /** Mapa de tripId -> estado de solicitud del usuario */
   myRequestsMap: Record<string, { status: string; requestId: string }> = {};
 
-  private readonly currentUid$ = new BehaviorSubject<string | null>(null);
-  private readonly refresh$ = new BehaviorSubject<void>(undefined);
+  trips: Trip[] = [];
+  loading = true;
+  hasMore = true;
 
   readonly routes$ = this.tripsSvc.tripRoutes$();
 
@@ -50,30 +54,97 @@ export class TripsPage {
     return `${year}-${month}-${day}`;
   }
 
-  readonly trips$ = combineLatest([
-    this.filters.valueChanges.pipe(startWith(this.filters.getRawValue())),
-    this.currentUid$,
-    this.refresh$,
-  ]).pipe(
-    debounceTime(250),
-    switchMap(([v, uid]) =>
-      this.tripsSvc.searchTrips({
-        originZone: v.routeName?.trim() ? v.routeName.trim() : undefined,
-        departureDate: v.date ? v.date : undefined,
-        pageSize: 50,
-      }).pipe(map(result => ({ items: result.items, uid }))),
-    ),
-    map(({ items, uid }) => items.filter(trip => trip.driverUid !== uid)),
-  );
-
   constructor() {
     this.auth.user$.subscribe(user => {
       this.currentUid = user?.uid ?? null;
-      this.currentUid$.next(this.currentUid);
       if (user) {
         this.loadMyRequests();
       }
+      this.resetAndLoad();
     });
+
+    this.filters.valueChanges
+      .pipe(startWith(this.filters.getRawValue()), debounceTime(250))
+      .subscribe(() => {
+        this.resetAndLoad();
+      });
+  }
+
+  private buildQueryKey(): string {
+    const v = this.filters.getRawValue();
+    const originZone = v.routeName?.trim() ? v.routeName.trim() : '';
+    const departureDate = v.date ? v.date : '';
+    const uid = this.currentUid ?? '';
+    return JSON.stringify({ originZone, departureDate, uid });
+  }
+
+  private resetAndLoad(): void {
+    const key = this.buildQueryKey();
+    if (key === this.lastQueryKey && this.trips.length > 0) return;
+    this.lastQueryKey = key;
+
+    this.page = 1;
+    this.trips = [];
+    this.hasMore = true;
+    this.loading = true;
+    this.fetchPage({ append: false });
+  }
+
+  loadMore(event: any): void {
+    if (!this.hasMore || this.isFetching) {
+      event?.target?.complete?.();
+      return;
+    }
+    this.page += 1;
+    this.fetchPage({ append: true, infiniteEvent: event });
+  }
+
+  private fetchPage(opts: { append: boolean; infiniteEvent?: any }): void {
+    if (this.isFetching) return;
+    this.isFetching = true;
+
+    const v = this.filters.getRawValue();
+    const originZone = v.routeName?.trim() ? v.routeName.trim() : undefined;
+    const departureDate = v.date ? v.date : undefined;
+
+    this.tripsSvc
+      .searchTrips({
+        originZone,
+        departureDate,
+        page: this.page,
+        pageSize: this.pageSize,
+      })
+      .subscribe({
+        next: (result) => {
+          const uid = this.currentUid;
+          const incoming = (result.items ?? []).filter(t => !uid || t.driverUid !== uid);
+
+          if (opts.append) {
+            const seen = new Set(this.trips.map(t => t.id));
+            const merged = [...this.trips];
+            for (const trip of incoming) {
+              if (!seen.has(trip.id)) merged.push(trip);
+            }
+            this.trips = merged;
+          } else {
+            this.trips = incoming;
+          }
+
+          if (typeof (result as any).totalPages === 'number') {
+            this.hasMore = this.page < (result as any).totalPages;
+          } else {
+            this.hasMore = incoming.length === this.pageSize;
+          }
+        },
+        error: () => {
+          this.hasMore = false;
+        },
+        complete: () => {
+          this.loading = false;
+          this.isFetching = false;
+          opts.infiniteEvent?.target?.complete?.();
+        },
+      });
   }
 
   private loadMyRequests(): void {
@@ -87,7 +158,7 @@ export class TripsPage {
   }
 
   doRefresh(event: any): void {
-    this.refresh$.next();
+    this.resetAndLoad();
     this.loadMyRequests();
     setTimeout(() => event.target.complete(), 600);
   }
@@ -136,7 +207,7 @@ export class TripsPage {
               const updated = { ...this.myRequestsMap };
               delete updated[trip.id];
               this.myRequestsMap = updated;
-              this.refresh$.next();
+              this.resetAndLoad();
               const toast = await this.toastCtrl.create({
                 message: 'Has liberado tu cupo exitosamente.',
                 duration: 2000,

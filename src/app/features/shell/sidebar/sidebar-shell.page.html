@@ -27,12 +27,17 @@
           trigger="notifications-trigger"
           side="bottom"
           alignment="end"
+          (didPresent)="onNotificationsOpen()"
         >
           <ng-template>
             <div class="notif-panel">
 
               <div class="notif-header">
                 <h3>Notificaciones</h3>
+
+                <ion-button fill="clear" size="small" class="view-all-btn" (click)="goToNotificationsHistory()">
+                  Ver todas
+                </ion-button>
               </div>
 
               <ng-container *ngIf="notifications$ | async as notifs">
@@ -140,6 +145,14 @@
         </div>
 
         <div class="menu">
+
+          <button (click)="goToNotificationsHistory()">
+            <ion-icon name="notifications-outline"></ion-icon>
+            Notificaciones
+            <ion-badge *ngIf="unreadNotifs > 0" color="danger" style="margin-left: auto;">
+              {{ unreadNotifs }}
+            </ion-badge>
+          </button>
 
           <button (click)="toggleRole()">
             <ion-icon name="swap-horizontal-outline"></ion-icon>

@@ -19,6 +19,19 @@
       <ion-label>Publicar</ion-label>
     </ion-tab-button>
 
+    <ion-tab-button tab="notifications" href="/app/notifications" class="notif-tab">
+      <ion-icon name="notifications-outline"></ion-icon>
+      <ion-badge
+        *ngIf="(unreadCount$ | async) as c"
+        class="tab-badge"
+        color="danger"
+        [style.display]="c > 0 ? 'inline-flex' : 'none'"
+      >
+        {{ c }}
+      </ion-badge>
+      <ion-label>Notificaciones</ion-label>
+    </ion-tab-button>
+
   </ion-tab-bar>
   </ng-container>
 </ion-tabs>
