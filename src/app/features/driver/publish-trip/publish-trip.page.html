@@ -1,6 +1,6 @@
 <ion-content [fullscreen]="true" class="uride-content">
   <div class="publish-dashboard fade-in-up">
-    
+
     <div class="header-section">
       <button type="button" class="btn-back-top" (click)="goBack()">
         <ion-icon name="arrow-back-outline"></ion-icon>
@@ -20,18 +20,25 @@
           <label>Selecciona la ruta</label>
           <div class="custom-input-box">
             <ion-icon name="git-branch-outline" class="icon-gray"></ion-icon>
-            <select formControlName="routeName">
-              <option value="" disabled>Seleccionar ruta</option>
-              <option *ngFor="let r of (routeOptions$ | async)" [value]="r">{{ r }}</option>
-            </select>
+            <ion-select
+              formControlName="routeName"
+              placeholder="Seleccionar ruta"
+              interface="popover"
+              [interfaceOptions]="{ cssClass: 'wide-popover' }"
+              toggleIcon="chevron-down-outline"
+              expandedIcon="chevron-up-outline"
+            >
+              <ion-select-option value="" disabled>Seleccionar ruta</ion-select-option>
+              <ion-select-option *ngFor="let r of (routeOptions$ | async)" [value]="r">{{ r }}</ion-select-option>
+            </ion-select>
           </div>
         </div>
       </div>
-      
+
       <!-- Información de Ruta -->
       <div class="form-section">
         <h3 class="section-title">Información de Ruta</h3>
-        
+
         <div class="row-inputs">
           <div class="input-group">
             <div class="label-row">
@@ -47,12 +54,15 @@
               >
                 {{ publishForm.controls.originZone.value ? mainLabel(publishForm.controls.originZone.value) : 'Seleccionar ubicación' }}
               </button>
+              <ion-icon name="chevron-forward-outline" class="icon-gray" style="font-size: 16px; margin-left: 4px;"></ion-icon>
             </div>
-            <span class="hint">Busca una dirección y puntea la parada exacta en el mapa</span>
+            <span class="hint">Busca una dirección y toca el mapa para fijar el punto exacto</span>
           </div>
 
           <div class="input-group">
-            <label>Destino</label>
+            <div class="label-row">
+              <label>Destino</label>
+            </div>
             <div class="custom-input-box">
               <ion-icon name="location" class="icon-dest"></ion-icon>
               <button
@@ -63,15 +73,18 @@
               >
                 {{ publishForm.controls.destinationZone.value ? mainLabel(publishForm.controls.destinationZone.value) : 'Seleccionar ubicación' }}
               </button>
+              <ion-icon name="chevron-forward-outline" class="icon-gray" style="font-size: 16px; margin-left: 4px;"></ion-icon>
             </div>
+            <span class="hint">Busca una dirección y toca el mapa para fijar el punto exacto</span>
           </div>
         </div>
+
       </div>
 
       <!-- Fecha y Hora -->
       <div class="form-section">
         <h3 class="section-title">Fecha y Hora</h3>
-        
+
         <div class="row-inputs">
           <div class="input-group">
             <label>Fecha</label>
@@ -104,7 +117,7 @@
             </ion-select>
           </div>
         </div>
-        
+
         <div class="row-inputs">
           <div class="input-group">
             <label>Marca</label>
@@ -122,7 +135,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="row-inputs">
           <div class="input-group">
             <label>Placa</label>
@@ -147,12 +160,21 @@
       <!-- Capacidad -->
       <div class="form-section">
         <h3 class="section-title">Capacidad</h3>
-        
+
         <div class="input-group">
           <label>Cupos Disponibles</label>
           <div class="custom-input-box">
             <ion-icon name="people-outline" class="icon-gray"></ion-icon>
-            <input type="number" formControlName="seatsTotal" min="1" max="40" placeholder="Ej: 3" />
+            <input
+              type="number"
+              formControlName="seatsTotal"
+              min="1"
+              max="40"
+              inputmode="numeric"
+              placeholder="Ej: 3"
+              (keydown)="blockInvalidNumber($event)"
+              (input)="sanitizeNumberInput($event)"
+            />
           </div>
           <span class="hint">No excedas la capacidad legal de tu vehículo</span>
         </div>
@@ -166,7 +188,16 @@
           <div class="custom-input-box">
             <ion-icon name="cash-outline" class="icon-gray"></ion-icon>
             <span class="currency-prefix">$</span>
-            <input type="number" formControlName="price" placeholder="0.50" step="0.10" min="0" />
+            <input
+              type="number"
+              formControlName="price"
+              placeholder="0.50"
+              step="0.10"
+              min="0"
+              inputmode="decimal"
+              (keydown)="blockInvalidNumber($event, true)"
+              (input)="sanitizeNumberInput($event, true)"
+            />
           </div>
         </div>
       </div>
@@ -214,7 +245,7 @@
       <!-- Notas Adicionales -->
       <div class="form-section">
         <h3 class="section-title">Notas Adicionales</h3>
-        
+
         <div class="input-group">
           <label>Reglas o Preferencias</label>
           <div class="custom-textarea-box">
@@ -233,7 +264,7 @@
           <span *ngIf="!isSubmitting">{{ editTripId ? 'Guardar cambios' : 'Publicar Viaje' }}</span>
         </ion-button>
       </div>
-      
+
     </form>
   </div>
 </ion-content>

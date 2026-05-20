@@ -1,6 +1,6 @@
 <ion-content [fullscreen]="true" class="uride-content">
   <div class="trips-dashboard fade-in-up">
-    
+
     <div class="search-container modern-card">
       <h2 class="search-title">Buscar Viajes Disponibles</h2>
       <form [formGroup]="filters" class="search-form">
@@ -9,18 +9,18 @@
             <label>Selecciona tu Ruta</label>
             <div class="input-wrapper select-wrapper">
               <ion-icon name="map-outline"></ion-icon>
-              <ion-select formControlName="routeName" 
-                          placeholder="Todas las rutas" 
-                          interface="popover" 
+              <ion-select formControlName="routeName"
+                          placeholder="Todas las rutas"
+                          interface="popover"
                           [interfaceOptions]="{ cssClass: 'wide-popover' }"
-                          toggleIcon="chevron-down-outline" 
+                          toggleIcon="chevron-down-outline"
                           expandedIcon="chevron-up-outline">
                 <ion-select-option value="">Todas las rutas</ion-select-option>
                 <ion-select-option *ngFor="let r of routes$ | async" [value]="r">{{ r }}</ion-select-option>
               </ion-select>
             </div>
           </div>
-          
+
           <div class="input-group date-group">
             <label>Fecha</label>
             <div class="input-wrapper">
@@ -60,7 +60,7 @@
                 <span class="driver-rating"><ion-icon name="star" color="warning"></ion-icon> Nuevo conductor</span>
               </div>
             </div>
-            
+
             <!-- STATUS BADGE -->
             <div class="status-badge-wrapper">
               <div class="price-badge" *ngIf="trip.price != null">
@@ -71,21 +71,21 @@
               </div>
             </div>
           </div>
-          
+
           <div class="trip-route">
             <div class="route-item">
               <ion-icon name="location-outline" class="icon-origin"></ion-icon>
               <span class="route-label">Origen:</span>
               <span class="route-value">{{ placeMainLabel(trip.originZone) || 'No especificado' }}</span>
             </div>
-            
+
             <div class="route-item">
               <ion-icon name="location-outline" class="icon-destination"></ion-icon>
               <span class="route-label">Destino:</span>
               <span class="route-value">{{ placeMainLabel(trip.destinationZone) || 'No especificado' }}</span>
             </div>
           </div>
-          
+
           <div class="trip-time">
             <div class="time-item">
               <ion-icon name="calendar-outline"></ion-icon>
@@ -96,20 +96,20 @@
               <span>{{ trip.departureAt | date:'HH:mm' }}</span>
             </div>
           </div>
-          
+
           <div class="trip-notes" *ngIf="trip.notes">
             <span class="notes-label">Notas:</span> {{ trip.notes }}
           </div>
-          
+
           <div class="trip-actions">
             <div class="availability">
               <ion-icon name="people-outline"></ion-icon>
               <span>{{ trip.seatsAvailable }} de {{ trip.seatsTotal }} disponibles</span>
             </div>
-            
+
             <div class="action-buttons-column" style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;">
               <button class="btn-primary" (click)="openTrip(trip)">Ver detalle del viaje</button>
-              
+
               <!-- Solicitud pendiente -->
               <div *ngIf="getRequestStatus(trip.id) === 'pending'"
                 style="display: flex; align-items: center; gap: 6px; background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 8px; padding: 8px 12px; color: #92400e; font-size: 13px; font-weight: 600;">

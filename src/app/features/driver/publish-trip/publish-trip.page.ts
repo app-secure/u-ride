@@ -193,17 +193,49 @@ export class PublishTripPage {
 
   async openLocationPicker(kind: 'origin' | 'destination'): Promise<void> {
     const title = kind === 'origin' ? 'Seleccionar origen' : 'Seleccionar destino';
-    const currentLabel = kind === 'origin' ? this.publishForm.controls.originZone.value : this.publishForm.controls.destinationZone.value;
-    const currentLat = kind === 'origin' ? this.publishForm.controls.originLat.value : this.publishForm.controls.destinationLat.value;
-    const currentLng = kind === 'origin' ? this.publishForm.controls.originLng.value : this.publishForm.controls.destinationLng.value;
+    const controls = this.publishForm.controls;
+    const currentLabel = kind === 'origin' ? controls.originZone.value : controls.destinationZone.value;
+    const currentLat   = kind === 'origin' ? controls.originLat.value  : controls.destinationLat.value;
+    const currentLng   = kind === 'origin' ? controls.originLng.value  : controls.destinationLng.value;
+
+    // Coordenadas del punto OPUESTO (para mostrar como referencia en el modal)
+    const otherLat   = kind === 'origin' ? controls.destinationLat.value : controls.originLat.value;
+    const otherLng   = kind === 'origin' ? controls.destinationLng.value : controls.originLng.value;
+    const otherLabel = kind === 'origin' ? controls.destinationZone.value : controls.originZone.value;
+
+    // Si el punto a elegir no tiene coordenadas aún, geocodificar el nombre
+    // de la ruta para centrar el mapa en esa zona automáticamente.
+    let routeCenterLat: number | null = null;
+    let routeCenterLng: number | null = null;
+
+    if (currentLat == null || currentLng == null) {
+      const routeName = controls.routeName.value?.trim();
+      if (routeName) {
+        try {
+          const hits = await this.searchPlacesEc(routeName);
+          if (hits[0]) {
+            routeCenterLat = hits[0].lat;
+            routeCenterLng = hits[0].lng;
+          }
+        } catch {
+          // silenciar: si falla, el mapa abre en el centro por defecto
+        }
+      }
+    }
 
     const modal = await this.modalCtrl.create({
       component: LocationPickerModalComponent,
       componentProps: {
         title,
+        kind,
         initialQuery: currentLabel,
         initialLat: currentLat,
         initialLng: currentLng,
+        otherLat,
+        otherLng,
+        otherLabel: otherLabel || (kind === 'origin' ? 'Destino' : 'Origen'),
+        routeCenterLat,
+        routeCenterLng,
       },
     });
 
@@ -283,6 +315,37 @@ export class PublishTripPage {
     if (selectedDateTime < now) {
       const currentTime = this.formatTime(now);
       this.publishForm.controls.time.setValue(currentTime, { emitEvent: false });
+    }
+  }
+
+  blockInvalidNumber(event: KeyboardEvent, allowDecimal = false): void {
+    const blockedKeys = ['e', 'E', '+', '-'];
+    if (blockedKeys.includes(event.key)) {
+      event.preventDefault();
+      return;
+    }
+
+    if (!allowDecimal && event.key === '.') {
+      event.preventDefault();
+    }
+  }
+
+  sanitizeNumberInput(event: Event, allowDecimal = false): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) return;
+
+    let value = input.value;
+
+    if (allowDecimal) {
+      value = value.replace(/[^0-9.]/g, '');
+      const parts = value.split('.');
+      value = parts[0] + (parts.length > 1 ? `.${parts.slice(1).join('')}` : '');
+    } else {
+      value = value.replace(/\D/g, '');
+    }
+
+    if (input.value !== value) {
+      input.value = value;
     }
   }
 
@@ -387,7 +450,7 @@ export class PublishTripPage {
           }
         }
       }
-      
+
       const departureAt = `${v.date}T${v.time}:00`;
 
       const rules: TripRuleSet = { punctuality: true, respect: true, noSensitiveData: true };
@@ -465,7 +528,7 @@ export class PublishTripPage {
         color: 'success',
       });
       await toast.present();
-      
+
       if (!this.editTripId) {
         this.publishForm.reset({
           routeName: '',

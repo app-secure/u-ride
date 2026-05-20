@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
-import { debounceTime, startWith } from 'rxjs/operators';
+import { debounceTime, startWith, map, catchError } from 'rxjs/operators';
+import { of, forkJoin } from 'rxjs';
 
 import { TripsService } from '../../../core/services/trips.service';
 import { TripRequestsService } from '../../../core/services/trip-requests.service';
@@ -42,7 +43,7 @@ export class TripsPage {
   /** Mapa de tripId -> estado de solicitud del usuario */
   myRequestsMap: Record<string, { status: string; requestId: string }> = {};
 
-  trips: Trip[] = [];
+  trips: TripWithDriverPhoto[] = [];
   loading = true;
   hasMore = true;
 
@@ -132,9 +133,13 @@ export class TripsPage {
             for (const trip of incoming) {
               if (!seen.has(trip.id)) merged.push(trip);
             }
-            this.trips = merged;
+            this.enrichTripsWithDriverPhotos(merged).subscribe((enriched: TripWithDriverPhoto[]) => {
+              this.trips = enriched;
+            });
           } else {
-            this.trips = incoming;
+            this.enrichTripsWithDriverPhotos(incoming).subscribe((enriched: TripWithDriverPhoto[]) => {
+              this.trips = enriched;
+            });
           }
 
           if (typeof (result as any).totalPages === 'number') {
