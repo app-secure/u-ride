@@ -3,14 +3,20 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
-import { BehaviorSubject, combineLatest, of } from 'rxjs';
-import { debounceTime, startWith, switchMap, map } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, of, forkJoin } from 'rxjs';
+import { debounceTime, startWith, switchMap, map, catchError } from 'rxjs/operators';
 
 import { TripsService } from '../../../core/services/trips.service';
 import { TripRequestsService } from '../../../core/services/trip-requests.service';
+import { UsersService } from '../../../core/services/users.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import type { Trip } from '../../../core/models/trip.model';
 import type { TripRequest } from '../../../core/models/trip-request.model';
+
+/** Extensión de Trip que incluye la foto del conductor */
+interface TripWithDriverPhoto extends Trip {
+  driverPhotoUrl?: string;
+}
 
 @Component({
   selector: 'app-trips',
@@ -23,6 +29,7 @@ export class TripsPage {
   private readonly fb = inject(FormBuilder);
   private readonly tripsSvc = inject(TripsService);
   private readonly tripRequestsSvc = inject(TripRequestsService);
+  private readonly usersSvc = inject(UsersService);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly toastCtrl = inject(ToastController);
@@ -50,7 +57,7 @@ export class TripsPage {
     return `${year}-${month}-${day}`;
   }
 
-  readonly trips$ = combineLatest([
+  readonly trips$: any = combineLatest([
     this.filters.valueChanges.pipe(startWith(this.filters.getRawValue())),
     this.currentUid$,
     this.refresh$,
@@ -64,6 +71,7 @@ export class TripsPage {
       }).pipe(map(result => ({ items: result.items, uid }))),
     ),
     map(({ items, uid }) => items.filter(trip => trip.driverUid !== uid)),
+    switchMap(trips => this.enrichTripsWithDriverPhotos(trips)),
   );
 
   constructor() {
@@ -74,6 +82,23 @@ export class TripsPage {
         this.loadMyRequests();
       }
     });
+  }
+
+  /** Enriquecer viajes con las fotos de los conductores */
+  private enrichTripsWithDriverPhotos(trips: Trip[]): any {
+    if (trips.length === 0) return of([] as TripWithDriverPhoto[]);
+
+    const profileRequests = trips.map(trip =>
+      this.usersSvc.profile$(trip.driverUid).pipe(
+        map(profile => ({
+          ...trip,
+          driverPhotoUrl: profile?.photoUrl || undefined
+        } as TripWithDriverPhoto)),
+        catchError(() => of({ ...trip, driverPhotoUrl: undefined } as TripWithDriverPhoto))
+      )
+    );
+
+    return forkJoin(profileRequests);
   }
 
   private loadMyRequests(): void {
@@ -108,13 +133,25 @@ export class TripsPage {
     return trip.confirmedPassengerUids.includes(this.currentUid);
   }
 
-  getRequestStatus(trip: Trip): string {
-    const mapEntry = this.myRequestsMap[trip.id];
+  getRequestStatus(tripId: string): string {
+    const mapEntry = this.myRequestsMap[tripId];
     // Si hay estado en el mapa y no está cancelado por el pasajero, usarlo
     if (mapEntry && mapEntry.status !== 'cancelled_by_passenger') return mapEntry.status;
-    // Fallback: confirmedPassengerUids
-    if (this.isAccepted(trip)) return 'accepted';
     return 'none';
+  }
+
+  getRequestStatusLabel(tripId: string): string {
+    const status = this.getRequestStatus(tripId);
+    switch (status) {
+      case 'pending':
+        return 'Solicitado';
+      case 'accepted':
+        return 'Aceptado';
+      case 'rejected':
+        return 'Rechazado';
+      default:
+        return '';
+    }
   }
 
   async cancelMySpot(trip: Trip): Promise<void> {

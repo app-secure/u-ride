@@ -32,12 +32,12 @@
       </form>
     </div>
 
-    <ng-container *ngIf="trips$ | async as trips; else loading">
+    <ng-container *ngIf="(trips$ | async) as trips; else loading">
       <div class="trips-list-header">
         <h2>Viajes Disponibles</h2>
       </div>
 
-      <div class="empty-state modern-card" *ngIf="trips.length === 0">
+      <div class="empty-state modern-card" *ngIf="$any(trips).length === 0">
         <div class="empty-icon-box">
           <ion-icon name="search-outline"></ion-icon>
         </div>
@@ -45,18 +45,31 @@
         <p>No hay viajes disponibles con esos filtros. Intenta cambiar tu búsqueda.</p>
       </div>
 
-      <div class="modern-card trip-card" *ngFor="let trip of trips">
+      <div class="modern-card trip-card" *ngFor="let trip of $any(trips)">
         <div class="trip-card-inner">
-          <div class="driver-info">
-            <div class="driver-avatar">
-              <ion-icon name="person-outline"></ion-icon>
+          <!-- DRIVER INFO WITH STATUS BADGE -->
+          <div class="driver-header-row">
+            <div class="driver-info">
+              <div class="driver-avatar-wrapper">
+                <img [src]="trip.driverPhotoUrl!" alt="{{ trip.driverName }}" class="driver-photo" *ngIf="trip.driverPhotoUrl">
+                <div *ngIf="!trip.driverPhotoUrl" class="driver-avatar-placeholder">
+                  <ion-icon name="person"></ion-icon>
+                </div>
+              </div>
+              <div class="driver-details">
+                <span class="driver-name">{{ trip.driverName }}</span>
+                <span class="driver-rating"><ion-icon name="star" color="warning"></ion-icon> Nuevo conductor</span>
+              </div>
             </div>
-            <div class="driver-details">
-              <span class="driver-name">{{ trip.driverName }}</span>
-              <span class="driver-rating"><ion-icon name="star" color="warning"></ion-icon> Nuevo conductor</span>
-            </div>
-            <div class="price-badge" *ngIf="trip.price != null">
-              <span class="currency">$</span>{{ trip.price | number:'1.2-2' }}
+            
+            <!-- STATUS BADGE -->
+            <div class="status-badge-wrapper">
+              <div class="price-badge" *ngIf="trip.price != null">
+                <span class="currency">$</span>{{ trip.price | number:'1.2-2' }}
+              </div>
+              <div class="trip-status-indicator" [ngClass]="getRequestStatus(trip.id)">
+                {{ getRequestStatusLabel(trip.id) }}
+              </div>
             </div>
           </div>
           
@@ -99,14 +112,14 @@
               <button class="btn-primary" (click)="openTrip(trip)">Ver detalle del viaje</button>
               
               <!-- Solicitud pendiente -->
-              <div *ngIf="getRequestStatus(trip) === 'pending'"
+              <div *ngIf="getRequestStatus(trip.id) === 'pending'"
                 style="display: flex; align-items: center; gap: 6px; background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 8px; padding: 8px 12px; color: #92400e; font-size: 13px; font-weight: 600;">
                 <ion-icon name="time-outline" style="font-size: 16px; color: #f59e0b; flex-shrink: 0;"></ion-icon>
                 Solicitud pendiente de confirmación
               </div>
 
               <!-- Aceptado: check + cancelar cupo -->
-              <ng-container *ngIf="getRequestStatus(trip) === 'accepted'">
+              <ng-container *ngIf="getRequestStatus(trip.id) === 'accepted'">
                 <div style="display: flex; align-items: center; gap: 6px; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 8px 12px; color: #166534; font-size: 13px; font-weight: 600;">
                   <ion-icon name="checkmark-circle" style="font-size: 16px; color: #16a34a; flex-shrink: 0;"></ion-icon>
                   Usted está en este viaje
