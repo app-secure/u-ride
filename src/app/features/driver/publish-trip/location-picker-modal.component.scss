@@ -5,6 +5,10 @@ ion-toolbar {
   --padding-end: 8px;
   box-shadow: 0 1px 0 #f1f5f9;
 
+  ion-button {
+    --color: #0f172a;
+  }
+
   ion-title {
     font-size: 17px;
     font-weight: 700;
@@ -18,6 +22,8 @@ ion-toolbar {
     height: 36px;
     --padding-start: 14px;
     --padding-end: 14px;
+    --background: #0f172a;
+    --color: #ffffff;
   }
 }
 
@@ -55,6 +61,10 @@ ion-toolbar {
     --border-radius: 0;
     --padding-start: 0;
     --padding-end: 0;
+    --color: #0f172a;
+    --placeholder-color: #94a3b8;
+    --icon-color: #94a3b8;
+    --clear-button-color: #64748b;
     padding: 0;
     flex: 1;
   }
@@ -85,12 +95,20 @@ ion-toolbar {
 .picked-text {
   color: #0f172a;
   font-weight: 600;
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  margin: 8px 16px 0;
 
   ion-icon { color: #10b981; }
 }
 
 .hint-text {
   color: #94a3b8;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  margin: 8px 16px 0;
 
   ion-icon { color: #cbd5e1; }
 }
@@ -106,4 +124,58 @@ ion-toolbar {
   border: 1px solid #e2e8f0;
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  ion-toolbar {
+    --background: #111827;
+    box-shadow: 0 1px 0 #1f2937;
+
+    ion-title {
+      color: #f9fafb;
+    }
+
+    ion-button {
+      --color: #e5e7eb;
+    }
+
+    .confirm-btn {
+      --background: #e5e7eb;
+      --color: #0f172a;
+    }
+  }
+
+  .picker-content {
+    --background: #0f172a;
+  }
+
+  .search-box {
+    background: #111827;
+    border-color: #374151;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+
+  .search-box .inner-searchbar {
+    --color: #f3f4f6;
+    --placeholder-color: #9ca3af;
+    --icon-color: #9ca3af;
+    --clear-button-color: #cbd5e1;
+  }
+
+  .picked-text {
+    color: #f3f4f6;
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .hint-text {
+    color: #cbd5e1;
+    background: #111827;
+    border-color: #1f2937;
+  }
+
+  .picker-map {
+    border-color: #334155;
+    background: #0f172a;
+  }
 }

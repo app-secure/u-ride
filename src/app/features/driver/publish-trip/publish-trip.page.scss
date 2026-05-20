@@ -63,9 +63,9 @@
 .modern-card {
   background: white;
   border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   padding: 32px;
-  border: 1px solid rgba(0,0,0,0.02);
+  border: 1px solid rgba(0, 0, 0, 0.02);
 }
 
 .publish-form {
@@ -148,6 +148,21 @@
     margin-top: 2px;
   }
 
+  .error-msg {
+    font-size: 13px;
+    color: #ef4444;
+    font-weight: 500;
+    margin-top: 4px;
+    animation: fadeInUp 0.3s ease;
+  }
+
+  .char-count {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 4px;
+    text-align: right;
+  }
+
   .suggestions-list {
     position: absolute;
     top: 100%;
@@ -155,7 +170,7 @@
     right: 0;
     background: white;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     border: 1px solid #e2e8f0;
     list-style: none;
     margin: 4px 0 0 0;
@@ -192,7 +207,8 @@
   }
 }
 
-.custom-input-box, .custom-textarea-box {
+.custom-input-box,
+.custom-textarea-box {
   display: flex;
   align-items: center;
   background: #f8fafc;
@@ -208,16 +224,35 @@
     background: white;
   }
 
+  &.has-error {
+    border-color: #ef4444;
+    background: #fef2f2;
+    &:focus-within {
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+  }
+
   ion-icon {
     font-size: 20px;
     margin-right: 12px;
 
-    &.icon-origin { color: #22c55e; }
-    &.icon-dest { color: #ef4444; }
-    &.icon-gray { color: #94a3b8; }
+    &.icon-origin {
+      color: #22c55e;
+    }
+
+    &.icon-dest {
+      color: #ef4444;
+    }
+
+    &.icon-gray {
+      color: #94a3b8;
+    }
   }
 
-  input, select, textarea, ion-select {
+  input,
+  select,
+  textarea,
+  ion-select {
     flex: 1;
     background: transparent;
     border: none;
@@ -250,7 +285,8 @@
     color: #94a3b8;
   }
 
-  input, select {
+  input,
+  select {
     height: 48px;
   }
 
@@ -284,6 +320,133 @@
   }
 }
 
+.no-vehicle-state {
+  text-align: center;
+  padding: 32px 20px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  box-shadow: none;
+
+  .icon-box {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+
+    ion-icon {
+      font-size: 32px;
+      color: #64748b;
+    }
+  }
+
+  h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 8px;
+  }
+
+  p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0 0 20px;
+    line-height: 1.4;
+  }
+
+  .add-vehicle-btn {
+    --border-radius: 12px;
+    font-weight: 700;
+    text-transform: none;
+    --background: #000000;
+    margin: 0 auto;
+    max-width: 240px;
+  }
+}
+
+.vehicle-card-preview {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 8px;
+
+  .v-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    .v-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      ion-icon {
+        font-size: 24px;
+        color: white;
+      }
+    }
+
+    .v-title {
+      h4 {
+        margin: 0 0 4px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .v-plate {
+        display: inline-block;
+        background: #e2e8f0;
+        color: #1e293b;
+        font-size: 12px;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 0.05em;
+        padding: 2px 8px;
+        border-radius: 6px;
+      }
+    }
+  }
+
+  .v-details {
+    display: flex;
+    gap: 16px;
+
+    .v-detail {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 10px;
+      flex: 1;
+
+      ion-icon {
+        font-size: 18px;
+        color: #64748b;
+      }
+
+      span {
+        font-size: 13px;
+        font-weight: 600;
+        color: #334155;
+      }
+    }
+  }
+}
+
 :host ::ng-deep ion-popover.wide-popover::part(content) {
   background: #eef4ff;
   border-radius: 16px;
@@ -309,6 +472,12 @@
 :host ::ng-deep ion-popover.wide-popover ion-item.ion-activated,
 :host ::ng-deep ion-popover.wide-popover ion-item.ion-selected {
   --background: #dbeafe;
+}
+
+:host ::ng-deep ion-modal.location-picker-modal {
+  --width: min(96vw, 980px);
+  --height: min(88vh, 900px);
+  --border-radius: 18px;
 }
 
 .custom-textarea-box {
@@ -347,11 +516,12 @@
     }
 
     &.btn-publish {
-      --background: #000000;
-      --box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+      --background: #e2e8f0;
+      --color: #0f172a;
+      --box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
 
       &:hover {
-        --background: #111827;
+        --background: #cbd5e1;
       }
     }
   }
@@ -366,6 +536,7 @@
     .btn-cancel {
       order: 2;
     }
+
     .btn-publish {
       order: 1;
     }
@@ -408,18 +579,46 @@
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-color-scheme: dark) {
-  .uride-content { --background: #0f172a; }
-  .header-section .title { color: #f8fafc; }
-  .modern-card { background: #1e293b; border-color: #334155; }
-  .form-section .section-title { color: #f8fafc; border-color: #334155; }
-  .input-group label { color: #e2e8f0; }
+  .uride-content {
+    --background: #0f172a;
+  }
 
-  .custom-input-box, .custom-textarea-box {
+  .header-section .title {
+    color: #f8fafc;
+  }
+
+  .modern-card {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  .form-section .section-title {
+    color: #f8fafc;
+    border-color: #334155;
+  }
+
+  .input-group label {
+    color: #e2e8f0;
+  }
+
+  .char-count {
+    color: #94a3b8;
+  }
+
+  .custom-input-box,
+  .custom-textarea-box {
     background: #0f172a;
     border-color: #334155;
     color-scheme: dark;
@@ -428,12 +627,20 @@
       background: #1e293b;
     }
 
-    input, select, textarea, ion-select {
+    input,
+    select,
+    textarea,
+    ion-select {
       color: #f8fafc;
     }
 
     .location-select-btn {
       color: #f8fafc;
+    }
+
+    &.has-error {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
     }
 
     select {
@@ -469,7 +676,71 @@
     .btn-cancel {
       --color: #cbd5e1;
       --border-color: #475569;
-      &:hover { --background: #334155; }
+
+      &:hover {
+        --background: #334155;
+      }
+    }
+
+    .btn-publish {
+      --background: #e2e8f0;
+      --color: #0f172a;
+
+      &:hover {
+        --background: #cbd5e1;
+      }
+    }
+  }
+
+  .no-vehicle-state {
+    background: #0f172a;
+    border-color: #334155;
+
+    .icon-box {
+      background: #1e293b;
+
+      ion-icon {
+        color: #94a3b8;
+      }
+    }
+
+    h4 {
+      color: #f8fafc;
+    }
+
+    p {
+      color: #94a3b8;
+    }
+
+    .add-vehicle-btn {
+      --background: #e2e8f0;
+      --color: #0f172a;
+    }
+  }
+
+  .vehicle-card-preview {
+    background: #0f172a;
+    border-color: #334155;
+
+    .v-header .v-title {
+      h4 {
+        color: #f8fafc;
+      }
+
+      .v-plate {
+        background: #1e293b;
+        color: #e2e8f0;
+        border: 1px solid #334155;
+      }
+    }
+
+    .v-details .v-detail {
+      background: #1e293b;
+      border-color: #334155;
+
+      span {
+        color: #e2e8f0;
+      }
     }
   }
 }

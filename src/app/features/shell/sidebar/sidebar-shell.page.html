@@ -164,6 +164,11 @@
             Perfil
           </button>
 
+          <button (click)="goToVehicles()" *ngIf="currentRole === 'driver'">
+            <ion-icon name="car-sport-outline"></ion-icon>
+            Mis Vehículos
+          </button>
+
           <button class="danger" (click)="logout()">
             <ion-icon name="log-out-outline"></ion-icon>
             Cerrar sesión

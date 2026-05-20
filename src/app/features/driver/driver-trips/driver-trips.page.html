@@ -6,12 +6,17 @@
           <h2 class="title">Mis Viajes Publicados</h2>
           <p class="subtitle">Gestiona tus viajes y solicitudes de pasajeros</p>
         </div>
-        <ion-button routerLink="/app/publish" color="primary" class="publish-btn">
-          <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-          Publicar Viaje
-        </ion-button>
+        <div class="header-actions">
+          <ion-button routerLink="/app/profile/vehicles" fill="solid" class="vehicles-btn">
+            <ion-icon name="car-sport-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-button routerLink="/app/publish" color="primary" class="publish-btn">
+            <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+            Publicar Viaje
+          </ion-button>
+        </div>
       </div>
-      
+
       <ion-segment [(ngModel)]="segment" mode="ios" class="custom-segment">
         <ion-segment-button value="active">
           <ion-label>Viajes Activos</ion-label>
@@ -47,7 +52,7 @@
                 <span class="route-value">{{ trip.originZone }}</span>
               </div>
             </div>
-            
+
             <div class="route-item">
               <ion-icon name="location" class="icon-destination"></ion-icon>
               <div class="route-info">
@@ -65,7 +70,7 @@
           </div>
 
           <div class="trip-actions" *ngIf="segment === 'active'">
-            <ion-button fill="solid" style="--background: #000000;" expand="block" (click)="goToTripMap(trip)">
+            <ion-button fill="solid" class="details-btn" expand="block" (click)="goToTripMap(trip)">
               <ion-icon name="map" slot="start"></ion-icon>
               Detalle de mi viaje
             </ion-button>

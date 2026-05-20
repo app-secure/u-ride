@@ -59,7 +59,7 @@ export class PublishTripPage {
     price: ['', Validators.required],
     paymentMethod: ['', Validators.required],
     ruleTexts: [[] as string[]],
-    notes: [''],
+    notes: ['', [Validators.maxLength(400)]],
     vehiclePlate: ['', [Validators.required, Validators.pattern(/^[A-Z]{3}-\d{4}$/)]],
     vehicleModel: ['', [Validators.required]],
     vehicleBrand: ['', [Validators.required]],
@@ -86,7 +86,7 @@ export class PublishTripPage {
         this.driverName = profile.displayName || 'Conductor/a';
         try {
           this.myVehicles = await firstValueFrom(this.vehiclesService.getVehicles());
-        } catch(e) {
+        } catch (e) {
           console.error('Error al cargar vehículos', e);
         }
       });
@@ -195,12 +195,12 @@ export class PublishTripPage {
     const title = kind === 'origin' ? 'Seleccionar origen' : 'Seleccionar destino';
     const controls = this.publishForm.controls;
     const currentLabel = kind === 'origin' ? controls.originZone.value : controls.destinationZone.value;
-    const currentLat   = kind === 'origin' ? controls.originLat.value  : controls.destinationLat.value;
-    const currentLng   = kind === 'origin' ? controls.originLng.value  : controls.destinationLng.value;
+    const currentLat = kind === 'origin' ? controls.originLat.value : controls.destinationLat.value;
+    const currentLng = kind === 'origin' ? controls.originLng.value : controls.destinationLng.value;
 
     // Coordenadas del punto OPUESTO (para mostrar como referencia en el modal)
-    const otherLat   = kind === 'origin' ? controls.destinationLat.value : controls.originLat.value;
-    const otherLng   = kind === 'origin' ? controls.destinationLng.value : controls.originLng.value;
+    const otherLat = kind === 'origin' ? controls.destinationLat.value : controls.originLat.value;
+    const otherLng = kind === 'origin' ? controls.destinationLng.value : controls.originLng.value;
     const otherLabel = kind === 'origin' ? controls.destinationZone.value : controls.originZone.value;
 
     // Si el punto a elegir no tiene coordenadas aún, geocodificar el nombre
@@ -225,6 +225,7 @@ export class PublishTripPage {
 
     const modal = await this.modalCtrl.create({
       component: LocationPickerModalComponent,
+      cssClass: 'location-picker-modal',
       componentProps: {
         title,
         kind,

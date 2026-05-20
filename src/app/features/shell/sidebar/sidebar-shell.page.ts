@@ -133,6 +133,11 @@ export class SidebarShellPage {
   await this.router.navigateByUrl('/app/profile');
 }
 
+  async goToVehicles(): Promise<void> {
+    await this.popoverCtrl.dismiss().catch(() => {});
+    await this.router.navigateByUrl('/app/profile/vehicles');
+  }
+
   async logout(popover?: any): Promise<void> {
     if (popover) {
       await popover.dismiss();
