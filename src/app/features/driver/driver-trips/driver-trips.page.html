@@ -1,4 +1,8 @@
 <ion-content [fullscreen]="true" class="uride-content">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <div class="driver-trips-dashboard fade-in-up">
     <div class="header-section">
       <div class="title-row">

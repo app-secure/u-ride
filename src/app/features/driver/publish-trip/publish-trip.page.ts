@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators, type ValidationErrors, type ValidatorFn } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { of, switchMap, firstValueFrom } from 'rxjs';
@@ -20,7 +20,7 @@ import { LocationPickerModalComponent, type LocationPickerResult } from './locat
   templateUrl: './publish-trip.page.html',
   styleUrls: ['./publish-trip.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, ReactiveFormsModule],
+  imports: [CommonModule, IonicModule, ReactiveFormsModule, RouterLink],
 })
 export class PublishTripPage {
   private readonly fb = inject(FormBuilder);

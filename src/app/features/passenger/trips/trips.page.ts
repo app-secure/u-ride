@@ -1,10 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { debounceTime, startWith, map, catchError } from 'rxjs/operators';
-import { of, forkJoin } from 'rxjs';
+import { of, forkJoin, firstValueFrom } from 'rxjs';
 
 import { TripsService } from '../../../core/services/trips.service';
 import { TripRequestsService } from '../../../core/services/trip-requests.service';
@@ -22,7 +23,7 @@ interface TripWithDriverPhoto extends Trip {
   templateUrl: './trips.page.html',
   styleUrls: ['./trips.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, ReactiveFormsModule],
+  imports: [CommonModule, IonicModule, ReactiveFormsModule, FormsModule],
 })
 export class TripsPage {
   private readonly fb = inject(FormBuilder);
@@ -34,10 +35,33 @@ export class TripsPage {
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
 
+  mainSegment: 'search' | 'recent' = 'search';
+
   private readonly pageSize = 25;
   private page = 1;
   private lastQueryKey = '';
   private isFetching = false;
+
+  // ─── Historial / viajes recientes como pasajero (mismo diseño que conductor) ───
+  private _recentSegment: 'active' | 'completed' = 'active';
+  private readonly recentPageSize = 10;
+  private recentNextIndex = 0;
+  private recentLoaded = false;
+
+  recentAllTrips: Trip[] = [];
+  recentFilteredTrips: Trip[] = [];
+  recentTrips: Trip[] = [];
+  recentLoading = true;
+  recentHasMore = false;
+
+  get recentSegment(): 'active' | 'completed' {
+    return this._recentSegment;
+  }
+
+  set recentSegment(val: 'active' | 'completed') {
+    this._recentSegment = val;
+    this.applyRecentFilterAndReset();
+  }
 
   currentUid: string | null = null;
   /** Mapa de tripId -> estado de solicitud del usuario */
@@ -76,6 +100,18 @@ export class TripsPage {
       .subscribe(() => {
         this.resetAndLoad();
       });
+  }
+
+  onMainSegmentChanged(): void {
+    if (this.mainSegment === 'recent') {
+      this.ensureRecentTripsLoaded();
+    }
+  }
+
+  private ensureRecentTripsLoaded(): void {
+    if (this.recentLoaded) return;
+    this.recentLoaded = true;
+    void this.loadRecentTrips();
   }
 
   private buildQueryKey(): string {
@@ -187,9 +223,94 @@ export class TripsPage {
   }
 
   doRefresh(event: any): void {
+    if (this.mainSegment === 'recent') {
+      this.loadRecentTrips().finally(() => event.target.complete());
+      return;
+    }
+
+    // Por defecto, refrescar búsqueda de viajes
+    this.lastQueryKey = '';
     this.resetAndLoad();
     this.loadMyRequests();
     setTimeout(() => event.target.complete(), 600);
+  }
+
+  // Métodos explícitos de recarga (útiles si luego se reintroduce botón)
+  reloadSearchTrips(): void {
+    this.lastQueryKey = '';
+    this.resetAndLoad();
+    this.loadMyRequests();
+  }
+
+  reloadRecentTrips(): void {
+    this.recentLoaded = true;
+    void this.loadRecentTrips();
+  }
+
+  loadMoreRecent(event: any): void {
+    this.loadNextRecentChunk(event);
+  }
+
+  private async loadRecentTrips(): Promise<void> {
+    this.recentLoading = true;
+    try {
+      const requests = await firstValueFrom(this.tripRequestsSvc.getMyRequests());
+
+      const accepted = (requests ?? [])
+        .filter(r => r.status === 'accepted')
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+      const uniqueTripIds = Array.from(new Set(accepted.map(r => r.tripId))).slice(0, 100);
+      if (uniqueTripIds.length === 0) {
+        this.recentAllTrips = [];
+        this.applyRecentFilterAndReset();
+        return;
+      }
+
+      const trips = await firstValueFrom(
+        forkJoin(
+          uniqueTripIds.map(id =>
+            this.tripsSvc.getById(id).pipe(
+              catchError(() => of(null as unknown as Trip | null)),
+            ),
+          ),
+        ),
+      );
+
+      this.recentAllTrips = (trips ?? [])
+        .filter((t): t is Trip => !!t)
+        .sort((a, b) => new Date(b.departureAt).getTime() - new Date(a.departureAt).getTime());
+
+      this.applyRecentFilterAndReset();
+    } finally {
+      this.recentLoading = false;
+    }
+  }
+
+  private applyRecentFilterAndReset(): void {
+    this.recentFilteredTrips = (this.recentAllTrips ?? []).filter(t =>
+      this.recentSegment === 'active'
+        ? t.status === 'open'
+        : (t.status === 'completed' || t.status === 'cancelled'),
+    );
+
+    this.recentTrips = [];
+    this.recentNextIndex = 0;
+    this.recentHasMore = this.recentFilteredTrips.length > 0;
+    this.loadNextRecentChunk();
+  }
+
+  private loadNextRecentChunk(event?: any): void {
+    if (!this.recentHasMore) {
+      event?.target?.complete?.();
+      return;
+    }
+
+    const next = this.recentFilteredTrips.slice(this.recentNextIndex, this.recentNextIndex + this.recentPageSize);
+    this.recentTrips = [...this.recentTrips, ...next];
+    this.recentNextIndex += next.length;
+    this.recentHasMore = this.recentNextIndex < this.recentFilteredTrips.length;
+    event?.target?.complete?.();
   }
 
   openTrip(trip: Trip): void {
