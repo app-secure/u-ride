@@ -163,7 +163,7 @@
               </div>
               <div class="v-detail">
                 <ion-icon name="people-outline"></ion-icon>
-                <span>Asientos: {{ publishForm.controls.seatsTotal.value }}</span>
+                <span>Asientos del vehículo: {{ selectedVehicleSeats }}</span>
               </div>
             </div>
           </div>
@@ -182,10 +182,12 @@
               (keydown)="blockInvalidNumber($event)" (input)="sanitizeNumberInput($event)" />
           </div>
           <div class="error-msg" *ngIf="publishForm.controls.seatsTotal.invalid && publishForm.controls.seatsTotal.touched">
-            <span *ngIf="publishForm.controls.seatsTotal.errors?.['required']">Debe ingresar el número de asientos.</span>
+            <span *ngIf="publishForm.controls.seatsTotal.errors?.['required']">Debe ingresar el número de cupos.</span>
             <span *ngIf="publishForm.controls.seatsTotal.errors?.['min'] || publishForm.controls.seatsTotal.errors?.['max']">Debe ser entre 1 y 40.</span>
+            <span *ngIf="publishForm.controls.seatsTotal.errors?.['exceedsVehicleSeats']">Los cupos deben ser menores a los {{ selectedVehicleSeats }} asientos del vehículo (máximo {{ selectedVehicleSeats! - 1 }}).</span>
           </div>
-          <span class="hint">No excedas la capacidad legal de tu vehículo</span>
+          <span class="hint" *ngIf="selectedVehicleSeats !== null">Máximo {{ selectedVehicleSeats! - 1 }} cupos (el vehículo tiene {{ selectedVehicleSeats }} asientos en total)</span>
+          <span class="hint" *ngIf="selectedVehicleSeats === null">Selecciona primero un vehículo para ver el límite de cupos</span>
         </div>
       </div>
 
