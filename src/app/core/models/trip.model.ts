@@ -1,4 +1,4 @@
-export type TripStatus = 'open' | 'closed' | 'cancelled' | 'completed';
+export type TripStatus = 'open' | 'inprogress' | 'closed' | 'cancelled' | 'completed';
 
 export interface TripRuleSet {
   punctuality: boolean;
@@ -50,6 +50,7 @@ export interface Trip {
 export interface TripCreate {
   routeName: string;
   paymentMethod: string;
+  ruleTexts?: string[];
   originZone: string;
   destinationZone: string;
   originLat?: number;

@@ -167,6 +167,19 @@ export class TripsService {
     return this.http.patch<Trip>(`${this.base}/${id}/status`, { status });
   }
 
+  cancelRequest(requestId: string): Observable<void> {
+    return this.http.patch<void>(`${this.base}/requests/${requestId}/status`, { status: 'cancelled_by_passenger' });
+  }
+
+  // ──── Tracking ────
+  setDriverLiveLocation(tripId: string, payload: { driverUid: string; lat: number; lng: number; active: boolean }): Observable<void> {
+    return this.http.post<void>(`${this.base}/${tripId}/live-location`, payload);
+  }
+
+  getDriverLiveLocation(tripId: string): Observable<any> {
+    return this.http.get<any>(`${this.base}/${tripId}/live-location`);
+  }
+
   /**
    * Actualiza un viaje existente.
    * PUT /api/trips/{id}

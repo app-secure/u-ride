@@ -22,10 +22,20 @@
           <ng-container *ngIf="trip">
 
             <!-- ================= HEADER ================= -->
-            <div class="sheet-back-row">
+            <div class="sheet-back-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
               <button class="sheet-back-btn" (click)="goBack()">
                 <ion-icon name="arrow-back-outline"></ion-icon>
                 <span>Volver</span>
+              </button>
+
+              <button
+                class="btn btn-outline"
+                *ngIf="isDriver"
+                (click)="openRequests()"
+                style="padding: 8px 14px; font-size: 15px; border-radius: 10px; margin: 0; display: inline-flex; align-items: center; gap: 6px; font-weight: 700;"
+              >
+                <ion-icon name="list-outline"></ion-icon>
+                Solicitudes
               </button>
             </div>
 
@@ -53,10 +63,6 @@
               </div>
 
               <div class="status-and-price">
-                <div class="status-badge" [ngClass]="trip.status">
-                  {{ trip.status | titlecase }}
-                </div>
-
                 <div class="trip-price-tag" *ngIf="trip.price">
                   ${{ trip.price | number:'1.2-2' }}
                 </div>
@@ -107,6 +113,13 @@
                   <ion-icon name="people-outline"></ion-icon>
                   {{ trip.seatsAvailable }} cupos
                 </div>
+
+              </div>
+
+              <!-- PAYMENT METHOD -->
+              <div class="payment-method-info" *ngIf="trip.paymentMethod">
+                <ion-icon name="wallet-outline"></ion-icon>
+                <span>Se acepta: <strong>{{ trip.paymentMethod }}</strong></span>
               </div>
 
               <!-- VEHICLE -->
@@ -129,6 +142,17 @@
                     {{ trip.vehicle.color }}
                   </span>
                 </div>
+
+                <!-- Compartir trayecto -->
+                <button
+                  class="btn btn-black"
+                  *ngIf="canShareTrip"
+                  (click)="toggleSharingTrip()"
+                  style="width: 100%; margin-top: 16px;"
+                >
+                  <ion-icon [name]="sharingTrip ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+                  {{ sharingTrip ? 'Detener compartir ubicación' : 'Compartir mi ubicación' }}
+                </button>
               </div>
 
             </div>
@@ -198,23 +222,13 @@
 
               <!-- PRIMARY: Solicitar unirme -->
               <button
-                class="btn btn-primary"
+                class="btn btn-black"
                 *ngIf="!isDriver && myRequestStatus === 'none'"
                 (click)="openPaymentModal()"
                 [attr.aria-label]="'Solicitar unirme al viaje del ' + trip.driverName"
               >
                 <ion-icon name="add-circle-outline"></ion-icon>
                 Solicitar unirme
-              </button>
-
-              <!-- SUCCESS: Finalizar -->
-              <button
-                class="btn btn-success"
-                *ngIf="canFinalize"
-                (click)="completeTrip()"
-              >
-                <ion-icon name="checkmark-done-outline"></ion-icon>
-                Finalizar viaje
               </button>
 
               <!-- WARNING: Calificar -->
@@ -235,26 +249,6 @@
               >
                 <ion-icon name="close-circle-outline"></ion-icon>
                 Cancelar viaje
-              </button>
-
-              <!-- Ver solicitudes (conductor) -->
-              <button
-                class="btn btn-outline"
-                *ngIf="isDriver"
-                (click)="openRequests()"
-              >
-                <ion-icon name="list-outline"></ion-icon>
-                Ver solicitudes
-              </button>
-
-              <!-- Compartir/detener compartir trayecto -->
-              <button
-                class="btn btn-outline"
-                *ngIf="canShareTrip"
-                (click)="toggleSharingTrip()"
-              >
-                <ion-icon [name]="sharingTrip ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
-                {{ sharingTrip ? 'Detener compartir' : 'Compartir trayecto' }}
               </button>
 
             </div>

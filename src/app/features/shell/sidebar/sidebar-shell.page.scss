@@ -143,8 +143,9 @@
   padding: 8px;
 }
 
-/* PROFILE POPOVER OVERLAY */
-ion-popover.profile-popover-overlay {
+/* PROFILE & NOTIF POPOVER OVERLAY */
+ion-popover.profile-popover-overlay,
+ion-popover.notif-popover-overlay {
   --width: 320px;
   --max-width: 92vw;
   --max-height: 90vh;

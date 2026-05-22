@@ -182,10 +182,18 @@ export class PublishTripPage {
     }
   }
 
+  async ionViewWillEnter(): Promise<void> {
+    try {
+      this.myVehicles = await firstValueFrom(this.vehiclesService.getVehicles());
+    } catch (e) {
+      console.error('Error al actualizar vehículos', e);
+    }
+  }
+
   /**
-   * Busca el veh\u00edculo coincidente por placa en la lista cargada y asigna
+   * Busca el vehículo coincidente por placa en la lista cargada y asigna
    * `selectedVehicleSeats`. Se usa al editar un viaje existente para que la
-   * tarjeta del veh\u00edculo y el validador de cupos funcionen correctamente.
+   * tarjeta del vehículo y el validador de cupos funcionen correctamente.
    */
   resolveSelectedVehicleSeats(plate: string | null | undefined): void {
     if (!plate || this.myVehicles.length === 0) return;
@@ -563,6 +571,7 @@ export class PublishTripPage {
           seatsTotal: Number(v.seatsTotal),
           price: Number(v.price),
           paymentMethod: String(v.paymentMethod ?? '').trim(),
+          ruleTexts,
           notes: v.notes?.trim() || undefined,
           vehicle: {
             plate: v.vehiclePlate.trim(),

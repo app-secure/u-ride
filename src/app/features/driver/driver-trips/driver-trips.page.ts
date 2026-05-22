@@ -65,8 +65,8 @@ export class DriverTripsPage {
   private applyFilterAndReset(): void {
     this.filteredTrips = (this.allTrips ?? []).filter(t =>
       this.segment === 'active'
-        ? t.status === 'open'
-        : (t.status === 'completed' || t.status === 'cancelled')
+        ? (t.status === 'open' || t.status === 'inprogress')
+        : (t.status === 'completed' || t.status === 'cancelled' || t.status === 'closed')
     );
     this.trips = [];
     this.nextIndex = 0;
@@ -85,6 +85,29 @@ export class DriverTripsPage {
     this.nextIndex += next.length;
     this.hasMore = this.nextIndex < this.filteredTrips.length;
     event?.target?.complete?.();
+  }
+
+  async startTrip(trip: Trip): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: 'Iniciar Viaje',
+      message: '¿Estás listo para iniciar el viaje? Ya no recibirás más solicitudes de pasajeros.',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { 
+          text: 'Iniciar', 
+          handler: async () => {
+            try {
+              await firstValueFrom(this.tripsSvc.updateTripStatus(trip.id, 'inprogress'));
+              await this.loadTrips();
+              await this.presentToast('Viaje iniciado con éxito.', 'success');
+            } catch (e: any) {
+              await this.presentToast('Error al iniciar el viaje.', 'danger');
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   async cancelTrip(trip: Trip): Promise<void> {
@@ -134,6 +157,8 @@ export class DriverTripsPage {
     await alert.present();
   }
 
+
+
   goToTripMap(trip: Trip): void {
     this.router.navigate(['/app/trips', trip.id]);
   }
@@ -174,7 +199,7 @@ export class DriverTripsPage {
     this.router.navigate(['/app/requests', trip.id]);
   }
 
-  private async presentToast(message: string, color: 'success' | 'danger'): Promise<void> {
+  private async presentToast(message: string, color: 'success' | 'danger' | 'warning' | 'medium'): Promise<void> {
     const toast = await this.toastCtrl.create({
       message,
       duration: 2000,
