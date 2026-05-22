@@ -37,7 +37,7 @@ import type { AppNotification } from '../../core/models/notification.model';
             <p style="margin-top: 8px;">No tienes notificaciones</p>
           </div>
 
-          <ion-list *ngIf="notifs.length > 0">
+          <ion-list *ngIf="notifs.length > 0" class="notif-list">
             <ion-item
               *ngFor="let n of notifs"
               button
@@ -65,6 +65,8 @@ import type { AppNotification } from '../../core/models/notification.model';
   `,
   styles: [
     `:host{display:block;}`,
+    `.notif-list{background:transparent;}`,
+    `@media (prefers-color-scheme: dark){.notif-list{background:var(--ion-background-color, #0b1220);}}`,
   ],
 })
 export class NotificationsPage {

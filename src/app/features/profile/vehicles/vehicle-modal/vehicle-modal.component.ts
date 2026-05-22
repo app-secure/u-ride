@@ -84,7 +84,7 @@ import { firstValueFrom } from 'rxjs';
 
         <!-- Asientos -->
         <div class="input-group">
-          <label>Número de asientos disponibles</label>
+          <label>Número de asientos del vehículo</label>
           <div class="custom-input-box">
             <ion-icon name="people-outline" class="icon-gray"></ion-icon>
             <input type="number" formControlName="seats" placeholder="Ej: 4" min="1" max="50" (keydown)="blockInvalidNumber($event)" (input)="sanitizeNumberInput($event)" />
@@ -278,31 +278,31 @@ import { firstValueFrom } from 'rxjs';
 export class VehicleModalComponent implements OnInit {
   @Input() vehicle?: Vehicle;
 
-  private readonly modalCtrl      = inject(ModalController);
-  private readonly fb             = inject(FormBuilder);
+  private readonly modalCtrl = inject(ModalController);
+  private readonly fb = inject(FormBuilder);
   private readonly vehiclesService = inject(VehiclesService);
-  private readonly toastCtrl      = inject(ToastController);
+  private readonly toastCtrl = inject(ToastController);
 
-  isEdit   = false;
+  isEdit = false;
   isSaving = false;
 
   form = this.fb.nonNullable.group({
-    brand:           ['', [Validators.required]],
-    modelOrBusNumber:['', [Validators.required]],
-    plate:           ['', [Validators.required, Validators.pattern(/^[A-Z]{3}-\d{4}$/)]],
-    color:           ['', [Validators.required]],
-    seats:           [4,  [Validators.required, Validators.min(1), Validators.max(50)]],
+    brand: ['', [Validators.required]],
+    modelOrBusNumber: ['', [Validators.required]],
+    plate: ['', [Validators.required, Validators.pattern(/^[A-Z]{3}-\d{4}$/)]],
+    color: ['', [Validators.required]],
+    seats: [4, [Validators.required, Validators.min(1), Validators.max(50)]],
   });
 
   ngOnInit(): void {
     if (this.vehicle) {
       this.isEdit = true;
       this.form.patchValue({
-        brand:            this.vehicle.brand,
+        brand: this.vehicle.brand,
         modelOrBusNumber: this.vehicle.modelOrBusNumber,
-        plate:            this.vehicle.plate,
-        color:            this.vehicle.color,
-        seats:            this.vehicle.seats,
+        plate: this.vehicle.plate,
+        color: this.vehicle.color,
+        seats: this.vehicle.seats,
       });
     }
   }

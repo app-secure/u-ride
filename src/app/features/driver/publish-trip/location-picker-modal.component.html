@@ -43,6 +43,14 @@
   </div>
 
   <!-- Mapa -->
-  <div #mapEl class="picker-map" aria-label="Mapa para seleccionar ubicación"></div>
+  <div class="map-wrapper">
+    <div #mapEl class="picker-map" aria-label="Mapa para seleccionar ubicación"></div>
+
+    <!-- Botón flotante: regresar a vista de Ambato -->
+    <button type="button" class="btn-reset-view" (click)="resetToAmbatoView()" title="Ver Ambato completo">
+      <ion-icon name="map-outline"></ion-icon>
+      <span>Ver Ambato</span>
+    </button>
+  </div>
 
 </ion-content>

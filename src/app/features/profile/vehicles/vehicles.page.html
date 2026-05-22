@@ -43,11 +43,8 @@
     <!-- Lista de vehículos -->
     <div *ngIf="!isLoading && vehicles.length > 0" class="vehicles-list">
 
-      <div
-        *ngFor="let vehicle of vehicles; let i = index"
-        class="vehicle-card modern-card"
-        [style.animation-delay]="(i * 0.06) + 's'"
-      >
+      <div *ngFor="let vehicle of vehicles; let i = index" class="vehicle-card modern-card"
+        [style.animation-delay]="(i * 0.06) + 's'">
         <!-- Cabecera de tarjeta -->
         <div class="card-header">
           <div class="vehicle-icon-wrapper">
@@ -73,7 +70,7 @@
             <ion-icon name="people-outline" class="detail-icon"></ion-icon>
             <div class="detail-text">
               <span class="detail-label">Capacidad</span>
-              <span class="detail-value">{{ vehicle.seats }} pasajeros</span>
+              <span class="detail-value">{{ vehicle.seats }} asientos</span>
             </div>
           </div>
         </div>

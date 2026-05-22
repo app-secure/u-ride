@@ -6,9 +6,9 @@
 
 /* ================= HEADER ================= */
 .main-header ion-toolbar {
-  --background: rgba(255,255,255,0.9);
+  --background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(18px);
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* LEFT */
@@ -39,9 +39,13 @@
 /* ICON BUTTON */
 .icon-btn {
   position: relative;
-  color: #0f172a;
+  color: #0f172a !important;
+  /* Force light mode color in all themes */
 
-  ion-icon { font-size: 22px; }
+  ion-icon {
+    font-size: 22px;
+    color: #0f172a !important;
+  }
 }
 
 /* BADGE */
@@ -50,9 +54,11 @@
   top: -2px;
   right: -2px;
   font-size: 10px;
-  min-width: 18px;
-  height: 18px;
+  min-width: 16px;
+  height: 16px;
   border-radius: 50%;
+  background-color: #0f172a;
+  color: white;
 }
 
 /* ================= USER CHIP ================= */
@@ -107,13 +113,20 @@
     .email {
       font-size: 12px;
       font-weight: 600;
-      color: #0f172a;
+      color: #0f172a !important;
+      /* Force light mode color in all themes */
     }
 
     .role {
       font-size: 11px;
-      color: #64748b;
+      color: #64748b !important;
+      /* Force light mode color in all themes */
     }
+  }
+
+  >ion-icon {
+    color: #0f172a !important;
+    /* Force light mode color in all themes */
   }
 }
 
@@ -155,6 +168,7 @@ ion-popover::part(content) {
   border-radius: 18px;
   overflow: hidden;
 }
+
 .notif-header h3 {
   font-size: 16px;
   font-weight: 800;
@@ -174,7 +188,7 @@ ion-popover::part(content) {
   cursor: pointer;
 
   &:hover {
-    background: #f1f5f9;
+    background: rgba(15, 23, 42, 0.08);
   }
 
   &.unread {
@@ -202,7 +216,8 @@ ion-popover::part(content) {
 
   .content {
     flex: 1;
-    min-width: 0; /* evita que el texto desborde el contenedor flex */
+    min-width: 0;
+    /* evita que el texto desborde el contenedor flex */
 
     h4 {
       font-size: 14px;
@@ -232,6 +247,12 @@ ion-popover::part(content) {
   }
 }
 
+@media (prefers-color-scheme: dark) {
+  .notif-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
 /* ================= PROFILE ================= */
 .profile-popover {
   width: 100%;
@@ -247,7 +268,7 @@ ion-popover::part(content) {
   padding-bottom: 10px;
   border-bottom: 1px solid #e2e8f0;
 
-  > div {
+  >div {
     min-width: 0;
   }
 

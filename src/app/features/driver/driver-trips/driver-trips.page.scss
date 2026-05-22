@@ -220,8 +220,10 @@
   .modern-card { background: #1e293b; border-color: #334155; }
   .empty-state .empty-icon-box { background: #0f172a; }
   .empty-state h3 { color: #f8fafc; }
-  .trip-route { background: #0f172a; }
-  .trip-route .route-info .route-value { color: #f8fafc; }
+  .trip-route {
+    background: #0f172a;
+    .route-item .route-info .route-value { color: #ffffff !important; }
+  }
   .trip-stats .stat { color: #cbd5e1; }
   .trip-actions { border-color: #334155; }
 }

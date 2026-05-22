@@ -26,7 +26,19 @@ function buildDivIcon(color: string): L.DivIcon {
 }
 
 const ORIGIN_ICON = buildDivIcon('#10b981');
-const DEST_ICON   = buildDivIcon('#ef4444');
+const DEST_ICON = buildDivIcon('#ef4444');
+
+// ─── Coordenadas de referencia ───────────────────────────────────────────────
+
+/** UTA Campus Huachi — vista por defecto para origen */
+const UTA_HUACHI_LAT = -1.2698;
+const UTA_HUACHI_LNG = -78.6242;
+const UTA_HUACHI_ZOOM = 16;
+
+/** Ambato completo — botón de restablecimiento de vista */
+const AMBATO_CENTER_LAT = -1.2491;
+const AMBATO_CENTER_LNG = -78.6167;
+const AMBATO_ZOOM = 13;
 
 @Component({
   selector: 'app-location-picker-modal',
@@ -114,6 +126,12 @@ export class LocationPickerModalComponent implements AfterViewInit, OnDestroy {
     this.modalCtrl.dismiss(null, 'cancel');
   }
 
+  /** Restablece la vista del mapa a la ciudad de Ambato completa */
+  resetToAmbatoView(): void {
+    if (!this.map) return;
+    this.map.setView([AMBATO_CENTER_LAT, AMBATO_CENTER_LNG], AMBATO_ZOOM, { animate: true });
+  }
+
   async confirm(): Promise<void> {
     if (!this.picked) {
       const toast = await this.toastCtrl.create({
@@ -143,18 +161,21 @@ export class LocationPickerModalComponent implements AfterViewInit, OnDestroy {
     // Prioridad del centro inicial:
     // 1. Posición guardada del punto actual
     // 2. Centro de la ruta seleccionada (geocodificado)
-    // 3. Centro de Ecuador (fallback)
+    // 3. UTA Huachi si es origen / Centro de Ambato si es destino (fallback inteligente)
     const center: L.LatLngExpression =
       this.initialLat != null && this.initialLng != null
         ? [this.initialLat, this.initialLng]
         : this.routeCenterLat != null && this.routeCenterLng != null
           ? [this.routeCenterLat, this.routeCenterLng]
-          : [-1.249, -78.616];
+          : this.kind === 'origin'
+            ? [UTA_HUACHI_LAT, UTA_HUACHI_LNG]   // Zoom directo al campus UTA
+            : [AMBATO_CENTER_LAT, AMBATO_CENTER_LNG];
 
     const initialZoom =
       this.initialLat != null ? 16
         : this.routeCenterLat != null ? 14
-        : 12;
+          : this.kind === 'origin' ? UTA_HUACHI_ZOOM
+            : AMBATO_ZOOM;
 
     this.map = L.map(this.mapEl.nativeElement, {
       zoomControl: true,
