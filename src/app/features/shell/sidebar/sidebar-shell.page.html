@@ -28,6 +28,7 @@
           side="bottom"
           alignment="end"
           (didPresent)="onNotificationsOpen()"
+          cssClass="notif-popover-overlay"
         >
           <ng-template>
             <div class="notif-panel">
@@ -42,26 +43,30 @@
 
               <ng-container *ngIf="notifications$ | async as notifs">
 
-                <div class="empty-state" *ngIf="notifs.length === 0">
-                  <ion-icon name="notifications-off-outline"></ion-icon>
-                  <p>No tienes notificaciones</p>
-                </div>
+                <div class="notif-list">
 
-                <div
-                  class="notif-item"
-                  *ngFor="let n of notifs"
-                  (click)="handleNotificationAction(n)"
-                  [class.unread]="!n.read"
-                >
-
-                  <div class="icon" [ngClass]="n.type">
-                    <ion-icon [name]="n.type === 'trip_completed' ? 'star' : 'checkmark-circle'"></ion-icon>
+                  <div class="empty-state" *ngIf="notifs.length === 0">
+                    <ion-icon name="notifications-off-outline"></ion-icon>
+                    <p>No tienes notificaciones</p>
                   </div>
 
-                  <div class="content">
-                    <h4>{{ n.title }}</h4>
-                    <p>{{ n.message }}</p>
-                    <span>{{ n.createdAt | date:'shortTime' }}</span>
+                  <div
+                    class="notif-item"
+                    *ngFor="let n of notifs"
+                    (click)="handleNotificationAction(n)"
+                    [class.unread]="!n.read"
+                  >
+
+                    <div class="icon" [ngClass]="n.type">
+                      <ion-icon [name]="n.type === 'trip_completed' ? 'star' : 'checkmark-circle'"></ion-icon>
+                    </div>
+
+                    <div class="content">
+                      <h4>{{ n.title }}</h4>
+                      <p>{{ n.message }}</p>
+                      <span>{{ n.createdAt | date:'shortTime' }}</span>
+                    </div>
+
                   </div>
 
                 </div>

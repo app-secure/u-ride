@@ -38,6 +38,9 @@ export class PublishTripPage {
   driverName = '';
   myVehicles: Vehicle[] = [];
 
+  /** Asientos totales del vehículo seleccionado (capacidad real del vehículo). */
+  selectedVehicleSeats: number | null = null;
+
   readonly editTripId = this.route.snapshot.paramMap.get('tripId');
   tripToEdit: Trip | null = null;
 
@@ -75,6 +78,9 @@ export class PublishTripPage {
   constructor() {
     this.publishForm.addValidators(this.departureDateTimeValidator());
 
+    // Aplicar validador de cupos al control seatsTotal (referencia a método de instancia).
+    this.publishForm.controls.seatsTotal.addValidators(this.seatsNotExceedVehicleValidator());
+
     this.auth.user$
       .pipe(
         switchMap(user => (user ? this.users.profile$(user.uid) : of(undefined))),
@@ -86,6 +92,12 @@ export class PublishTripPage {
         this.driverName = profile.displayName || 'Conductor/a';
         try {
           this.myVehicles = await firstValueFrom(this.vehiclesService.getVehicles());
+
+          // Si ya se cargó el viaje a editar antes que los vehículos,
+          // resolvemos selectedVehicleSeats ahora que tenemos la lista.
+          if (this.editTripId && this.tripToEdit) {
+            this.resolveSelectedVehicleSeats(this.tripToEdit.vehicle?.plate);
+          }
         } catch (e) {
           console.error('Error al cargar vehículos', e);
         }
@@ -122,6 +134,10 @@ export class PublishTripPage {
             vehicleBrand: trip.vehicle?.brand ?? '',
             vehicleColor: trip.vehicle?.color ?? '',
           });
+
+          // Intentamos resolver los asientos desde la lista de vehículos
+          // (puede que ya estén cargados o no, el método lo maneja).
+          this.resolveSelectedVehicleSeats(trip.vehicle?.plate);
         });
     }
 
@@ -150,13 +166,41 @@ export class PublishTripPage {
   onVehicleSelected(event: any): void {
     const selectedVehicle = event.detail.value as Vehicle;
     if (selectedVehicle) {
+      // Guardamos la capacidad real del vehículo por separado (para mostrar en tarjeta y validar cupos).
+      this.selectedVehicleSeats = selectedVehicle.seats;
+
+      // Solo actualizamos los datos del vehículo; NO tocamos seatsTotal (cupos disponibles).
       this.publishForm.patchValue({
         vehicleBrand: selectedVehicle.brand,
         vehicleModel: selectedVehicle.modelOrBusNumber,
         vehiclePlate: selectedVehicle.plate,
         vehicleColor: selectedVehicle.color,
-        seatsTotal: selectedVehicle.seats,
       });
+
+      // Re-validamos seatsTotal ahora que tenemos el límite del vehículo.
+      this.publishForm.controls.seatsTotal.updateValueAndValidity();
+    }
+  }
+
+  async ionViewWillEnter(): Promise<void> {
+    try {
+      this.myVehicles = await firstValueFrom(this.vehiclesService.getVehicles());
+    } catch (e) {
+      console.error('Error al actualizar vehículos', e);
+    }
+  }
+
+  /**
+   * Busca el vehículo coincidente por placa en la lista cargada y asigna
+   * `selectedVehicleSeats`. Se usa al editar un viaje existente para que la
+   * tarjeta del vehículo y el validador de cupos funcionen correctamente.
+   */
+  resolveSelectedVehicleSeats(plate: string | null | undefined): void {
+    if (!plate || this.myVehicles.length === 0) return;
+    const match = this.myVehicles.find(v => v.plate === plate);
+    if (match) {
+      this.selectedVehicleSeats = match.seats;
+      this.publishForm.controls.seatsTotal.updateValueAndValidity();
     }
   }
 
@@ -366,6 +410,22 @@ export class PublishTripPage {
     };
   }
 
+  /**
+   * Validador de instancia para seatsTotal: los cupos deben ser
+   * estrictamente MENORES a la capacidad real del vehículo seleccionado
+   * (se reserva al menos 1 asiento para el conductor).
+   */
+  seatsNotExceedVehicleValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (this.selectedVehicleSeats === null) return null;
+      const value = Number(control.value);
+      if (!Number.isFinite(value)) return null;
+      return value >= this.selectedVehicleSeats
+        ? { exceedsVehicleSeats: { max: this.selectedVehicleSeats - 1, actual: value } }
+        : null;
+    };
+  }
+
   private formatVehiclePlate(value: string): string {
     const letters = (value.match(/[A-Z]/gi) ?? []).join('').toUpperCase().slice(0, 3);
     const numbers = (value.match(/\d/g) ?? []).join('').slice(0, 4);
@@ -511,6 +571,7 @@ export class PublishTripPage {
           seatsTotal: Number(v.seatsTotal),
           price: Number(v.price),
           paymentMethod: String(v.paymentMethod ?? '').trim(),
+          ruleTexts,
           notes: v.notes?.trim() || undefined,
           vehicle: {
             plate: v.vehiclePlate.trim(),

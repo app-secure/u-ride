@@ -43,7 +43,7 @@
         <div class="trip-card-inner">
           <div class="trip-header">
             <span class="status-badge" [ngClass]="trip.status">
-              {{ trip.status === 'open' ? 'Activo' : (trip.status === 'completed' ? 'Completado' : 'Cancelado') }}
+              {{ trip.status === 'open' ? 'Activo' : (trip.status === 'inprogress' ? 'En Curso' : (trip.status === 'completed' ? 'Completado' : 'Cancelado')) }}
             </span>
             <span class="date-text">{{ trip.departureAt | date:'dd MMM yyyy, HH:mm' }}</span>
           </div>
@@ -79,17 +79,33 @@
               Detalle de mi viaje
             </ion-button>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-              <ion-button fill="outline" color="primary" expand="block" (click)="editTrip(trip)">
-                <ion-icon name="create-outline" slot="start"></ion-icon>
-                Editar
+            <!-- Acciones cuando el viaje está abierto -->
+            <ng-container *ngIf="trip.status === 'open'">
+              <ion-button fill="solid" color="success" expand="block" style="margin-top: 10px;" (click)="startTrip(trip)">
+                <ion-icon name="play-outline" slot="start"></ion-icon>
+                Iniciar Viaje
               </ion-button>
 
-              <ion-button fill="outline" color="danger" expand="block" (click)="deleteTrip(trip)">
-                <ion-icon name="trash-outline" slot="start"></ion-icon>
-                Eliminar
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                <ion-button fill="outline" color="primary" expand="block" (click)="editTrip(trip)">
+                  <ion-icon name="create-outline" slot="start"></ion-icon>
+                  Editar
+                </ion-button>
+
+                <ion-button fill="outline" color="danger" expand="block" (click)="deleteTrip(trip)">
+                  <ion-icon name="trash-outline" slot="start"></ion-icon>
+                  Eliminar
+                </ion-button>
+              </div>
+            </ng-container>
+
+            <!-- Acciones cuando el viaje está en curso -->
+            <ng-container *ngIf="trip.status === 'inprogress'">
+              <ion-button fill="solid" color="warning" expand="block" style="margin-top: 10px;" (click)="finishTrip(trip)">
+                <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+                Finalizar Viaje
               </ion-button>
-            </div>
+            </ng-container>
           </div>
 
           <div class="trip-actions" *ngIf="segment === 'completed'">

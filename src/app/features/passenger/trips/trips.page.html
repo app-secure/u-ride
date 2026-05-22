@@ -82,9 +82,6 @@
               <div class="price-badge" *ngIf="trip.price != null">
                 <span class="currency">$</span>{{ trip.price | number:'1.2-2' }}
               </div>
-              <div class="trip-status-indicator" [ngClass]="getRequestStatus(trip.id)">
-                {{ getRequestStatusLabel(trip.id) }}
-              </div>
             </div>
           </div>
 
@@ -130,7 +127,7 @@
               <div *ngIf="getRequestStatus(trip.id) === 'pending'"
                 style="display: flex; align-items: center; gap: 6px; background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 8px; padding: 8px 12px; color: #92400e; font-size: 13px; font-weight: 600;">
                 <ion-icon name="time-outline" style="font-size: 16px; color: #f59e0b; flex-shrink: 0;"></ion-icon>
-                Solicitud pendiente de confirmación
+                Solicitud Pendiente
               </div>
 
               <!-- Aceptado: check + cancelar cupo -->

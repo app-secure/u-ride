@@ -97,6 +97,7 @@ export class TripDetailPage {
   sharingTrip = false;
   private watchId: string | null = null;
   private driverLive?: DriverLiveLocation;
+  private locationPollTimer?: any;
 
   constructor() {
     this.tripId = this.route.snapshot.paramMap.get('tripId') ?? '';
@@ -138,11 +139,13 @@ export class TripDetailPage {
   ionViewWillEnter(): void {
     this.isModalOpen = true;
     this.checkDriverActionStatus();
+    this.startPollingLocation();
   }
 
   ionViewWillLeave(): void {
     // Cerramos el modal antes de salir para evitar el bug de Ionic
     this.isModalOpen = false;
+    this.stopPollingLocation();
 
     // Si el conductor estaba compartiendo, detenemos al salir.
     if (this.isDriver && this.sharingTrip) {
@@ -435,7 +438,7 @@ export class TripDetailPage {
   }
 
   get canShareTrip(): boolean {
-    return !!this.trip && this.isDriver && this.trip.status === 'open';
+    return !!this.trip && this.isDriver && (this.trip.status === 'open' || this.trip.status === 'inprogress');
   }
 
   async toggleSharingTrip(): Promise<void> {
@@ -468,8 +471,6 @@ export class TripDetailPage {
     }
 
     this.sharingTrip = true;
-    // STUB: setDriverLiveActive no tiene endpoint backend aún
-    // await this.trips.setDriverLiveActive(this.tripId, this.currentUid, true);
 
     // Empezar a enviar la ubicación en segundo plano mientras el driver esté en esta pantalla.
     this.watchId = await Geolocation.watchPosition(
@@ -479,9 +480,13 @@ export class TripDetailPage {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         if (typeof lat !== 'number' || typeof lng !== 'number') return;
+        
+        // Actualizar UI local para que el conductor vea su propio marcador
+        this.driverLive = { driverUid: this.currentUid!, lat, lng, active: true };
+        this.syncDriverMarker();
+
         try {
-          // STUB: setDriverLiveLocation no tiene endpoint backend aún
-          // await this.trips.setDriverLiveLocation(this.tripId, { driverUid: this.currentUid!, lat, lng, active: true });
+          await firstValueFrom(this.trips.setDriverLiveLocation(this.tripId, { driverUid: this.currentUid!, lat, lng, active: true }));
         } catch {
           // No bloquear el UI por errores intermitentes de red.
         }
@@ -509,8 +514,9 @@ export class TripDetailPage {
 
     this.sharingTrip = false;
     if (this.currentUid) {
-      // STUB: setDriverLiveActive no tiene endpoint backend aún
-      // await this.trips.setDriverLiveActive(this.tripId, this.currentUid, false);
+      try {
+        await firstValueFrom(this.trips.setDriverLiveLocation(this.tripId, { driverUid: this.currentUid!, lat: 0, lng: 0, active: false }));
+      } catch {}
     }
 
     const toast = await this.toastCtrl.create({
@@ -520,6 +526,32 @@ export class TripDetailPage {
       color: 'medium',
     });
     await toast.present();
+  }
+
+  private startPollingLocation(): void {
+    if (this.locationPollTimer) return;
+    this.locationPollTimer = setInterval(() => {
+      if (!this.tripId || this.isDriver) return;
+      if (this.trip?.status !== 'open') return;
+      if (!this.isAcceptedPassenger) return;
+
+      this.trips.getDriverLiveLocation(this.tripId).subscribe({
+        next: (loc) => {
+          if (loc) {
+            this.driverLive = loc;
+            this.syncDriverMarker();
+          }
+        },
+        error: () => {}
+      });
+    }, 5000);
+  }
+
+  private stopPollingLocation(): void {
+    if (this.locationPollTimer) {
+      clearInterval(this.locationPollTimer);
+      this.locationPollTimer = undefined;
+    }
   }
 
   get driverRating(): number {
