@@ -175,7 +175,7 @@
 
             <ion-segment [(ngModel)]="recentSegment" mode="ios" class="custom-segment">
               <ion-segment-button value="active">
-                <ion-label>Viajes Activos</ion-label>
+                <ion-label>Solicitudes activas</ion-label>
               </ion-segment-button>
               <ion-segment-button value="completed">
                 <ion-label>Historial</ion-label>
@@ -194,9 +194,31 @@
           <div class="modern-card trip-card" *ngFor="let trip of recentTrips">
             <div class="trip-card-inner">
               <div class="trip-header">
-                <span class="status-badge" [ngClass]="trip.status">
-                  {{ trip.status === 'open' ? 'Activo' : (trip.status === 'completed' ? 'Completado' : 'Cancelado') }}
-                </span>
+                <div class="badges-group" style="display: flex; gap: 8px; align-items: center;">
+                  <!-- Estado del viaje -->
+                  <span class="status-badge trip-status-badge" [ngClass]="trip.status">
+                    {{ trip.status === 'open' ? 'Abierto' :
+                       trip.status === 'completed' ? 'Completado' :
+                       trip.status === 'closed' ? 'Cupos llenos' :
+                       trip.status === 'inprogress' ? 'En curso' : 'Cancelado' }}
+                  </span>
+                  <!-- Estado de la solicitud -->
+                  <span class="request-status-badge" [ngClass]="'req-' + getRecentRequestStatus(trip.id)"
+                    *ngIf="getRecentRequestStatus(trip.id) !== 'none'">
+                    <ng-container [ngSwitch]="getRecentRequestStatus(trip.id)">
+                      <ng-container *ngSwitchCase="'pending'">
+                        <ion-icon name="time-outline"></ion-icon> Pendiente
+                      </ng-container>
+                      <ng-container *ngSwitchCase="'accepted'">
+                        <ion-icon name="checkmark-circle"></ion-icon>
+                        {{ trip.status === 'inprogress' ? 'En curso' : 'Aceptado' }}
+                      </ng-container>
+                      <ng-container *ngSwitchCase="'rejected'">
+                        <ion-icon name="close-circle"></ion-icon> Rechazado
+                      </ng-container>
+                    </ng-container>
+                  </span>
+                </div>
                 <span class="date-text">{{ trip.departureAt | date:'dd MMM yyyy, HH:mm' }}</span>
               </div>
 
@@ -226,9 +248,35 @@
               </div>
 
               <div class="trip-actions">
+                <!-- Boton de pago: aceptado, pago pendiente, viaje no completado -->
+                <button
+                  class="btn-pay-small"
+                  *ngIf="recentSegment === 'active' && getRecentRequestStatus(trip.id) === 'accepted' && getRecentPaymentStatus(trip.id) !== 'paid' && trip.status !== 'completed'"
+                  (click)="openTrip(trip)"
+                >
+                  <ion-icon name="wallet-outline"></ion-icon>
+                  Pago pendiente
+                </button>
+                <!-- Badge pago completado -->
+                <div
+                  class="payment-complete-badge"
+                  *ngIf="recentSegment === 'active' && getRecentRequestStatus(trip.id) === 'accepted' && getRecentPaymentStatus(trip.id) === 'paid' && trip.status !== 'completed'"
+                >
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                  Pago completado
+                </div>
+                <!-- Boton cancelar: solo en solicitudes activas y si el viaje no inició -->
+                <button
+                  class="btn-cancel-small"
+                  *ngIf="recentSegment === 'active' && (getRecentRequestStatus(trip.id) === 'pending' || getRecentRequestStatus(trip.id) === 'accepted') && (trip.status === 'open' || trip.status === 'closed')"
+                  (click)="cancelRecentRequest(trip)"
+                >
+                  <ion-icon name="close-outline"></ion-icon>
+                  {{ getRecentRequestStatus(trip.id) === 'pending' ? 'Cancelar solicitud' : 'Cancelar cupo' }}
+                </button>
                 <ion-button fill="solid" class="details-btn" expand="block" (click)="openTrip(trip)">
                   <ion-icon name="map" slot="start"></ion-icon>
-                  Ver detalle del viaje
+                  Ver detalle
                 </ion-button>
               </div>
             </div>

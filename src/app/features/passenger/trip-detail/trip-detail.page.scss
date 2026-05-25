@@ -842,6 +842,27 @@ ion-content.sheet-content {
   }
 }
 
+.rejected-message {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+
+  ion-icon { font-size: 20px; flex-shrink: 0; }
+
+  @media (prefers-color-scheme: dark) {
+    background: linear-gradient(135deg, #7f1d1d, #991b1b);
+    color: #fee2e2;
+    border-color: #ef4444;
+  }
+}
+
 /* =========================
    ACTION BUTTONS (SISTEMA UNIFICADO - SIEMPRE VISIBLE)
 ========================= */
@@ -903,6 +924,47 @@ ion-content.sheet-content {
       background: #ffffff;
       box-shadow: 0 6px 16px rgba(255, 255, 255, 0.15);
     }
+  }
+}
+
+/* GREEN PAY BUTTON */
+.btn-pay {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  animation: payPulse 2s infinite;
+
+  &:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+  }
+}
+
+@keyframes payPulse {
+  0%, 100% { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); }
+  50% { box-shadow: 0 4px 20px rgba(16, 185, 129, 0.5); }
+}
+
+.payment-done-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  color: #166534;
+  border: 1px solid #86efac;
+  font-size: 15px;
+  font-weight: 700;
+
+  ion-icon { font-size: 20px; }
+
+  @media (prefers-color-scheme: dark) {
+    background: linear-gradient(135deg, #065f46, #047857);
+    color: #dcfce7;
+    border-color: #10b981;
   }
 }
 

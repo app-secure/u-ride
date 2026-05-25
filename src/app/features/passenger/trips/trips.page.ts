@@ -65,7 +65,9 @@ export class TripsPage {
 
   currentUid: string | null = null;
   /** Mapa de tripId -> estado de solicitud del usuario */
-  myRequestsMap: Record<string, { status: string; requestId: string }> = {};
+  myRequestsMap: Record<string, { status: string; requestId: string; paymentStatus: string }> = {};
+  /** Mapa de solicitudes para la sección de mis viajes */
+  recentRequestsMap: Record<string, { status: string; requestId: string; paymentStatus: string }> = {};
 
   trips: TripWithDriverPhoto[] = [];
   loading = true;
@@ -214,9 +216,9 @@ export class TripsPage {
 
   private loadMyRequests(): void {
     this.tripRequestsSvc.getMyRequests().subscribe(requests => {
-      const update: Record<string, { status: string; requestId: string }> = {};
+      const update: Record<string, { status: string; requestId: string; paymentStatus: string }> = {};
       requests.forEach(r => {
-        update[r.tripId] = { status: r.status, requestId: r.id };
+        update[r.tripId] = { status: r.status, requestId: r.id, paymentStatus: r.paymentStatus ?? 'pending' };
       });
       this.myRequestsMap = update;
     });
@@ -256,11 +258,22 @@ export class TripsPage {
     try {
       const requests = await firstValueFrom(this.tripRequestsSvc.getMyRequests());
 
-      const accepted = (requests ?? [])
-        .filter(r => r.status === 'accepted')
-        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      // Incluir todas las solicitudes activas (pending + accepted), excluir cancelled_by_passenger
+      const activeRequests = (requests ?? [])
+        .filter(r => r.status !== 'cancelled_by_passenger')
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-      const uniqueTripIds = Array.from(new Set(accepted.map(r => r.tripId))).slice(0, 100);
+      // Guardar el mapa de solicitudes para mostrar estado en cada tarjeta
+      this.recentRequestsMap = {};
+      activeRequests.forEach(r => {
+        this.recentRequestsMap[r.tripId] = {
+          status: r.status,
+          requestId: r.id,
+          paymentStatus: r.paymentStatus ?? 'pending',
+        };
+      });
+
+      const uniqueTripIds = Array.from(new Set(activeRequests.map(r => r.tripId))).slice(0, 100);
       if (uniqueTripIds.length === 0) {
         this.recentAllTrips = [];
         this.applyRecentFilterAndReset();
@@ -288,11 +301,17 @@ export class TripsPage {
   }
 
   private applyRecentFilterAndReset(): void {
-    this.recentFilteredTrips = (this.recentAllTrips ?? []).filter(t =>
-      this.recentSegment === 'active'
-        ? t.status === 'open'
-        : (t.status === 'completed' || t.status === 'cancelled'),
-    );
+    this.recentFilteredTrips = (this.recentAllTrips ?? []).filter(t => {
+      const reqStatus = this.recentRequestsMap[t.id]?.status;
+
+      if (this.recentSegment === 'completed') {
+        // Historial: viajes completados O solicitudes rechazadas
+        return t.status === 'completed' || reqStatus === 'rejected';
+      } else {
+        // Solicitudes activas: request pendiente o aceptada, y el viaje no está completado ni rechazado
+        return (reqStatus === 'pending' || reqStatus === 'accepted') && t.status !== 'completed';
+      }
+    });
 
     this.recentTrips = [];
     this.recentNextIndex = 0;
@@ -331,9 +350,16 @@ export class TripsPage {
 
   getRequestStatus(tripId: string): string {
     const mapEntry = this.myRequestsMap[tripId];
-    // Si hay estado en el mapa y no está cancelado por el pasajero, usarlo
     if (mapEntry && mapEntry.status !== 'cancelled_by_passenger') return mapEntry.status;
     return 'none';
+  }
+
+  getRecentRequestStatus(tripId: string): string {
+    return this.recentRequestsMap[tripId]?.status ?? 'none';
+  }
+
+  getRecentPaymentStatus(tripId: string): string {
+    return this.recentRequestsMap[tripId]?.paymentStatus ?? 'pending';
   }
 
   getRequestStatusLabel(tripId: string): string {
@@ -380,6 +406,59 @@ export class TripsPage {
             } catch (e) {
               const toast = await this.toastCtrl.create({
                 message: 'Error al cancelar el cupo.',
+                duration: 2000,
+                color: 'danger',
+                position: 'top'
+              });
+              await toast.present();
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  /** Cancela una solicitud desde la lista de "Mis Viajes" (pending o accepted) */
+  async cancelRecentRequest(trip: Trip): Promise<void> {
+    if (!this.currentUid) return;
+    const mapEntry = this.recentRequestsMap[trip.id];
+    if (!mapEntry?.requestId) return;
+
+    const isPending = mapEntry.status === 'pending';
+    const header = isPending ? 'Cancelar solicitud' : 'Cancelar cupo';
+    const message = isPending
+      ? '¿Deseas cancelar tu solicitud de viaje? El conductor no la recibirá.'
+      : '¿Estás seguro que deseas cancelar tu cupo en este viaje?';
+
+    const alert = await this.alertCtrl.create({
+      header,
+      message,
+      buttons: [
+        { text: 'No', role: 'cancel' },
+        {
+          text: 'Sí, cancelar',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.tripRequestsSvc.cancelRequest(mapEntry.requestId).toPromise();
+              // Eliminar del mapa y recargar la lista
+              const updated = { ...this.recentRequestsMap };
+              delete updated[trip.id];
+              this.recentRequestsMap = updated;
+              // Recargar la lista de mis viajes
+              this.recentLoaded = false;
+              void this.loadRecentTrips();
+              const toast = await this.toastCtrl.create({
+                message: isPending ? 'Solicitud cancelada.' : 'Has liberado tu cupo exitosamente.',
+                duration: 2000,
+                color: 'success',
+                position: 'top'
+              });
+              await toast.present();
+            } catch (e) {
+              const toast = await this.toastCtrl.create({
+                message: 'Error al cancelar. Intenta de nuevo.',
                 duration: 2000,
                 color: 'danger',
                 position: 'top'

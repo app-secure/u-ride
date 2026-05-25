@@ -75,6 +75,8 @@ export class TripDetailPage {
 
   // Estado de la solicitud del pasajero actual ('none' | 'pending' | 'accepted' | 'rejected' | 'cancelled_by_passenger')
   myRequestStatus: string = 'none';
+  myRequestId: string | null = null;
+  myPaymentStatus: string = 'pending'; // 'pending' | 'paid' | 'refunded'
 
   // Payment state - Nueva experiencia de pago
   isPaymentModalOpen = false;
@@ -185,6 +187,8 @@ export class TripDetailPage {
     this.tripRequests.getMyRequests().subscribe(requests => {
       const mine = requests.find(r => r.tripId === this.tripId);
       this.myRequestStatus = mine?.status ?? 'none';
+      this.myRequestId = mine?.id ?? null;
+      this.myPaymentStatus = mine?.paymentStatus ?? 'pending';
     });
   }
 
@@ -566,7 +570,8 @@ export class TripDetailPage {
     return this.trip.confirmedPassengerUids?.includes(this.currentUid);
   }
 
-  async openPaymentModal(): Promise<void> {
+  /** PASO 1: El pasajero acepta las reglas y envía la solicitud al conductor (sin pago aún). */
+  async requestTrip(): Promise<void> {
     if (!this.trip || !this.currentUid) return;
     if (this.isDriver) return;
 
@@ -587,18 +592,57 @@ export class TripDetailPage {
           cssClass: 'alert-cancel-btn'
         },
         { 
-          text: 'Aceptar y continuar', 
+          text: 'Aceptar y solicitar',
           role: 'confirm',
           cssClass: 'alert-confirm-btn',
           handler: () => {
-            this.isPaymentModalOpen = true;
-            this.paymentStep = 'selection';
-            this.selectedPaymentMethod = null;
+            // Enviar la solicitud directamente, sin pago previo
+            this.sendTripRequest();
           }
         },
       ],
     });
     await alert.present();
+  }
+
+  private async sendTripRequest(): Promise<void> {
+    if (!this.trip || !this.currentUid) return;
+    try {
+      const req = await firstValueFrom(this.tripRequests.createRequest(this.tripId));
+      this.myRequestStatus = 'pending';
+      this.myRequestId = req.id;
+      this.myPaymentStatus = req.paymentStatus;
+
+      const toast = await this.toastCtrl.create({
+        message: '✓ Solicitud enviada. Espera que el conductor la acepte.',
+        duration: 3000,
+        position: 'top',
+        color: 'success',
+      });
+      await toast.present();
+    } catch (e: any) {
+      let errorMessage = 'Error al enviar la solicitud. Intenta de nuevo.';
+      if (e?.status === 409) {
+        errorMessage = 'Ya tienes una solicitud para este viaje.';
+      }
+      const toast = await this.toastCtrl.create({
+        message: errorMessage,
+        duration: 3500,
+        position: 'top',
+        color: 'danger',
+      });
+      await toast.present();
+    }
+  }
+
+  /** PASO 2: El conductor aceptó. El pasajero puede pagar ahora. */
+  openPaymentModal(): void {
+    if (!this.trip || !this.currentUid) return;
+    if (this.isDriver) return;
+    if (this.myRequestStatus !== 'accepted') return;
+    this.isPaymentModalOpen = true;
+    this.paymentStep = 'selection';
+    this.selectedPaymentMethod = null;
   }
 
   selectPaymentMethod(method: 'card' | 'transfer' | 'qr' | 'cash' | 'institutional'): void {
@@ -633,19 +677,23 @@ export class TripDetailPage {
 
   async processPayment(): Promise<void> {
     if (!this.trip || !this.currentUid) return;
+    if (!this.myRequestId) {
+      const toast = await this.toastCtrl.create({
+        message: 'No se encontró la solicitud de viaje.',
+        duration: 3500, position: 'top', color: 'danger'
+      });
+      await toast.present();
+      return;
+    }
+    
     this.paymentStep = 'processing';
     this.processingPayment = true;
     
-    // Simular procesamiento (2-3 segundos)
-    const delay = 2000 + Math.random() * 1000;
-    await new Promise(resolve => setTimeout(resolve, delay));
-
     try {
-      // Crear solicitud de viaje
-      await firstValueFrom(this.tripRequests.createRequest(this.tripId));
+      // Llamada real al endpoint de pago
+      await firstValueFrom(this.tripRequests.payRequest(this.myRequestId));
       
-      // Actualizar estado local
-      this.myRequestStatus = 'pending';
+      this.myPaymentStatus = 'paid';
       this.paymentStep = 'success';
       this.paymentReferenceCode = this.generateReferenceCode();
       
@@ -656,7 +704,7 @@ export class TripDetailPage {
 
       // Toast de éxito
       const toast = await this.toastCtrl.create({
-        message: '✓ Pago procesado exitosamente. Solicitud enviada.',
+        message: '✓ Pago procesado exitosamente.',
         duration: 3000,
         position: 'top',
         color: 'success',
@@ -666,13 +714,8 @@ export class TripDetailPage {
       this.paymentStep = 'selection';
       this.selectedPaymentMethod = null;
       
-      let errorMessage = 'Error al procesar el pago. Intenta de nuevo.';
-      if (e?.status === 409) {
-        errorMessage = 'Ya existe una solicitud pendiente para este viaje.';
-      }
-
       const toast = await this.toastCtrl.create({
-        message: errorMessage,
+        message: 'Error al procesar el pago. Intenta de nuevo.',
         duration: 3500,
         position: 'top',
         color: 'danger',

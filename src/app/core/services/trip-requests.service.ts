@@ -44,6 +44,14 @@ export class TripRequestsService {
   }
 
   /**
+   * El pasajero realiza el pago de su solicitud.
+   * PATCH /api/triprequests/{id}/pay
+   */
+  payRequest(id: string): Observable<TripRequest> {
+    return this.http.patch<TripRequest>(`${this.base}/${id}/pay`, {});
+  }
+
+  /**
    * Obtiene todas las solicitudes de un viaje (para el conductor).
    * GET /api/triprequests/trip/{tripId}
    */

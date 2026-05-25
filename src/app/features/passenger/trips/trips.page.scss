@@ -374,6 +374,7 @@
     padding: 16px;
     background: #f8fafc;
     border-radius: 12px;
+    min-width: 0;
 
     @media (prefers-color-scheme: dark) {
       background: #0f172a;
@@ -383,6 +384,8 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      min-width: 0;
+      width: 100%;
 
       ion-icon {
         font-size: 20px;
@@ -398,6 +401,8 @@
       .route-info {
         display: flex;
         flex-direction: column;
+        min-width: 0;
+        flex: 1;
 
         .route-label {
           font-size: 11px;
@@ -410,6 +415,9 @@
           font-size: 15px;
           color: #1e293b;
           font-weight: 600;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
 
           @media (prefers-color-scheme: dark) {
             color: #f8fafc;
@@ -455,6 +463,105 @@
     ion-button[expand='block'] {
       --border-radius: 12px;
       font-weight: 700;
+    }
+  }
+
+  .request-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+
+    ion-icon { font-size: 13px; }
+
+    &.req-pending {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      @media (prefers-color-scheme: dark) { background: #92400e; color: #fef3c7; }
+    }
+    &.req-accepted {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+      @media (prefers-color-scheme: dark) { background: #166534; color: #dcfce7; }
+    }
+    &.req-rejected {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+      @media (prefers-color-scheme: dark) { background: #7f1d1d; color: #fee2e2; }
+    }
+  }
+
+  .btn-pay-small {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    justify-content: center;
+    animation: pulse-green 2s infinite;
+
+    ion-icon { font-size: 18px; }
+  }
+
+  .payment-complete-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 10px;
+    color: #166534;
+    font-size: 13px;
+    font-weight: 700;
+    ion-icon { color: #22c55e; font-size: 16px; }
+    @media (prefers-color-scheme: dark) { background: #064e3b; border-color: #059669; color: #86efac; }
+  }
+
+  @keyframes pulse-green {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+    50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  }
+
+  .btn-cancel-small {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid #fca5a5;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    justify-content: center;
+    transition: background 0.2s;
+
+    ion-icon { font-size: 16px; }
+
+    &:hover {
+      background: #fee2e2;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      color: #fca5a5;
+      border-color: #7f1d1d;
+      &:hover { background: rgba(239, 68, 68, 0.1); }
     }
   }
 }
@@ -655,16 +762,15 @@
 
 .trip-route {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 16px;
-  align-items: center;
+  flex-direction: column;
+  gap: 8px;
   
   .route-item {
     display: flex;
     align-items: center;
     gap: 6px;
     font-size: 13px;
-    flex: 0 1 auto;
+    min-width: 0;
     
     .icon-origin { 
       color: #10b981;
@@ -690,6 +796,10 @@
     .route-value {
       color: #1e293b;
       font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
       
       @media (prefers-color-scheme: dark) {
         color: #f3f4f6;
@@ -900,12 +1010,12 @@
 @media (min-width: 768px) {
   .trip-card-inner {
     display: grid !important;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto auto auto;
     gap: 16px 32px !important;
     align-items: start;
     
-    .driver-header-row {
+    .driver-header-row, .trip-header {
       grid-column: 1 / 2;
       grid-row: 1 / 2;
     }
@@ -915,7 +1025,7 @@
       grid-row: 2 / 3;
     }
     
-    .trip-time {
+    .trip-time, .trip-stats {
       grid-column: 1 / 2;
       grid-row: 3 / 4;
     }
@@ -946,16 +1056,17 @@
 
 .trip-route {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 16px;
-  align-items: center;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
   
   .route-item {
     display: flex;
     align-items: center;
     gap: 6px;
     font-size: 13px;
-    flex: 0 1 auto;
+    min-width: 0;
+    width: 100%;
     
     .icon-origin { 
       color: #10b981;
@@ -974,6 +1085,11 @@
     
     .route-value {
       color: #475569;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+      flex: 1;
     }
   }
 }
@@ -1091,12 +1207,12 @@
 @media (min-width: 768px) {
   .trip-card-inner {
     display: grid !important;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto auto auto;
     gap: 16px 32px !important;
     align-items: start;
     
-    .driver-info {
+    .driver-info, .trip-header {
       grid-column: 1 / 2;
       grid-row: 1 / 2;
     }
@@ -1106,7 +1222,7 @@
       grid-row: 2 / 3;
     }
     
-    .trip-time {
+    .trip-time, .trip-stats {
       grid-column: 1 / 2;
       grid-row: 3 / 4;
     }
