@@ -3,6 +3,15 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- ================= BANNER SUSPENSIÓN ================= -->
+  <div class="suspension-banner" *ngIf="isSuspended">
+    <ion-icon name="warning-outline"></ion-icon>
+    <div class="suspension-content">
+      <strong>Cuenta suspendida</strong>
+      <p>Tu cuenta está suspendida por conducta indebida hasta el {{ suspendedUntilDate | date:'longDate':'':'es-EC' }}. Algunas funciones están deshabilitadas.</p>
+    </div>
+  </div>
+
   <div class="trips-dashboard fade-in-up">
 
     <div class="section-switch">

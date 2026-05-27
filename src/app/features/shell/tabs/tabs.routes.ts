@@ -45,6 +45,10 @@ export const TABS_ROUTES: Routes = [
     loadComponent: () => import('../../reports/create-report/create-report.page').then(m => m.CreateReportPage),
   },
   {
+    path: 'driver-profile/:driverUid',
+    loadComponent: () => import('../../profile/driver-public-profile/driver-public-profile.page').then(m => m.DriverPublicProfilePage),
+  },
+  {
     path: 'rate/:tripId/:toUid',
     loadComponent: () => import('../../ratings/rate/rate.page').then(m => m.RatePage),
   },

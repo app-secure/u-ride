@@ -1,0 +1,134 @@
+<ion-header [translucent]="true" class="dpro-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <button class="dpro-back-btn" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>Perfil del conductor</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="dpro-content">
+
+  <!-- LOADING -->
+  <div class="dpro-loading" *ngIf="loading">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando perfil...</p>
+  </div>
+
+  <!-- NOT FOUND -->
+  <div class="dpro-error" *ngIf="!loading && !profile">
+    <ion-icon name="person-circle-outline"></ion-icon>
+    <h3>Perfil no encontrado</h3>
+    <p>No se pudo cargar la información de este conductor.</p>
+  </div>
+
+  <!-- PROFILE CARD -->
+  <div class="dpro-container" *ngIf="!loading && profile">
+
+    <!-- ── Hero Section ── -->
+    <div class="dpro-hero">
+      <div class="dpro-avatar-wrapper">
+        <img
+          *ngIf="profile.photoUrl"
+          [src]="profile.photoUrl"
+          [alt]="profile.displayName"
+          class="dpro-avatar"
+        />
+        <div class="dpro-avatar-placeholder" *ngIf="!profile.photoUrl">
+          <ion-icon name="person"></ion-icon>
+        </div>
+        <!-- Rating overlay -->
+        <div class="dpro-rating-chip" *ngIf="profile.ratingCount">
+          <ion-icon name="star"></ion-icon>
+          {{ ratingAvg | number:'1.1-1' }}
+        </div>
+      </div>
+
+      <h1 class="dpro-name">{{ profile.displayName }}</h1>
+
+      <p class="dpro-career" *ngIf="profile.career">
+        <ion-icon name="school-outline"></ion-icon>
+        {{ profile.career }}
+      </p>
+
+      <p class="dpro-zone" *ngIf="profile.zone">
+        <ion-icon name="location-outline"></ion-icon>
+        {{ profile.zone }}
+      </p>
+    </div>
+
+    <!-- ── Stats Grid ── -->
+    <div class="dpro-stats-grid">
+
+      <div class="dpro-stat-card">
+        <div class="dpro-stat-icon rating">
+          <ion-icon name="star"></ion-icon>
+        </div>
+        <div class="dpro-stat-body">
+          <span class="dpro-stat-value">
+            {{ profile.ratingCount ? (ratingAvg | number:'1.1-1') : '—' }}
+          </span>
+          <span class="dpro-stat-label">
+            {{ profile.ratingCount ? 'Calificación promedio' : 'Sin calificaciones' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="dpro-stat-card">
+        <div class="dpro-stat-icon trips">
+          <ion-icon name="car"></ion-icon>
+        </div>
+        <div class="dpro-stat-body">
+          <span class="dpro-stat-value">{{ profile.driverTripsCount ?? 0 }}</span>
+          <span class="dpro-stat-label">Viajes como conductor</span>
+        </div>
+      </div>
+
+      <div class="dpro-stat-card">
+        <div class="dpro-stat-icon reviews">
+          <ion-icon name="chatbubbles-outline"></ion-icon>
+        </div>
+        <div class="dpro-stat-body">
+          <span class="dpro-stat-value">{{ profile.ratingCount ?? 0 }}</span>
+          <span class="dpro-stat-label">Reseñas recibidas</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Star Rating Visual ── -->
+    <div class="dpro-stars-section" *ngIf="profile.ratingCount">
+      <p class="dpro-stars-label">Calificación general</p>
+      <div class="dpro-stars">
+        <ion-icon
+          *ngFor="let s of ratingStars; let i = index"
+          [name]="s ? 'star' : 'star-outline'"
+          class="dpro-star"
+          [class.filled]="s"
+        ></ion-icon>
+        <span class="dpro-stars-count">({{ profile.ratingCount }} reseñas)</span>
+      </div>
+    </div>
+
+    <!-- ── New Driver Badge ── -->
+    <div class="dpro-new-driver" *ngIf="!profile.ratingCount">
+      <ion-icon name="sparkles-outline"></ion-icon>
+      <div>
+        <strong>Conductor nuevo</strong>
+        <p>Aún no tiene calificaciones. ¡Sé el primero en viajar con él!</p>
+      </div>
+    </div>
+
+    <!-- ── Report Button ── -->
+    <div class="dpro-actions" *ngIf="currentUid && currentUid !== driverUid">
+      <button class="dpro-report-btn" (click)="reportDriver()">
+        <ion-icon name="flag-outline"></ion-icon>
+        Reportar a este conductor
+      </button>
+    </div>
+
+  </div>
+
+</ion-content>

@@ -42,10 +42,15 @@
             <div class="trip-header-section">
 
               <div class="driver-profile-large">
-                <div class="avatar-box">
+                <button class="avatar-box avatar-box-btn" (click)="viewDriverProfile()"
+                  [attr.aria-label]="'Ver perfil de ' + trip.driverName"
+                  title="Ver perfil del conductor">
                   <img [src]="driverProfile?.photoUrl!" alt="{{ trip.driverName }}" class="driver-photo" *ngIf="driverProfile?.photoUrl">
                   <ion-icon *ngIf="!driverProfile?.photoUrl" name="person" class="fallback-icon"></ion-icon>
-                </div>
+                  <div class="avatar-tap-hint">
+                    <ion-icon name="eye-outline"></ion-icon>
+                  </div>
+                </button>
 
                 <div class="driver-info">
                   <h2 class="driver-name-header">{{ trip.driverName }}</h2>
@@ -263,6 +268,16 @@
               >
                 <ion-icon name="star-outline"></ion-icon>
                 Calificar conductor
+              </button>
+
+              <!-- REPORT: Reportar conductor (solo pasajero, solo si hay solicitud activa o viaje completado) -->
+              <button
+                class="btn btn-report"
+                *ngIf="!isDriver && myRequestStatus !== 'none' && !reportedDriver"
+                (click)="reportDriver()"
+              >
+                <ion-icon name="flag-outline"></ion-icon>
+                Reportar conductor
               </button>
 
               <!-- DANGER: Cancelar -->

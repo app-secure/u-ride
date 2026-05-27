@@ -12,6 +12,7 @@ import { TripRequestsService } from '../../../core/services/trip-requests.servic
 import { UsersService } from '../../../core/services/users.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import type { Trip } from '../../../core/models/trip.model';
+import type { UserProfile } from '../../../core/models/user-profile.model';
 
 /** Extensión de Trip que incluye la foto del conductor */
 interface TripWithDriverPhoto extends Trip {
@@ -64,6 +65,17 @@ export class TripsPage {
   }
 
   currentUid: string | null = null;
+  userProfile: UserProfile | null = null;
+  
+  get isSuspended(): boolean {
+    if (!this.userProfile?.suspendedUntil) return false;
+    return new Date(this.userProfile.suspendedUntil) > new Date();
+  }
+
+  get suspendedUntilDate(): Date | null {
+    return this.userProfile?.suspendedUntil ? new Date(this.userProfile.suspendedUntil) : null;
+  }
+
   /** Mapa de tripId -> estado de solicitud del usuario */
   myRequestsMap: Record<string, { status: string; requestId: string; paymentStatus: string }> = {};
   /** Mapa de solicitudes para la sección de mis viajes */
@@ -92,7 +104,12 @@ export class TripsPage {
     this.auth.user$.subscribe(user => {
       this.currentUid = user?.uid ?? null;
       if (user) {
+        this.usersSvc.profile$(user.uid).subscribe(profile => {
+          this.userProfile = profile ?? null;
+        });
         this.loadMyRequests();
+      } else {
+        this.userProfile = null;
       }
       this.resetAndLoad();
     });

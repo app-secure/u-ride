@@ -1,3 +1,53 @@
+.suspension-banner {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border-left: 4px solid #ef4444;
+  margin: 16px 16px 0;
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+
+  ion-icon {
+    font-size: 24px;
+    color: #b91c1c;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .suspension-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    strong {
+      color: #7f1d1d;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    p {
+      color: #991b1b;
+      font-size: 13px;
+      margin: 0;
+      line-height: 1.4;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #dc2626;
+    
+    ion-icon { color: #f87171; }
+    
+    .suspension-content {
+      strong { color: #fca5a5; }
+      p { color: #fecaca; }
+    }
+  }
+}
+
 .driver-trips-dashboard {
   padding: 16px;
   max-width: 600px;

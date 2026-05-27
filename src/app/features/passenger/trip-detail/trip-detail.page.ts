@@ -95,6 +95,12 @@ export class TripDetailPage {
   isCompletingTrip = false;
   isCancellingTrip = false;
 
+  userProfile: UserProfile | null = null;
+  get isSuspended(): boolean {
+    if (!this.userProfile?.suspendedUntil) return false;
+    return new Date(this.userProfile.suspendedUntil) > new Date();
+  }
+
   // Live tracking / compartir trayecto
   sharingTrip = false;
   private watchId: string | null = null;
@@ -111,6 +117,7 @@ export class TripDetailPage {
       )
       .subscribe(profile => {
         if (!profile) return;
+        this.userProfile = profile;
         this.currentUid = profile.uid;
         this.currentName = profile.displayName || 'Estudiante';
         this.loadMyRequestStatus();
@@ -575,6 +582,18 @@ export class TripDetailPage {
     if (!this.trip || !this.currentUid) return;
     if (this.isDriver) return;
 
+    if (this.isSuspended) {
+      const toast = await this.toastCtrl.create({
+        message: 'Acción denegada. No puedes publicar ni solicitar viajes mientras tu cuenta esté suspendida.',
+        duration: 4000,
+        color: 'danger',
+        position: 'bottom',
+        icon: 'warning-outline'
+      });
+      await toast.present();
+      return;
+    }
+
     const rules = (Array.isArray(this.trip.ruleTexts) && this.trip.ruleTexts.length > 0)
       ? this.trip.ruleTexts
       : this.defaultRuleTexts;
@@ -838,6 +857,18 @@ export class TripDetailPage {
     this.isModalOpen = false;
     setTimeout(() => {
       this.router.navigate(['/app/rate', tId, dUid]);
+    }, 150);
+  }
+
+  viewDriverProfile(): void {
+    if (!this.trip) return;
+    const dUid = this.trip.driverUid;
+    const tId = this.trip.id;
+    this.isModalOpen = false;
+    setTimeout(() => {
+      this.router.navigate(['/app/driver-profile', dUid], {
+        queryParams: { tripId: tId }
+      });
     }, 150);
   }
 

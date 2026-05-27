@@ -13,6 +13,7 @@ import { TripsService } from '../../../core/services/trips.service';
 import { VehiclesService } from '../../../core/services/vehicles.service';
 import type { Trip, TripRuleSet } from '../../../core/models/trip.model';
 import type { Vehicle } from '../../../core/models/vehicle.model';
+import type { UserProfile } from '../../../core/models/user-profile.model';
 import { LocationPickerModalComponent, type LocationPickerResult } from './location-picker-modal.component';
 
 @Component({
@@ -37,6 +38,12 @@ export class PublishTripPage {
   driverUid: string | null = null;
   driverName = '';
   myVehicles: Vehicle[] = [];
+  userProfile: UserProfile | null = null;
+
+  get isSuspended(): boolean {
+    if (!this.userProfile?.suspendedUntil) return false;
+    return new Date(this.userProfile.suspendedUntil) > new Date();
+  }
 
   /** Asientos totales del vehículo seleccionado (capacidad real del vehículo). */
   selectedVehicleSeats: number | null = null;
@@ -88,6 +95,7 @@ export class PublishTripPage {
       )
       .subscribe(async profile => {
         if (!profile) return;
+        this.userProfile = profile;
         this.driverUid = profile.uid;
         this.driverName = profile.displayName || 'Conductor/a';
         try {
@@ -458,6 +466,18 @@ export class PublishTripPage {
     if (!this.driverUid) return;
     if (this.publishForm.invalid) {
       this.publishForm.markAllAsTouched();
+      return;
+    }
+
+    if (this.isSuspended) {
+      const toast = await this.toastCtrl.create({
+        message: 'Acción denegada. No puedes publicar ni editar viajes mientras tu cuenta esté suspendida.',
+        duration: 4000,
+        color: 'danger',
+        position: 'bottom',
+        icon: 'warning-outline'
+      });
+      await toast.present();
       return;
     }
 

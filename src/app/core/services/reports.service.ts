@@ -35,6 +35,16 @@ export class ReportsService {
   }
 
   /**
+   * Sube una evidencia al servidor backend (Coolify local).
+   * POST /api/reports/upload-evidence
+   */
+  uploadEvidence(file: File | Blob): Observable<{ evidenceUrl: string }> {
+    const formData = new FormData();
+    formData.append('file', file, 'evidence.jpg');
+    return this.http.post<{ evidenceUrl: string }>(`${this.base}/upload-evidence`, formData);
+  }
+
+  /**
    * [Admin] Obtiene todos los reportes paginados.
    * GET /api/reports?page=...&pageSize=...
    */

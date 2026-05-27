@@ -31,7 +31,7 @@ export class DriverTripRequestsWatcherService implements OnDestroy {
   private currentRole: 'driver' | 'passenger' | null = null;
 
   private initialized = false;
-  private seenRequestIds: Record<string, true> = {};
+  private knownRequests: Record<string, { status: string; paymentStatus?: string }> = {};
 
   start(): void {
     if (this.running) return;
@@ -45,14 +45,14 @@ export class DriverTripRequestsWatcherService implements OnDestroy {
 
       this.currentUid = uid;
       this.initialized = false;
-      this.seenRequestIds = {};
+      this.knownRequests = {};
       this.stopPolling();
 
       if (uid) {
         const persisted = this.readPersisted(uid);
         if (persisted) {
           this.initialized = persisted.initialized;
-          this.seenRequestIds = persisted.seenRequestIds;
+          this.knownRequests = persisted.knownRequests;
         }
       }
 
@@ -102,29 +102,47 @@ export class DriverTripRequestsWatcherService implements OnDestroy {
   }
 
   private handleSnapshot(uid: string, items: Array<{ trip: Trip; requests: TripRequest[] }>): void {
-    const nextSeen: Record<string, true> = { ...this.seenRequestIds };
+    const nextKnown: Record<string, { status: string; paymentStatus?: string }> = { ...this.knownRequests };
 
     if (!this.initialized) {
       for (const { requests } of items) {
         for (const r of requests ?? []) {
-          if (r?.id) nextSeen[r.id] = true;
+          if (r?.id) nextKnown[r.id] = { status: r.status, paymentStatus: r.paymentStatus };
         }
       }
-      this.seenRequestIds = nextSeen;
+      this.knownRequests = nextKnown;
       this.initialized = true;
       this.persist(uid);
       return;
     }
 
     for (const { trip, requests } of items) {
-      const pending = (requests ?? []).filter(r => r.status === 'pending');
-      const newPending = pending.filter(r => r.id && !this.seenRequestIds[r.id]);
+      const newPending = [];
+      const newPaid = [];
+      const newCancelled = [];
 
-      if (newPending.length > 0) {
-        for (const r of newPending) {
-          if (r?.id) nextSeen[r.id] = true;
+      for (const r of requests ?? []) {
+        if (!r?.id) continue;
+
+        const prev = this.knownRequests[r.id];
+        
+        if (!prev) {
+          if (r.status === 'pending') {
+            newPending.push(r);
+          }
+        } else {
+          if (prev.paymentStatus === 'pending' && r.paymentStatus === 'paid') {
+            newPaid.push(r);
+          }
+          if (prev.status !== 'cancelled_by_passenger' && r.status === 'cancelled_by_passenger') {
+            newCancelled.push(r);
+          }
         }
 
+        nextKnown[r.id] = { status: r.status, paymentStatus: r.paymentStatus };
+      }
+
+      if (newPending.length > 0) {
         void this.presentToast({
           tripId: trip.id,
           header: 'Nueva petición de pasajero',
@@ -132,13 +150,24 @@ export class DriverTripRequestsWatcherService implements OnDestroy {
         });
       }
 
-      // También marcar vistas las no-pending para evitar notificar si cambian a pending por errores
-      for (const r of requests ?? []) {
-        if (r?.id) nextSeen[r.id] = true;
+      if (newPaid.length > 0) {
+        void this.presentToast({
+          tripId: trip.id,
+          header: 'Pago recibido',
+          message: `${newPaid.length} pasajero${newPaid.length === 1 ? '' : 's'} acaba${newPaid.length === 1 ? '' : 'n'} de pagar su viaje.`,
+        });
+      }
+
+      if (newCancelled.length > 0) {
+        void this.presentToast({
+          tripId: trip.id,
+          header: 'Cupo cancelado',
+          message: `${newCancelled.length} pasajero${newCancelled.length === 1 ? '' : 's'} canceló su viaje.`,
+        });
       }
     }
 
-    this.seenRequestIds = nextSeen;
+    this.knownRequests = nextKnown;
     this.persist(uid);
   }
 
@@ -173,15 +202,25 @@ export class DriverTripRequestsWatcherService implements OnDestroy {
     return `uride_driver_seen_req_${uid}`;
   }
 
-  private readPersisted(uid: string): { initialized: boolean; seenRequestIds: Record<string, true> } | null {
+    private readPersisted(uid: string): { initialized: boolean; knownRequests: Record<string, { status: string; paymentStatus?: string }> } | null {
     try {
       const raw = localStorage.getItem(this.storageKey(uid));
       if (!raw) return null;
       const parsed = JSON.parse(raw) as any;
       if (!parsed || typeof parsed !== 'object') return null;
+      
+      // Migration from old seenRequestIds
+      if (parsed.seenRequestIds && !parsed.knownRequests) {
+        const migrated: Record<string, any> = {};
+        for (const k of Object.keys(parsed.seenRequestIds)) {
+          migrated[k] = { status: 'unknown' };
+        }
+        return { initialized: Boolean(parsed.initialized), knownRequests: migrated };
+      }
+
       return {
         initialized: Boolean(parsed.initialized),
-        seenRequestIds: (parsed.seenRequestIds ?? {}) as Record<string, true>,
+        knownRequests: (parsed.knownRequests ?? {}) as Record<string, { status: string; paymentStatus?: string }>,
       };
     } catch {
       return null;
@@ -194,7 +233,7 @@ export class DriverTripRequestsWatcherService implements OnDestroy {
         this.storageKey(uid),
         JSON.stringify({
           initialized: this.initialized,
-          seenRequestIds: this.seenRequestIds,
+          knownRequests: this.knownRequests,
         }),
       );
     } catch {

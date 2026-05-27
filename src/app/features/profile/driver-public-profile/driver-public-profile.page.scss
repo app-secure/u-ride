@@ -1,0 +1,376 @@
+// ────────────────────────────────────────────────────────────────────────────────
+// Driver Public Profile – Premium Design
+// ────────────────────────────────────────────────────────────────────────────────
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+$radius-lg: 20px;
+$radius-md: 14px;
+$radius-sm: 10px;
+$blue:  #3b82f6;
+$green: #10b981;
+$amber: #f59e0b;
+$red:   #ef4444;
+
+// ─── Page wrapper ───────────────────────────────────────────────────────────────
+.dpro-content {
+  --background: #f1f5f9;
+  font-family: 'Inter', sans-serif;
+
+  @media (prefers-color-scheme: dark) {
+    --background: #0f172a;
+  }
+}
+
+.dpro-header ion-toolbar {
+  --background: #ffffff;
+  --color: #0f172a;
+  --border-color: transparent;
+  box-shadow: 0 1px 0 #e2e8f0;
+
+  @media (prefers-color-scheme: dark) {
+    --background: #1e293b;
+    --color: #f8fafc;
+    box-shadow: 0 1px 0 #334155;
+  }
+}
+
+.dpro-back-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #0f172a;
+  font-size: 22px;
+  transition: background 0.15s;
+
+  &:hover { background: #f1f5f9; }
+
+  @media (prefers-color-scheme: dark) {
+    color: #f8fafc;
+    &:hover { background: #334155; }
+  }
+}
+
+// ─── Container ──────────────────────────────────────────────────────────────────
+.dpro-container {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// ─── Loading / Error ────────────────────────────────────────────────────────────
+.dpro-loading,
+.dpro-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 60vh;
+  text-align: center;
+  padding: 40px 24px;
+  color: #64748b;
+
+  ion-icon { font-size: 64px; color: #cbd5e1; }
+  h3 { font-size: 18px; font-weight: 700; color: #0f172a; margin: 0; }
+  p  { font-size: 15px; margin: 0; }
+
+  @media (prefers-color-scheme: dark) {
+    color: #94a3b8;
+    ion-icon { color: #475569; }
+    h3 { color: #f8fafc; }
+  }
+}
+
+// ─── Hero Section ───────────────────────────────────────────────────────────────
+.dpro-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: $radius-lg;
+  padding: 36px 24px 28px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(59,130,246,0.12);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -30px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(16,185,129,0.1);
+  }
+}
+
+// Avatar
+.dpro-avatar-wrapper {
+  position: relative;
+  width: 96px;
+  height: 96px;
+
+  .dpro-avatar,
+  .dpro-avatar-placeholder {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.25);
+    object-fit: cover;
+  }
+
+  .dpro-avatar-placeholder {
+    background: linear-gradient(135deg, #334155, #475569);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    ion-icon { font-size: 48px; color: #94a3b8; }
+  }
+
+  .dpro-rating-chip {
+    position: absolute;
+    bottom: -6px; right: -6px;
+    background: $amber;
+    color: white;
+    border-radius: 20px;
+    padding: 3px 9px;
+    font-size: 12px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 8px rgba(245,158,11,0.4);
+
+    ion-icon { font-size: 11px; }
+  }
+}
+
+.dpro-name {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 8px 0 0;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.dpro-career,
+.dpro-zone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+  margin: 0;
+  position: relative;
+  z-index: 1;
+
+  ion-icon { font-size: 15px; color: rgba(255,255,255,0.5); }
+}
+
+// ─── Stats Grid ─────────────────────────────────────────────────────────────────
+.dpro-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.dpro-stat-card {
+  background: #ffffff;
+  border-radius: $radius-md;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: transform 0.2s;
+
+  &:hover { transform: translateY(-2px); }
+
+  @media (prefers-color-scheme: dark) {
+    background: #1e293b;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.3);
+  }
+}
+
+.dpro-stat-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  ion-icon { font-size: 20px; color: white; }
+
+  &.rating { background: linear-gradient(135deg, $amber, #d97706); }
+  &.trips   { background: linear-gradient(135deg, $blue, #1d4ed8);  }
+  &.reviews { background: linear-gradient(135deg, $green, #059669); }
+}
+
+.dpro-stat-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.dpro-stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+
+  @media (prefers-color-scheme: dark) { color: #f8fafc; }
+}
+
+.dpro-stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+
+  @media (prefers-color-scheme: dark) { color: #94a3b8; }
+}
+
+// ─── Star Rating ────────────────────────────────────────────────────────────────
+.dpro-stars-section {
+  background: #ffffff;
+  border-radius: $radius-md;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+
+  @media (prefers-color-scheme: dark) {
+    background: #1e293b;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.3);
+  }
+}
+
+.dpro-stars-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 12px;
+
+  @media (prefers-color-scheme: dark) { color: #94a3b8; }
+}
+
+.dpro-stars {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dpro-star {
+  font-size: 28px;
+  color: #e2e8f0;
+  transition: color 0.2s;
+
+  &.filled { color: $amber; }
+
+  @media (prefers-color-scheme: dark) { color: #334155; }
+}
+
+.dpro-stars-count {
+  font-size: 14px;
+  color: #64748b;
+  margin-left: 4px;
+
+  @media (prefers-color-scheme: dark) { color: #94a3b8; }
+}
+
+// ─── New Driver Badge ────────────────────────────────────────────────────────────
+.dpro-new-driver {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 1px solid #bfdbfe;
+  border-radius: $radius-md;
+  padding: 18px;
+
+  ion-icon {
+    font-size: 28px;
+    color: $blue;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  strong {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1d4ed8;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  p {
+    font-size: 13px;
+    color: #3b82f6;
+    margin: 0;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: rgba(59,130,246,0.1);
+    border-color: rgba(59,130,246,0.2);
+    strong { color: #93c5fd; }
+    p { color: #60a5fa; }
+  }
+}
+
+// ─── Report Button ───────────────────────────────────────────────────────────────
+.dpro-actions {
+  margin-top: 8px;
+}
+
+.dpro-report-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: transparent;
+  color: #ef4444;
+  border: 1.5px solid #fca5a5;
+  border-radius: $radius-sm;
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+
+  ion-icon { font-size: 18px; }
+
+  &:hover {
+    background: #fee2e2;
+    transform: translateY(-1px);
+  }
+
+  &:active { transform: translateY(0); }
+
+  @media (prefers-color-scheme: dark) {
+    color: #fca5a5;
+    border-color: #7f1d1d;
+    &:hover { background: rgba(239,68,68,0.12); }
+  }
+}

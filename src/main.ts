@@ -15,6 +15,7 @@ import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import { environment } from './environments/environment';
 import { tokenInterceptor } from './app/core/auth/token.interceptor';
+import { defineCustomElements } from '@ionic/pwa-elements/loader';
 
 registerLocaleData(localeEsEc);
 
@@ -32,4 +33,6 @@ bootstrapApplication(AppComponent, {
     provideFirebaseApp(() => initializeApp((environment as any).firebaseConfig || (environment as any).firebase)),
     provideAuth(() => getAuth()),
   ],
+}).then(() => {
+  defineCustomElements(window);
 }).catch(err => console.log(err));

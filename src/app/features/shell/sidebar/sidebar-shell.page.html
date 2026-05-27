@@ -62,7 +62,10 @@
                     </div>
 
                     <div class="content">
-                      <h4>{{ n.title }}</h4>
+                      <div class="content-header">
+                        <h4>{{ n.title }}</h4>
+                        <span class="badge-new" *ngIf="!n.read">Nueva</span>
+                      </div>
                       <p>{{ n.message }}</p>
                       <span>{{ n.createdAt | date:'shortTime' }}</span>
                     </div>

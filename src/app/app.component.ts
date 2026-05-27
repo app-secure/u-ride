@@ -5,6 +5,7 @@ import { Subscription, firstValueFrom } from 'rxjs';
 
 import { DriverTripRequestsWatcherService } from './core/services/driver-trip-requests-watcher.service';
 import { TripRequestStatusWatcherService } from './core/services/trip-request-status-watcher.service';
+import { NotificationsWatcherService } from './core/services/notifications-watcher.service';
 import { AuthService } from './core/auth/auth.service';
 import { UsersService } from './core/services/users.service';
 
@@ -20,6 +21,7 @@ export class AppComponent implements OnDestroy {
   private readonly removeListeners?: () => void;
   private readonly tripReqWatcher = inject(TripRequestStatusWatcherService);
   private readonly driverReqWatcher = inject(DriverTripRequestsWatcherService);
+  private readonly notificationsWatcher = inject(NotificationsWatcherService);
   private readonly auth = inject(AuthService);
   private readonly users = inject(UsersService);
   private syncSub?: Subscription;
@@ -29,6 +31,7 @@ export class AppComponent implements OnDestroy {
 
     this.tripReqWatcher.start();
     this.driverReqWatcher.start();
+    this.notificationsWatcher.start();
 
     // Asegura que usuarios con sesión previa (sin haber pasado por login) queden sincronizados en SQL.
     // Esto es requisito para persistir notificaciones (FK Notification -> User).

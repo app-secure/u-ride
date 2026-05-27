@@ -3,6 +3,15 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- ================= BANNER SUSPENSIÓN ================= -->
+  <div class="suspension-banner" *ngIf="isSuspended">
+    <ion-icon name="warning-outline"></ion-icon>
+    <div class="suspension-content">
+      <strong>Cuenta suspendida</strong>
+      <p>Tu cuenta está suspendida por conducta indebida hasta el {{ suspendedUntilDate | date:'longDate':'':'es-EC' }}. Algunas funciones están deshabilitadas.</p>
+    </div>
+  </div>
+
   <div class="driver-trips-dashboard fade-in-up">
     <div class="header-section">
       <div class="title-row">
@@ -14,7 +23,7 @@
           <ion-button routerLink="/app/profile/vehicles" fill="solid" class="vehicles-btn">
             <ion-icon name="car-sport-outline" slot="icon-only"></ion-icon>
           </ion-button>
-          <ion-button routerLink="/app/publish" color="primary" class="publish-btn">
+          <ion-button (click)="onPublishClick($event)" color="primary" class="publish-btn">
             <ion-icon name="add-circle-outline" slot="start"></ion-icon>
             Publicar Viaje
           </ion-button>

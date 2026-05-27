@@ -1,0 +1,60 @@
+.evidence-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0;
+  width: 100%;
+
+  ion-button {
+    flex: 1;
+    max-width: 160px;
+    margin: 0;
+  }
+}
+
+.evidence-preview-container {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  margin: 24px auto;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
+
+  .clear-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    margin: 0;
+    --padding-start: 6px;
+    --padding-end: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    
+    ion-icon {
+      color: white;
+    }
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0;
+  color: var(--ion-color-medium);
+
+  p {
+    margin-top: 8px;
+    font-size: 14px;
+  }
+}

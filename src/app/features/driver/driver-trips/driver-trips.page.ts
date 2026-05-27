@@ -6,7 +6,10 @@ import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { TripsService } from '../../../core/services/trips.service';
+import { AuthService } from '../../../core/auth/auth.service';
+import { UsersService } from '../../../core/services/users.service';
 import type { Trip } from '../../../core/models/trip.model';
+import type { UserProfile } from '../../../core/models/user-profile.model';
 
 @Component({
   selector: 'app-driver-trips',
@@ -17,9 +20,22 @@ import type { Trip } from '../../../core/models/trip.model';
 })
 export class DriverTripsPage {
   private readonly tripsSvc = inject(TripsService);
+  private readonly auth = inject(AuthService);
+  private readonly usersSvc = inject(UsersService);
   private readonly router = inject(Router);
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
+
+  userProfile: UserProfile | null = null;
+
+  get isSuspended(): boolean {
+    if (!this.userProfile?.suspendedUntil) return false;
+    return new Date(this.userProfile.suspendedUntil) > new Date();
+  }
+
+  get suspendedUntilDate(): Date | null {
+    return this.userProfile?.suspendedUntil ? new Date(this.userProfile.suspendedUntil) : null;
+  }
 
   private _segment: 'active' | 'completed' = 'active';
   private readonly pageSize = 10;
@@ -38,6 +54,18 @@ export class DriverTripsPage {
   set segment(val: 'active' | 'completed') {
     this._segment = val;
     this.applyFilterAndReset();
+  }
+
+  constructor() {
+    this.auth.user$.subscribe(user => {
+      if (user) {
+        this.usersSvc.profile$(user.uid).subscribe(profile => {
+          this.userProfile = profile ?? null;
+        });
+      } else {
+        this.userProfile = null;
+      }
+    });
   }
 
   ionViewWillEnter(): void {
@@ -59,6 +87,22 @@ export class DriverTripsPage {
       this.applyFilterAndReset();
     } finally {
       this.loading = false;
+    }
+  }
+
+  async onPublishClick(event: Event): Promise<void> {
+    event.preventDefault();
+    if (this.isSuspended) {
+      const toast = await this.toastCtrl.create({
+        message: 'Acción denegada. No puedes publicar ni solicitar viajes mientras tu cuenta esté suspendida.',
+        duration: 4000,
+        color: 'danger',
+        position: 'bottom',
+        icon: 'warning-outline'
+      });
+      await toast.present();
+    } else {
+      this.router.navigate(['/app/publish']);
     }
   }
 

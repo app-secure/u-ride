@@ -26,16 +26,32 @@
             ></ion-textarea>
           </ion-item>
 
-          <ion-item>
-            <ion-input
-              label="Evidencia (URL opcional)"
-              labelPlacement="stacked"
-              formControlName="evidenceUrl"
-              placeholder="https://..."
-            ></ion-input>
-          </ion-item>
+          <!-- Vista previa de evidencia -->
+          <div class="evidence-preview-container" *ngIf="evidencePreview">
+            <img [src]="evidencePreview" alt="Evidencia seleccionada" />
+            <ion-button fill="clear" color="danger" (click)="clearEvidence()" class="clear-btn">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
 
-          <ion-button type="submit" expand="block" [disabled]="saving" style="margin-top: 16px;">
+          <!-- Botones de cámara y galería centrados -->
+          <div class="evidence-actions" *ngIf="!evidencePreview">
+            <ion-button fill="outline" (click)="takePhoto()" shape="round">
+              <ion-icon name="camera-outline" slot="start"></ion-icon>
+              Cámara
+            </ion-button>
+            <ion-button fill="outline" (click)="selectFromGallery()" shape="round">
+              <ion-icon name="image-outline" slot="start"></ion-icon>
+              Galería
+            </ion-button>
+          </div>
+          
+          <div class="loading-container" *ngIf="uploading">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Subiendo evidencia...</p>
+          </div>
+
+          <ion-button type="submit" expand="block" [disabled]="saving || uploading" style="margin-top: 24px;" shape="round">
             <ion-spinner *ngIf="saving" name="dots" slot="start"></ion-spinner>
             Enviar reporte
           </ion-button>
