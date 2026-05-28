@@ -52,24 +52,29 @@ export const TABS_ROUTES: Routes = [
     path: 'rate/:tripId/:toUid',
     loadComponent: () => import('../../ratings/rate/rate.page').then(m => m.RatePage),
   },
+  // ─── ADMIN (nested under AdminShellPage so navbar is persistent) ───
   {
-    path: 'admin/reports',
+    path: 'admin',
     canActivate: [AdminGuard],
-    loadComponent: () => import('../../admin/reports/reports.page').then(m => m.ReportsPage),
-  },
-  {
-    path: 'admin/routes',
-    canActivate: [AdminGuard],
-    loadComponent: () => import('../../admin/routes/routes.page').then(m => m.AdminRoutesPage),
-  },
-  {
-    path: 'admin/rules',
-    canActivate: [AdminGuard],
-    loadComponent: () => import('../../admin/rules/rules.page').then(m => m.AdminRulesPage),
-  },
-  {
-    path: 'admin/users',
-    canActivate: [AdminGuard],
-    loadComponent: () => import('../../admin/users/users.page').then(m => m.AdminUsersPage),
+    loadComponent: () => import('../../admin/shell/admin-shell.page').then(m => m.AdminShellPage),
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'reports' },
+      {
+        path: 'reports',
+        loadComponent: () => import('../../admin/reports/reports.page').then(m => m.ReportsPage),
+      },
+      {
+        path: 'routes',
+        loadComponent: () => import('../../admin/routes/routes.page').then(m => m.AdminRoutesPage),
+      },
+      {
+        path: 'rules',
+        loadComponent: () => import('../../admin/rules/rules.page').then(m => m.AdminRulesPage),
+      },
+      {
+        path: 'users',
+        loadComponent: () => import('../../admin/users/users.page').then(m => m.AdminUsersPage),
+      },
+    ],
   },
 ];

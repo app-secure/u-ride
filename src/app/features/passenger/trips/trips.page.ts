@@ -101,15 +101,13 @@ export class TripsPage {
   }
 
   constructor() {
+    this.usersSvc.myProfile$.subscribe(profile => {
+      this.userProfile = profile;
+    });
     this.auth.user$.subscribe(user => {
       this.currentUid = user?.uid ?? null;
       if (user) {
-        this.usersSvc.profile$(user.uid).subscribe(profile => {
-          this.userProfile = profile ?? null;
-        });
         this.loadMyRequests();
-      } else {
-        this.userProfile = null;
       }
       this.resetAndLoad();
     });
@@ -125,6 +123,10 @@ export class TripsPage {
     if (this.mainSegment === 'recent') {
       this.ensureRecentTripsLoaded();
     }
+  }
+
+  ionViewWillEnter(): void {
+    this.usersSvc.refreshMyProfile();
   }
 
   private ensureRecentTripsLoaded(): void {
@@ -251,6 +253,7 @@ export class TripsPage {
     this.lastQueryKey = '';
     this.resetAndLoad();
     this.loadMyRequests();
+    this.usersSvc.refreshMyProfile();
     setTimeout(() => event.target.complete(), 600);
   }
 

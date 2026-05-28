@@ -83,8 +83,13 @@ export class SidebarShellPage implements OnDestroy {
       });
 
     this.notifications$.subscribe(notifs => {
+      const newUnreadCount = notifs.filter(n => !n.read).length;
+      if (newUnreadCount > this.unreadNotifs) {
+        // Hubo nuevas notificaciones, refrescamos el perfil por si hubo una suspensión
+        this.users.refreshMyProfile();
+      }
       this.currentNotifs = notifs;
-      this.unreadNotifs = notifs.filter(n => !n.read).length;
+      this.unreadNotifs = newUnreadCount;
     });
 
     this.refreshTimerId = window.setInterval(() => {

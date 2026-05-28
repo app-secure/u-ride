@@ -190,6 +190,14 @@ export class UsersService {
     return this.http.post(`${this.base}/${uid}/suspend`, { until: until.toISOString() });
   }
 
+  /**
+   * [Admin] Levanta la suspensión de un usuario.
+   * POST /api/users/{uid}/unsuspend
+   */
+  unsuspendUser(uid: string): Observable<any> {
+    return this.http.post(`${this.base}/${uid}/unsuspend`, {});
+  }
+
   // ─── Admin ───
 
   /**

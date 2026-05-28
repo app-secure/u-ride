@@ -111,11 +111,8 @@ export class TripDetailPage {
   constructor() {
     this.tripId = this.route.snapshot.paramMap.get('tripId') ?? '';
 
-    this.auth.user$
-      .pipe(
-        switchMap(user => (user ? this.users.profile$(user.uid) : of(undefined))),
-        takeUntilDestroyed(),
-      )
+    this.users.myProfile$
+      .pipe(takeUntilDestroyed())
       .subscribe(profile => {
         if (!profile) return;
         this.userProfile = profile;
@@ -156,6 +153,7 @@ export class TripDetailPage {
   }
 
   ionViewWillEnter(): void {
+    this.users.refreshMyProfile();
     this.isModalOpen = true;
     this.checkDriverActionStatus();
     this.startPollingLocation();

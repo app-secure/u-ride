@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, AlertController, ToastController } from '@ionic/angular';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { IonicModule, ToastController } from '@ionic/angular';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
@@ -15,17 +15,14 @@ import type { UserProfile } from '../../../core/models/user-profile.model';
   templateUrl: './users.page.html',
   styleUrls: ['./users.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, IonicModule, FormsModule],
 })
 export class AdminUsersPage {
   private readonly authSvc = inject(AuthService);
   private readonly usersSvc = inject(UsersService);
-  private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
 
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
-
-  readonly user$ = this.authSvc.user$;
 
   readonly users$: Observable<UserProfile[]> = this.refresh$.pipe(
     switchMap(() => this.usersSvc.getAllUsers(1, 100)),
@@ -36,69 +33,88 @@ export class AdminUsersPage {
     ),
   );
 
-  async logout(): Promise<void> {
-    await this.authSvc.logout();
+  // Detail Modal
+  detailUser: UserProfile | null = null;
+  showDetailModal = false;
+
+  // Edit modal
+  editMode = false;
+  editForm = { displayName: '', career: '', zone: '', phone: '' };
+  saving = false;
+
+  isSuspended(u: UserProfile): boolean {
+    if (!u.suspendedUntil) return false;
+    return new Date(u.suspendedUntil) > new Date();
   }
 
-  async editUser(u: UserProfile): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'Editar usuario',
-      inputs: [
-        { name: 'displayName', type: 'text', value: u.displayName ?? '', placeholder: 'Nombre' },
-        { name: 'career', type: 'text', value: u.career ?? '', placeholder: 'Carrera' },
-        { name: 'zone', type: 'text', value: u.zone ?? '', placeholder: 'Zona' },
-        { name: 'phone', type: 'text', value: u.phone ?? '', placeholder: 'Teléfono' },
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Guardar',
-          handler: async data => {
-            try {
-              await firstValueFrom(this.usersSvc.adminUpdateUser(u.uid, {
-                displayName: String(data?.displayName ?? '').trim(),
-                career: String(data?.career ?? '').trim(),
-                zone: String(data?.zone ?? '').trim(),
-                phone: String(data?.phone ?? '').trim() || undefined,
-              }));
-              this.refresh$.next();
-              await this.toast('Usuario actualizado.', 'success');
-            } catch {
-              await this.toast('Error al actualizar usuario.', 'danger');
-            }
-            return true;
-          },
-        },
-      ],
-    });
-    await alert.present();
+  openDetail(u: UserProfile): void {
+    this.detailUser = u;
+    this.editForm = {
+      displayName: u.displayName ?? '',
+      career: u.career ?? '',
+      zone: u.zone ?? '',
+      phone: u.phone ?? '',
+    };
+    this.editMode = false;
+    this.showDetailModal = true;
+  }
+
+  closeDetail(): void {
+    this.showDetailModal = false;
+    this.detailUser = null;
+    this.editMode = false;
+  }
+
+  enableEdit(): void {
+    this.editMode = true;
+  }
+
+  async saveEdit(): Promise<void> {
+    if (!this.detailUser) return;
+    this.saving = true;
+    try {
+      await firstValueFrom(this.usersSvc.adminUpdateUser(this.detailUser.uid, {
+        displayName: this.editForm.displayName.trim(),
+        career: this.editForm.career.trim(),
+        zone: this.editForm.zone.trim(),
+        phone: this.editForm.phone.trim() || undefined,
+      }));
+      this.refresh$.next();
+      this.editMode = false;
+      await this.toast('Usuario actualizado.', 'success');
+    } catch {
+      await this.toast('Error al actualizar usuario.', 'danger');
+    } finally {
+      this.saving = false;
+    }
   }
 
   async toggleDisabled(u: UserProfile): Promise<void> {
     const next = !u.disabled;
-    const alert = await this.alertCtrl.create({
-      header: next ? 'Desactivar usuario' : 'Activar usuario',
-      message: next
-        ? `¿Desactivar a "${u.displayName || u.email || u.uid}"? No podrá ingresar a la app.`
-        : `¿Activar a "${u.displayName || u.email || u.uid}"?`,
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: next ? 'Desactivar' : 'Activar',
-          role: next ? 'destructive' : 'confirm',
-          handler: async () => {
-            try {
-              await firstValueFrom(this.usersSvc.toggleDisabled(u.uid));
-              this.refresh$.next();
-              await this.toast(next ? 'Usuario desactivado.' : 'Usuario activado.', next ? 'warning' : 'success');
-            } catch {
-              await this.toast('Error al cambiar estado.', 'danger');
-            }
-          },
-        },
-      ],
-    });
-    await alert.present();
+    const msg = next
+      ? `¿Desactivar a "${u.displayName || u.email}"?`
+      : `¿Activar a "${u.displayName || u.email}"?`;
+    if (!confirm(msg)) return;
+    try {
+      await firstValueFrom(this.usersSvc.toggleDisabled(u.uid));
+      this.refresh$.next();
+      if (this.detailUser?.uid === u.uid) this.closeDetail();
+      await this.toast(next ? 'Usuario desactivado.' : 'Usuario activado.', next ? 'warning' : 'success');
+    } catch {
+      await this.toast('Error al cambiar estado.', 'danger');
+    }
+  }
+
+  async unsuspend(u: UserProfile): Promise<void> {
+    if (!confirm(`¿Levantar la suspensión de "${u.displayName || u.email}"?`)) return;
+    try {
+      await firstValueFrom(this.usersSvc.unsuspendUser(u.uid));
+      this.refresh$.next();
+      if (this.detailUser?.uid === u.uid) this.closeDetail();
+      await this.toast('Suspensión levantada.', 'success');
+    } catch {
+      await this.toast('Error al levantar la suspensión.', 'danger');
+    }
   }
 
   private async toast(message: string, color: 'success' | 'medium' | 'warning' | 'danger'): Promise<void> {

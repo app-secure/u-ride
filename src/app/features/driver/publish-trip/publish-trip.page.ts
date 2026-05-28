@@ -88,11 +88,8 @@ export class PublishTripPage {
     // Aplicar validador de cupos al control seatsTotal (referencia a método de instancia).
     this.publishForm.controls.seatsTotal.addValidators(this.seatsNotExceedVehicleValidator());
 
-    this.auth.user$
-      .pipe(
-        switchMap(user => (user ? this.users.profile$(user.uid) : of(undefined))),
-        takeUntilDestroyed(),
-      )
+    this.users.myProfile$
+      .pipe(takeUntilDestroyed())
       .subscribe(async profile => {
         if (!profile) return;
         this.userProfile = profile;
@@ -199,6 +196,7 @@ export class PublishTripPage {
   }
 
   async ionViewWillEnter(): Promise<void> {
+    this.users.refreshMyProfile();
     try {
       this.myVehicles = await firstValueFrom(this.vehiclesService.getVehicles());
     } catch (e) {

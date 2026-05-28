@@ -1,82 +1,179 @@
-<ion-header class="ion-no-border elegant-header" [translucent]="true">
-  <ion-toolbar>
-    <div class="header-content">
-      <div class="header-left">
-        <img src="assets/logo-uride.png" class="logo-img" alt="U-Ride Logo" />
-        <span class="system-name">U-Ride</span>
-      </div>
+<ion-content class="ion-padding admin-page-content">
+  <div class="admin-page fade-in-up">
 
-      <div class="header-right" *ngIf="user$ | async as user">
-        <div class="admin-profile">
-          <ion-icon name="person-circle" class="admin-avatar"></ion-icon>
-          <span class="admin-name">{{ user.displayName || 'Administrador' }}</span>
-        </div>
-        <button class="logout-btn" (click)="logout()">
-          <ion-icon name="log-out-outline"></ion-icon>
-          <span>Salir</span>
-        </button>
-      </div>
-    </div>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true" class="ion-padding uride-content">
-  <div class="admin-dashboard fade-in-up">
-    
-    <div class="admin-navbar modern-card">
-      <ion-buttons>
-        <ion-button fill="clear" routerLink="/app/admin/reports" routerLinkActive="active">Reportes</ion-button>
-        <ion-button fill="clear" routerLink="/app/admin/routes" routerLinkActive="active">Rutas</ion-button>
-        <ion-button fill="clear" routerLink="/app/admin/rules" routerLinkActive="active">Reglas</ion-button>
-        <ion-button fill="clear" routerLink="/app/admin/users" routerLinkActive="active">Usuarios</ion-button>
-      </ion-buttons>
-    </div>
-
-    <div class="dashboard-header">
-      <div class="header-text">
-        <h2 class="title">Gestión de Usuarios</h2>
-        <p class="subtitle">Administra los accesos y roles de la comunidad universitaria</p>
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Gestión de Usuarios</h2>
+        <p class="page-subtitle">Administra los accesos de la comunidad universitaria</p>
       </div>
     </div>
 
     <ng-container *ngIf="users$ | async as users">
+
       <div class="empty-state" *ngIf="users.length === 0">
         <div class="empty-icon-box">
           <ion-icon name="people-outline"></ion-icon>
         </div>
-        <h3>Sin usuarios</h3>
+        <h4>Sin usuarios</h4>
         <p>No se encontraron usuarios registrados.</p>
       </div>
 
-      <div class="items-grid" *ngIf="users.length > 0">
-        <div class="modern-card user-card" *ngFor="let u of users; let i = index" [style.animation-delay]="i * 0.05 + 's'" [class.disabled-user]="u.disabled">
-          <div class="user-main">
-            <div class="user-avatar-box">
-              <ion-icon name="person"></ion-icon>
+      <div class="users-grid" *ngIf="users.length > 0">
+        <div class="user-card"
+          *ngFor="let u of users; let i = index"
+          [style.animation-delay]="i * 0.04 + 's'"
+          [class.disabled-user]="u.disabled"
+          [class.suspended-user]="isSuspended(u)"
+        >
+          <div class="user-main" (click)="openDetail(u)">
+            <div class="user-avatar">
+              <img *ngIf="u.photoUrl" [src]="u.photoUrl" alt="{{ u.displayName }}" />
+              <ion-icon *ngIf="!u.photoUrl" name="person"></ion-icon>
             </div>
-            <div class="user-details">
-              <div class="user-name-row">
-                <span class="user-display-name">{{ u.displayName || 'Sin nombre' }}</span>
-                <span class="status-pill" [class.danger]="u.disabled">{{ u.disabled ? 'Desactivado' : 'Activo' }}</span>
+            <div class="user-info">
+              <div class="name-row">
+                <span class="display-name">{{ u.displayName || 'Sin nombre' }}</span>
+                <span class="status-pill danger" *ngIf="u.disabled">Desactivado</span>
+                <span class="status-pill warning" *ngIf="!u.disabled && isSuspended(u)">Suspendido</span>
+                <span class="status-pill success" *ngIf="!u.disabled && !isSuspended(u)">Activo</span>
               </div>
               <span class="user-email">{{ u.email }}</span>
-              <span class="user-uid">ID: {{ u.uid }}</span>
+              <div class="user-tags">
+                <span class="tag" *ngIf="u.career">{{ u.career }}</span>
+                <span class="tag muted" *ngIf="u.zone">{{ u.zone }}</span>
+              </div>
             </div>
+            <ion-icon name="chevron-forward" class="chevron"></ion-icon>
           </div>
-          
-          <div class="user-actions">
-            <button class="action-btn secondary" (click)="editUser(u)">
-              <ion-icon name="create-outline"></ion-icon>
-              <span>Editar</span>
-            </button>
-            <button class="action-btn" [class.danger]="!u.disabled" [class.success]="u.disabled" (click)="toggleDisabled(u)">
+
+          <div class="quick-actions">
+            <button class="quick-btn" [class.danger]="!u.disabled" [class.success]="u.disabled"
+              (click)="toggleDisabled(u)">
               <ion-icon [name]="u.disabled ? 'checkmark-circle-outline' : 'ban-outline'"></ion-icon>
-              <span>{{ u.disabled ? 'Activar' : 'Desactivar' }}</span>
+              {{ u.disabled ? 'Activar' : 'Desactivar' }}
+            </button>
+            <button class="quick-btn warning" *ngIf="isSuspended(u)" (click)="unsuspend(u)">
+              <ion-icon name="lock-open-outline"></ion-icon>
+              Levantar suspensión
             </button>
           </div>
         </div>
       </div>
+
     </ng-container>
 
   </div>
 </ion-content>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="closeDetail()">
+  <div class="detail-modal" (click)="$event.stopPropagation()" *ngIf="detailUser">
+
+    <div class="modal-header">
+      <h4>{{ editMode ? 'Editar Usuario' : 'Detalle de Usuario' }}</h4>
+      <button class="close-btn" (click)="closeDetail()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <!-- VIEW MODE -->
+    <div class="modal-body" *ngIf="!editMode">
+
+      <div class="profile-section">
+        <div class="big-avatar">
+          <img *ngIf="detailUser.photoUrl" [src]="detailUser.photoUrl" alt="foto" />
+          <ion-icon *ngIf="!detailUser.photoUrl" name="person"></ion-icon>
+        </div>
+        <div class="profile-info">
+          <h3>{{ detailUser.displayName || 'Sin nombre' }}</h3>
+          <p class="email">{{ detailUser.email }}</p>
+          <div class="badges">
+            <span class="status-pill danger" *ngIf="detailUser.disabled">Desactivado</span>
+            <span class="status-pill warning" *ngIf="!detailUser.disabled && isSuspended(detailUser)">Suspendido</span>
+            <span class="status-pill success" *ngIf="!detailUser.disabled && !isSuspended(detailUser)">Activo</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">Carrera</span>
+          <span class="detail-value">{{ detailUser.career || '—' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Zona</span>
+          <span class="detail-value">{{ detailUser.zone || '—' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Teléfono</span>
+          <span class="detail-value">{{ detailUser.phone || '—' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Email verificado</span>
+          <span class="detail-value">{{ detailUser.emailVerified ? 'Sí' : 'No' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Total de viajes</span>
+          <span class="detail-value">{{ detailUser.tripsCount ?? 0 }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Calificación prom.</span>
+          <span class="detail-value">{{ detailUser.averageRating ? (detailUser.averageRating | number:'1.1-1') + ' ⭐' : '—' }}</span>
+        </div>
+        <div class="detail-item full-width" *ngIf="isSuspended(detailUser)">
+          <span class="detail-label">Suspendido hasta</span>
+          <span class="detail-value danger">{{ detailUser.suspendedUntil | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn secondary" (click)="enableEdit()">
+          <ion-icon name="create-outline"></ion-icon>
+          Editar perfil
+        </button>
+        <button class="modal-btn warning" *ngIf="isSuspended(detailUser)" (click)="unsuspend(detailUser)">
+          <ion-icon name="lock-open-outline"></ion-icon>
+          Levantar suspensión
+        </button>
+        <button class="modal-btn" [class.danger]="!detailUser.disabled" [class.success]="detailUser.disabled"
+          (click)="toggleDisabled(detailUser)">
+          <ion-icon [name]="detailUser.disabled ? 'checkmark-circle-outline' : 'ban-outline'"></ion-icon>
+          {{ detailUser.disabled ? 'Activar cuenta' : 'Desactivar cuenta' }}
+        </button>
+      </div>
+
+    </div>
+
+    <!-- EDIT MODE -->
+    <div class="modal-body edit-mode" *ngIf="editMode">
+      <div class="form-field">
+        <label>Nombre</label>
+        <input type="text" [(ngModel)]="editForm.displayName" placeholder="Nombre completo" />
+      </div>
+      <div class="form-field">
+        <label>Carrera</label>
+        <input type="text" [(ngModel)]="editForm.career" placeholder="Ej. Ingeniería de Software" />
+      </div>
+      <div class="form-field">
+        <label>Zona</label>
+        <input type="text" [(ngModel)]="editForm.zone" placeholder="Ej. Norte" />
+      </div>
+      <div class="form-field">
+        <label>Teléfono</label>
+        <input type="text" [(ngModel)]="editForm.phone" placeholder="0991234567" />
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn secondary" (click)="editMode = false" [disabled]="saving">
+          Cancelar
+        </button>
+        <button class="modal-btn primary" (click)="saveEdit()" [disabled]="saving">
+          <ion-spinner *ngIf="saving" name="dots" class="btn-spinner"></ion-spinner>
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { environment } from '../../../environments/environment';
 import type { Report } from '../models/report.model';
@@ -31,17 +32,35 @@ export class ReportsService {
    * POST /api/reports
    */
   createReport(dto: CreateReportDto): Observable<Report> {
-    return this.http.post<Report>(this.base, dto);
+    return this.http.post<Report>(this.base, dto).pipe(
+      map(r => this.fixEvidenceUrl(r))
+    );
   }
 
   /**
-   * Sube una evidencia al servidor backend (Coolify local).
-   * POST /api/reports/upload-evidence
+   * Sube una evidencia directamente a Cloudinary.
    */
   uploadEvidence(file: File | Blob): Observable<{ evidenceUrl: string }> {
     const formData = new FormData();
-    formData.append('file', file, 'evidence.jpg');
-    return this.http.post<{ evidenceUrl: string }>(`${this.base}/upload-evidence`, formData);
+    formData.append('file', file);
+    formData.append('upload_preset', 'uride_reports');
+
+    const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dyfjz9q5h/image/upload';
+
+    return this.http.post<any>(cloudinaryUrl, formData).pipe(
+      map(res => ({ evidenceUrl: res.secure_url }))
+    );
+  }
+
+  /**
+   * Helper to prepend the backend host to relative evidence URLs
+   */
+  private fixEvidenceUrl(r: Report): Report {
+    if (r.evidenceUrl && r.evidenceUrl.startsWith('/')) {
+      const backendBaseUrl = environment.apiUrl.replace(/\/api$/, '');
+      return { ...r, evidenceUrl: backendBaseUrl + r.evidenceUrl };
+    }
+    return r;
   }
 
   /**
@@ -52,7 +71,12 @@ export class ReportsService {
     const params = new HttpParams()
       .set('page', page.toString())
       .set('pageSize', pageSize.toString());
-    return this.http.get<PagedResult<Report>>(this.base, { params });
+    return this.http.get<PagedResult<Report>>(this.base, { params }).pipe(
+      map(result => {
+        result.items = result.items.map(r => this.fixEvidenceUrl(r));
+        return result;
+      })
+    );
   }
 
   /**
@@ -69,6 +93,8 @@ export class ReportsService {
    */
   resolveReport(id: string, action: string, adminNotes?: string): Observable<Report> {
     const body: ResolveReportDto = { action, adminNotes };
-    return this.http.patch<Report>(`${this.base}/${id}/resolve`, body);
+    return this.http.patch<Report>(`${this.base}/${id}/resolve`, body).pipe(
+      map(r => this.fixEvidenceUrl(r))
+    );
   }
 }

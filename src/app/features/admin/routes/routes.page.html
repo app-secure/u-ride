@@ -1,48 +1,15 @@
-<ion-header class="ion-no-border elegant-header" [translucent]="true">
-  <ion-toolbar>
-    <div class="header-content">
-      <div class="header-left">
-        <img src="assets/logo-uride.png" class="logo-img" alt="U-Ride Logo" />
-        <span class="system-name">U-Ride</span>
-      </div>
+<ion-content class="ion-padding admin-page-content">
+  <div class="admin-page fade-in-up">
 
-      <div class="header-right" *ngIf="user$ | async as user">
-        <div class="admin-profile">
-          <ion-icon name="person-circle" class="admin-avatar"></ion-icon>
-          <span class="admin-name">{{ user.displayName || 'Administrador' }}</span>
-        </div>
-        <button class="logout-btn" (click)="logout()">
-          <ion-icon name="log-out-outline"></ion-icon>
-          <span>Salir</span>
-        </button>
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Gestión de Rutas</h2>
+        <p class="page-subtitle">Define y organiza los trayectos disponibles en el sistema</p>
       </div>
-    </div>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true" class="ion-padding uride-content">
-  <div class="admin-dashboard fade-in-up">
-    
-    <div class="admin-navbar modern-card">
-      <ion-buttons>
-        <ion-button fill="clear" routerLink="/app/admin/reports" routerLinkActive="active">Reportes</ion-button>
-        <ion-button fill="clear" routerLink="/app/admin/routes" routerLinkActive="active">Rutas</ion-button>
-        <ion-button fill="clear" routerLink="/app/admin/rules" routerLinkActive="active">Reglas</ion-button>
-        <ion-button fill="clear" routerLink="/app/admin/users" routerLinkActive="active">Usuarios</ion-button>
-      </ion-buttons>
-    </div>
-
-    <div class="dashboard-header">
-      <div class="header-text">
-        <h2 class="title">Gestión de Rutas</h2>
-        <p class="subtitle">Define y organiza los trayectos disponibles en el sistema</p>
-      </div>
-      <div class="header-stats">
-        <button class="action-btn-main" (click)="createRoute()">
-          <ion-icon name="add-circle"></ion-icon>
-          <span>Nueva Ruta</span>
-        </button>
-      </div>
+      <button class="add-btn" (click)="createRoute()">
+        <ion-icon name="add-outline"></ion-icon>
+        Nueva Ruta
+      </button>
     </div>
 
     <ng-container *ngIf="routes$ | async as routes">
@@ -50,25 +17,24 @@
         <div class="empty-icon-box">
           <ion-icon name="map-outline"></ion-icon>
         </div>
-        <h3>Sin rutas</h3>
+        <h4>Sin rutas</h4>
         <p>No hay rutas registradas en el sistema todavía.</p>
       </div>
 
-      <div class="items-grid" *ngIf="routes.length > 0">
-        <div class="modern-card list-item-card" *ngFor="let r of routes; let i = index" [style.animation-delay]="i * 0.05 + 's'">
+      <div class="items-list" *ngIf="routes.length > 0">
+        <div class="list-item-card" *ngFor="let r of routes; let i = index"
+          [style.animation-delay]="i * 0.04 + 's'">
           <div class="item-content">
             <div class="item-icon">
               <ion-icon name="location-outline"></ion-icon>
             </div>
-            <div class="item-info">
-              <span class="item-name">{{ r.name }}</span>
-            </div>
+            <span class="item-text">{{ r.name }}</span>
           </div>
           <div class="item-actions">
-            <button class="icon-action-btn edit" (click)="editRoute(r)" title="Editar">
+            <button class="icon-btn edit" (click)="editRoute(r)" title="Editar">
               <ion-icon name="create-outline"></ion-icon>
             </button>
-            <button class="icon-action-btn delete" (click)="deleteRoute(r)" title="Eliminar">
+            <button class="icon-btn delete" (click)="deleteRoute(r)" title="Eliminar">
               <ion-icon name="trash-outline"></ion-icon>
             </button>
           </div>

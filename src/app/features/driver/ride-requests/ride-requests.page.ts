@@ -208,84 +208,19 @@ export class RideRequestsPage {
     this.router.navigate(['/app/rate', this.tripId, passengerUid]);
   }
 
-  async reportPassengerPrompt(passengerUid: string, passengerName: string): Promise<void> {
+  reportPassengerPrompt(passengerUid: string, passengerName: string): void {
     if (this.reportedMap[passengerUid]) {
-      const toast = await this.toastCtrl.create({
+      this.toastCtrl.create({
         message: 'Este pasajero ya fue reportado para este viaje.',
         duration: 2000,
         position: 'top',
         color: 'medium',
-      });
-      await toast.present();
+      }).then(toast => toast.present());
       return;
     }
 
-    if (!this.currentUid) return;
+    if (!this.currentUid || !this.tripId) return;
 
-    const alert = await this.alertCtrl.create({
-      header: `Reportar a ${passengerName}`,
-      message: 'Por favor indica el motivo del reporte (ej. Comportamiento indebido, impuntualidad excesiva).',
-      inputs: [
-        {
-          name: 'reason',
-          type: 'textarea',
-          placeholder: 'Escribe el motivo aquí...'
-        }
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Enviar Reporte',
-          role: 'destructive',
-          handler: async (data) => {
-            if (!data.reason || data.reason.trim().length === 0) {
-              const toast = await this.toastCtrl.create({
-                message: 'Debes escribir un motivo válido.', duration: 2000, color: 'warning', position: 'top'
-              });
-              toast.present();
-              return false;
-            }
-
-            try {
-              if (!this.currentUid) return false;
-              if (this.reportedMap[passengerUid]) return true;
-
-              await firstValueFrom(this.reports.createReport({
-                reportedUid: passengerUid,
-                tripId: this.tripId,
-                reason: data.reason.trim()
-              }));
-
-              this.reportedMap[passengerUid] = true;
-
-              const toast = await this.toastCtrl.create({
-                message: 'Reporte enviado. Un administrador revisará el caso.', duration: 3000, color: 'success', position: 'top'
-              });
-              await toast.present();
-              return true;
-            } catch (e) {
-              const msg = (e as any)?.message || '';
-              if (msg.toLowerCase().includes('ya reportaste')) {
-                this.reportedMap[passengerUid] = true;
-                const toast = await this.toastCtrl.create({
-                  message: 'Este pasajero ya fue reportado para este viaje.',
-                  duration: 2200,
-                  color: 'medium',
-                  position: 'top',
-                });
-                await toast.present();
-                return true;
-              }
-              const toast = await this.toastCtrl.create({
-                message: 'Error al enviar el reporte.', duration: 3000, color: 'danger', position: 'top'
-              });
-              await toast.present();
-              return false;
-            }
-          }
-        }
-      ]
-    });
-    await alert.present();
+    this.router.navigate(['/app/report', passengerUid], { queryParams: { tripId: this.tripId } });
   }
 }

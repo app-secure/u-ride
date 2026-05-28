@@ -57,18 +57,13 @@ export class DriverTripsPage {
   }
 
   constructor() {
-    this.auth.user$.subscribe(user => {
-      if (user) {
-        this.usersSvc.profile$(user.uid).subscribe(profile => {
-          this.userProfile = profile ?? null;
-        });
-      } else {
-        this.userProfile = null;
-      }
+    this.usersSvc.myProfile$.subscribe(profile => {
+      this.userProfile = profile;
     });
   }
 
   ionViewWillEnter(): void {
+    this.usersSvc.refreshMyProfile();
     this.loadTrips();
   }
 

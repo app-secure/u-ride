@@ -1,0 +1,175 @@
+<div class="admin-shell">
+
+  <!-- ============ HEADER ============ -->
+  <ion-header class="admin-main-header ion-no-border">
+    <ion-toolbar class="admin-glass-toolbar">
+
+      <!-- LEFT: Logo -->
+      <div class="header-left" slot="start">
+        <img src="assets/logo-uride.svg" class="logo" alt="U-Ride" />
+        <span class="system-name">U-Ride</span>
+        <span class="admin-chip">Admin</span>
+      </div>
+
+      <!-- RIGHT: Notifs + Profile -->
+      <div class="header-right" slot="end">
+
+        <!-- NOTIFICATIONS -->
+        <ion-button id="admin-notif-trigger" fill="clear" class="icon-btn">
+          <ion-icon name="notifications-outline"></ion-icon>
+          <ion-badge *ngIf="unreadNotifs > 0" class="notif-badge">{{ unreadNotifs }}</ion-badge>
+        </ion-button>
+
+        <ion-popover
+          trigger="admin-notif-trigger"
+          side="bottom"
+          alignment="end"
+          (didPresent)="onNotificationsOpen()"
+          cssClass="notif-popover-overlay"
+        >
+          <ng-template>
+            <div class="notif-panel">
+              <div class="notif-header">
+                <h3>Notificaciones</h3>
+                <ion-button fill="clear" size="small" class="view-all-btn" (click)="goToNotificationsHistory()">
+                  Ver todas
+                </ion-button>
+              </div>
+
+              <ng-container *ngIf="notifications$ | async as notifs">
+                <div class="notif-list">
+                  <div class="empty-state" *ngIf="notifs.length === 0">
+                    <ion-icon name="notifications-off-outline"></ion-icon>
+                    <p>Sin notificaciones</p>
+                  </div>
+
+                  <div
+                    class="notif-item"
+                    *ngFor="let n of notifs"
+                    (click)="handleNotificationAction(n)"
+                  >
+                    <div class="icon" [ngClass]="n.type">
+                      <ion-icon [name]="n.type === 'system' ? 'shield-outline' : 'alert-circle-outline'"></ion-icon>
+                    </div>
+                    <div class="content">
+                      <div class="content-header">
+                        <h4>{{ n.title }}</h4>
+                        <span class="badge-new" *ngIf="!n.read">Nueva</span>
+                      </div>
+                      <p>{{ n.message }}</p>
+                      <span>{{ n.createdAt | date:'shortTime':deviceTimeZone }}</span>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </ng-template>
+        </ion-popover>
+
+        <!-- USER CHIP -->
+        <div class="user-chip" id="admin-profile-trigger">
+          <div class="avatar">
+            <ng-container *ngIf="profile$ | async as profile; else avatarFallback">
+              <img *ngIf="profile.photoUrl; else avatarFallback" [src]="profile.photoUrl" alt="foto" />
+            </ng-container>
+            <ng-template #avatarFallback>
+              <ion-icon name="person"></ion-icon>
+            </ng-template>
+          </div>
+          <div class="user-info">
+            <span class="name">{{ (user$ | async)?.displayName }}</span>
+            <span class="role-label">Administrador</span>
+          </div>
+          <ion-icon name="chevron-down-outline"></ion-icon>
+        </div>
+
+        <!-- LOGOUT -->
+        <ion-button fill="clear" class="icon-btn logout-btn" (click)="logout()">
+          <ion-icon name="log-out-outline"></ion-icon>
+        </ion-button>
+
+      </div>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- PROFILE POPOVER -->
+  <ion-popover
+    trigger="admin-profile-trigger"
+    side="bottom"
+    alignment="end"
+    cssClass="profile-popover-overlay"
+  >
+    <ng-template>
+      <div class="profile-popover">
+        <div class="profile-header">
+          <div class="big-avatar">
+            <ng-container *ngIf="profile$ | async as profile; else popoverFallback">
+              <img *ngIf="profile.photoUrl; else popoverFallback" [src]="profile.photoUrl" alt="foto" />
+            </ng-container>
+            <ng-template #popoverFallback>
+              <ion-icon name="person"></ion-icon>
+            </ng-template>
+          </div>
+          <div>
+            <h4 class="email">{{ (user$ | async)?.displayName }}</h4>
+            <span>{{ (user$ | async)?.email }}</span>
+            <br/>
+            <span>Administrador</span>
+          </div>
+        </div>
+
+        <div class="menu">
+          <button (click)="goToNotificationsHistory()">
+            <ion-icon name="notifications-outline"></ion-icon>
+            Notificaciones
+            <ion-badge *ngIf="unreadNotifs > 0" color="danger" style="margin-left: auto;">{{ unreadNotifs }}</ion-badge>
+          </button>
+          <button (click)="switchToPassenger()">
+            <ion-icon name="person-outline"></ion-icon>
+            Modo Pasajero
+          </button>
+          <button (click)="switchToDriver()">
+            <ion-icon name="car-sport-outline"></ion-icon>
+            Modo Conductor
+          </button>
+          <button (click)="goToProfile()">
+            <ion-icon name="settings-outline"></ion-icon>
+            Mi Perfil
+          </button>
+          <button class="danger" (click)="logout()">
+            <ion-icon name="log-out-outline"></ion-icon>
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-popover>
+
+  <!-- ADMIN NAVBAR -->
+  <div class="admin-navbar-bar">
+    <nav class="admin-navbar">
+      <a class="nav-item" routerLink="reports" routerLinkActive="active">
+        <ion-icon name="flag-outline"></ion-icon>
+        <span>Reportes</span>
+      </a>
+      <a class="nav-item" routerLink="routes" routerLinkActive="active">
+        <ion-icon name="map-outline"></ion-icon>
+        <span>Rutas</span>
+      </a>
+      <a class="nav-item" routerLink="rules" routerLinkActive="active">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <span>Reglas</span>
+      </a>
+      <a class="nav-item" routerLink="users" routerLinkActive="active">
+        <ion-icon name="people-outline"></ion-icon>
+        <span>Usuarios</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- CONTENT: child pages render here -->
+  <ion-content class="admin-content">
+    <router-outlet></router-outlet>
+  </ion-content>
+
+</div>

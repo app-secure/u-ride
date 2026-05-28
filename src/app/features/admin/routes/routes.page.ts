@@ -1,12 +1,10 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, AlertController, ToastController } from '@ionic/angular';
-import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
 
-import { AuthService } from '../../../core/auth/auth.service';
 import { TripsService, TripRouteDoc } from '../../../core/services/trips.service';
 
 @Component({
@@ -14,26 +12,19 @@ import { TripsService, TripRouteDoc } from '../../../core/services/trips.service
   templateUrl: './routes.page.html',
   styleUrls: ['./routes.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, IonicModule],
 })
 export class AdminRoutesPage {
-  private readonly authSvc = inject(AuthService);
   private readonly trips = inject(TripsService);
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
 
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
 
-  readonly user$ = this.authSvc.user$;
-
   readonly routes$: Observable<TripRouteDoc[]> = this.refresh$.pipe(
     switchMap(() => this.trips.tripRoutesDocs$()),
     map(items => items.sort((a, b) => a.name.localeCompare(b.name))),
   );
-
-  async logout(): Promise<void> {
-    await this.authSvc.logout();
-  }
 
   async createRoute(): Promise<void> {
     const alert = await this.alertCtrl.create({

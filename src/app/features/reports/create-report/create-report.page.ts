@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
@@ -8,6 +8,9 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { ReportsService } from '../../../core/services/reports.service';
+import { Observable } from 'rxjs';
+import { UserProfile } from '../../../core/models/user-profile.model';
+import { UsersService } from '../../../core/services/users.service';
 
 @Component({
   selector: 'app-create-report',
@@ -20,12 +23,15 @@ export class CreateReportPage {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly reports = inject(ReportsService);
+  private readonly usersService = inject(UsersService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly toastCtrl = inject(ToastController);
 
   readonly reportedUid = this.route.snapshot.paramMap.get('reportedUid') ?? '';
   readonly tripId = this.route.snapshot.queryParamMap.get('tripId');
+  readonly reportedUser$: Observable<UserProfile | undefined> = this.usersService.profile$(this.reportedUid);
 
   readonly form = this.fb.nonNullable.group({
     reason: ['', [Validators.required, Validators.minLength(10)]],
@@ -116,11 +122,7 @@ export class CreateReportPage {
       });
       await toast.present();
 
-      if (this.tripId) {
-        await this.router.navigate(['/app/trips', this.tripId]);
-      } else {
-        await this.router.navigateByUrl('/app/trips');
-      }
+      this.location.back();
     } finally {
       this.saving = false;
     }
