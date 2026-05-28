@@ -177,6 +177,14 @@ export class PublishTripPage {
       // Guardamos la capacidad real del vehículo por separado (para mostrar en tarjeta y validar cupos).
       this.selectedVehicleSeats = selectedVehicle.seats;
 
+      const seatsCtrl = this.publishForm.controls.seatsTotal;
+      const maxSeats = Math.max(1, selectedVehicle.seats - 1);
+      const currentSeats = Number(seatsCtrl.value ?? 0);
+      const shouldSetDefault = seatsCtrl.pristine || currentSeats <= 0 || currentSeats > maxSeats;
+      if (shouldSetDefault) {
+        seatsCtrl.setValue(maxSeats);
+      }
+
       // Solo actualizamos los datos del vehículo; NO tocamos seatsTotal (cupos disponibles).
       this.publishForm.patchValue({
         vehicleBrand: selectedVehicle.brand,

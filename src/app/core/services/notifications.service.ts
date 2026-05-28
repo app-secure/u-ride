@@ -15,7 +15,15 @@ export class NotificationsService {
    * GET /api/notifications
    */
   getMyNotifications(): Observable<AppNotification[]> {
-    return this.http.get<AppNotification[]>(this.base);
+    return this.http.get<AppNotification[]>(this.base).pipe(
+      map(notifs => notifs.map(n => {
+        // Asegurar que Angular interprete la fecha como UTC si el backend no envía la 'Z'
+        if (typeof n.createdAt === 'string' && !n.createdAt.endsWith('Z')) {
+          n.createdAt += 'Z';
+        }
+        return n;
+      }))
+    );
   }
 
   /**

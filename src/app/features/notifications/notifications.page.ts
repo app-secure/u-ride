@@ -53,7 +53,7 @@ import type { AppNotification } from '../../core/models/notification.model';
               <ion-label>
                 <h3 style="margin: 0; font-weight: 600;">{{ n.title }}</h3>
                 <p style="margin: 4px 0 0 0;">{{ n.message }}</p>
-                <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.75;">{{ n.createdAt | date:'short' }}</p>
+                <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.75;">{{ n.createdAt | date:'short':deviceTimeZone }}</p>
               </ion-label>
 
               <ion-badge slot="end" color="primary" *ngIf="!n.read">Nueva</ion-badge>
@@ -75,6 +75,8 @@ export class NotificationsPage {
   private readonly roleState = inject(RoleStateService);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
+
+  readonly deviceTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
   loadError = false;

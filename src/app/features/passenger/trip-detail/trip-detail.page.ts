@@ -1,10 +1,11 @@
 import { Component, ElementRef, ViewChild, inject, DestroyRef } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { CommonModule, Location } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, NavigationStart } from '@angular/router';
 import { IonicModule, AlertController, ToastController, ModalController } from '@ionic/angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { of, switchMap, firstValueFrom } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import * as L from 'leaflet';
 import { Geolocation } from '@capacitor/geolocation';
@@ -124,6 +125,15 @@ export class TripDetailPage {
         this.checkDriverActionStatus();
       });
 
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationStart => event instanceof NavigationStart),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => {
+        this.closeAllModals();
+      });
+
     // Cargar viaje one-shot
     this.loadTrip();
 
@@ -133,10 +143,10 @@ export class TripDetailPage {
         this.isModalOpen = false;
         this.isPaymentModalOpen = false;
         this.sharingTrip = false;
-        
+
         // Dismiss todos los modales abiertos de forma explícita
         this.modalCtrl.dismiss(null, 'logout').catch(() => {});
-        
+
         // Navega de vuelta al login
         setTimeout(() => {
           this.router.navigate(['/auth/login']).catch(() => {});
@@ -153,7 +163,7 @@ export class TripDetailPage {
 
   ionViewWillLeave(): void {
     // Cerramos el modal antes de salir para evitar el bug de Ionic
-    this.isModalOpen = false;
+    this.closeAllModals();
     this.stopPollingLocation();
 
     // Si el conductor estaba compartiendo, detenemos al salir.
@@ -163,10 +173,22 @@ export class TripDetailPage {
   }
 
   goBack(): void {
-    this.isModalOpen = false;
+    this.closeAllModals();
     setTimeout(() => {
       this.location.back();
     }, 150);
+  }
+
+  private closeAllModals(): void {
+    this.isModalOpen = false;
+    this.isPaymentModalOpen = false;
+
+    if (this.tripModal) {
+      this.tripModal.dismiss(null, 'route-change').catch(() => {});
+    }
+    if (this.paymentModal) {
+      this.paymentModal.dismiss(null, 'route-change').catch(() => {});
+    }
   }
 
   onSheetChanged(): void {
@@ -201,7 +223,7 @@ export class TripDetailPage {
 
   private async checkDriverActionStatus(): Promise<void> {
     if (!this.trip || !this.currentUid || this.isDriver) return;
-    
+
     // Solo verificar si el viaje está finalizado
     if (this.trip.status !== 'completed') return;
 
@@ -385,14 +407,14 @@ export class TripDetailPage {
         // OSRM espera coordenadas en formato: lng,lat
         const url = `https://router.project-osrm.org/route/v1/driving/${this.trip.originLng},${this.trip.originLat};${this.trip.destinationLng},${this.trip.destinationLat}?overview=full&geometries=geojson`;
         const response = await fetch(url);
-        
+
         if (response.ok) {
           const data = await response.json();
           if (data.routes && data.routes.length > 0) {
             const coordinates = data.routes[0].geometry.coordinates;
             // OSRM devuelve [lng, lat], Leaflet usa [lat, lng]
             const latLngs: L.LatLngExpression[] = coordinates.map((c: [number, number]) => [c[1], c[0]]);
-            
+
             // Actualizamos la línea con la ruta real e inteligente
             this.routeLine.setLatLngs(latLngs);
             this.routeLine.setStyle({
@@ -410,7 +432,7 @@ export class TripDetailPage {
       } catch (error) {
         console.error('Error al obtener la ruta inteligente de OSRM:', error);
       }
-      
+
       // Fallback a línea recta si la API falla
       this.routeLine.setLatLngs([origin as any, dest as any]);
       this.routeLine.setStyle({
@@ -491,7 +513,7 @@ export class TripDetailPage {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         if (typeof lat !== 'number' || typeof lng !== 'number') return;
-        
+
         // Actualizar UI local para que el conductor vea su propio marcador
         this.driverLive = { driverUid: this.currentUid!, lat, lng, active: true };
         this.syncDriverMarker();
@@ -597,7 +619,7 @@ export class TripDetailPage {
     const rules = (Array.isArray(this.trip.ruleTexts) && this.trip.ruleTexts.length > 0)
       ? this.trip.ruleTexts
       : this.defaultRuleTexts;
-    
+
     const rulesMsg = rules.map(r => `• ${r}`).join('\n');
 
     const alert = await this.alertCtrl.create({
@@ -605,12 +627,12 @@ export class TripDetailPage {
       message: rulesMsg,
       cssClass: 'compact-rules-alert',
       buttons: [
-        { 
-          text: 'Cancelar', 
+        {
+          text: 'Cancelar',
           role: 'cancel',
           cssClass: 'alert-cancel-btn'
         },
-        { 
+        {
           text: 'Aceptar y solicitar',
           role: 'confirm',
           cssClass: 'alert-confirm-btn',
@@ -678,7 +700,7 @@ export class TripDetailPage {
     // Generar código de referencia falso
     this.paymentReferenceCode = this.generateReferenceCode();
     this.qrExpirationTime = 120;
-    
+
     // Simular countdown
     const interval = setInterval(() => {
       this.qrExpirationTime--;
@@ -704,18 +726,18 @@ export class TripDetailPage {
       await toast.present();
       return;
     }
-    
+
     this.paymentStep = 'processing';
     this.processingPayment = true;
-    
+
     try {
       // Llamada real al endpoint de pago
       await firstValueFrom(this.tripRequests.payRequest(this.myRequestId));
-      
+
       this.myPaymentStatus = 'paid';
       this.paymentStep = 'success';
       this.paymentReferenceCode = this.generateReferenceCode();
-      
+
       // Auto-cerrar después de 4 segundos
       setTimeout(() => {
         this.closePaymentModal();
@@ -732,7 +754,7 @@ export class TripDetailPage {
     } catch (e: any) {
       this.paymentStep = 'selection';
       this.selectedPaymentMethod = null;
-      
+
       const toast = await this.toastCtrl.create({
         message: 'Error al procesar el pago. Intenta de nuevo.',
         duration: 3500,
@@ -813,8 +835,8 @@ export class TripDetailPage {
       message: '¿Estás seguro de que deseas cancelar este viaje? Los pasajeros serán notificados.',
       buttons: [
         { text: 'No', role: 'cancel' },
-        { 
-          text: 'Sí, cancelar', 
+        {
+          text: 'Sí, cancelar',
           role: 'destructive',
           handler: async () => {
             this.isCancellingTrip = true;
@@ -879,8 +901,8 @@ export class TripDetailPage {
 
     this.isModalOpen = false;
     setTimeout(() => {
-      this.router.navigate(['/app/report', dUid], { 
-        queryParams: { tripId: tId } 
+      this.router.navigate(['/app/report', dUid], {
+        queryParams: { tripId: tId }
       });
     }, 150);
   }

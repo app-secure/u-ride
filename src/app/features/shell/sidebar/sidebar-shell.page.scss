@@ -16,6 +16,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  cursor: pointer;
 
   .logo {
     height: 32px;
@@ -215,7 +216,7 @@ ion-popover::part(content) {
     flex: 1;
     min-width: 0;
     /* evita que el texto desborde el contenedor flex */
-    
+
     .content-header {
       display: flex;
       justify-content: space-between;

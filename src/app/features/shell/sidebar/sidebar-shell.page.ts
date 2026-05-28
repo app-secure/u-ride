@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { IonicModule, LoadingController, PopoverController } from '@ionic/angular';
 import { Observable, of, BehaviorSubject } from 'rxjs';
@@ -22,7 +22,7 @@ import type { UserProfile } from '../../../core/models/user-profile.model';
   imports: [CommonModule, IonicModule],
 })
 
-export class SidebarShellPage {
+export class SidebarShellPage implements OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly roleState = inject(RoleStateService);
   private readonly router = inject(Router);
@@ -47,6 +47,8 @@ export class SidebarShellPage {
     shareReplay({ bufferSize: 1, refCount: true })
   );
 
+  readonly deviceTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   private readonly refreshNotifs$ = new BehaviorSubject<void>(undefined);
 
   readonly notifications$: Observable<AppNotification[]> = this.refreshNotifs$.pipe(
@@ -61,6 +63,9 @@ export class SidebarShellPage {
 
   private currentNotifs: AppNotification[] = [];
   unreadNotifs = 0;
+
+  private readonly refreshIntervalMs = 10000;
+  private refreshTimerId: number | null = null;
 
   isAdminArea = false;
   isRoleArea = false;
@@ -81,6 +86,17 @@ export class SidebarShellPage {
       this.currentNotifs = notifs;
       this.unreadNotifs = notifs.filter(n => !n.read).length;
     });
+
+    this.refreshTimerId = window.setInterval(() => {
+      this.refreshNotifs$.next();
+    }, this.refreshIntervalMs);
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshTimerId !== null) {
+      window.clearInterval(this.refreshTimerId);
+      this.refreshTimerId = null;
+    }
   }
 
   async onNotificationsOpen(): Promise<void> {
@@ -136,6 +152,16 @@ export class SidebarShellPage {
   async goToVehicles(): Promise<void> {
     await this.popoverCtrl.dismiss().catch(() => {});
     await this.router.navigateByUrl('/app/profile/vehicles');
+  }
+
+  async goToHome(): Promise<void> {
+    await this.popoverCtrl.dismiss().catch(() => {});
+    const role = this.currentRole;
+    if (role === 'driver') {
+      await this.router.navigateByUrl('/app/my-trips');
+    } else {
+      await this.router.navigateByUrl('/app/trips');
+    }
   }
 
   async logout(popover?: any): Promise<void> {

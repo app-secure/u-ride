@@ -66,7 +66,7 @@ export class TripsPage {
 
   currentUid: string | null = null;
   userProfile: UserProfile | null = null;
-  
+
   get isSuspended(): boolean {
     if (!this.userProfile?.suspendedUntil) return false;
     return new Date(this.userProfile.suspendedUntil) > new Date();
@@ -351,6 +351,12 @@ export class TripsPage {
 
   openTrip(trip: Trip): void {
     this.router.navigate(['/app/trips', trip.id]);
+  }
+
+  viewDriverProfile(trip: Trip): void {
+    this.router.navigate(['/app/driver-profile', trip.driverUid], {
+      queryParams: { tripId: trip.id },
+    });
   }
 
   placeMainLabel(full: string | null | undefined): string {

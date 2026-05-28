@@ -5,7 +5,7 @@
     <ion-toolbar class="glass-toolbar">
 
       <!-- LEFT -->
-      <div class="header-left" slot="start">
+      <div class="header-left" slot="start" (click)="goToHome()" role="button" tabindex="0">
         <img src="assets/logo-uride.svg" class="logo" />
         <span class="system-name">U-Ride</span>
       </div>
@@ -67,7 +67,7 @@
                         <span class="badge-new" *ngIf="!n.read">Nueva</span>
                       </div>
                       <p>{{ n.message }}</p>
-                      <span>{{ n.createdAt | date:'shortTime' }}</span>
+                      <span>{{ n.createdAt | date:'shortTime':deviceTimeZone }}</span>
                     </div>
 
                   </div>

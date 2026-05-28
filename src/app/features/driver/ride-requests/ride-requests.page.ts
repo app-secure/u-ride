@@ -35,7 +35,7 @@ export class RideRequestsPage {
 
   readonly tripId = this.route.snapshot.paramMap.get('tripId') ?? '';
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
-  
+
   readonly requests$ = this.refresh$.pipe(
     switchMap(() => this.tripRequests.getByTrip(this.tripId)),
   );
@@ -91,10 +91,25 @@ export class RideRequestsPage {
         return 'Aceptado';
       case 'rejected':
         return 'Rechazado';
+      case 'cancelled':
+        return 'Cancelado';
       case 'cancelled_by_passenger':
         return 'Cancelado por pasajero';
       default:
         return String(status ?? '').trim() || 'Desconocido';
+    }
+  }
+
+  paymentStatusLabel(status: string | null | undefined): string {
+    switch (status) {
+      case 'paid':
+        return 'Pagado';
+      case 'pending':
+        return 'Pago pendiente';
+      case 'refunded':
+        return 'Reembolsado';
+      default:
+        return String(status ?? '').trim() || 'Pago';
     }
   }
 
@@ -105,7 +120,7 @@ export class RideRequestsPage {
 
   private async checkActionsStatus(): Promise<void> {
     if (!this.tripId || !this.currentUid) return;
-    
+
     try {
       const reqs = await firstValueFrom(this.tripRequests.getByTrip(this.tripId));
       if (!reqs || reqs.length === 0) return;
@@ -219,8 +234,8 @@ export class RideRequestsPage {
       ],
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
-        { 
-          text: 'Enviar Reporte', 
+        {
+          text: 'Enviar Reporte',
           role: 'destructive',
           handler: async (data) => {
             if (!data.reason || data.reason.trim().length === 0) {
@@ -230,11 +245,11 @@ export class RideRequestsPage {
               toast.present();
               return false;
             }
-            
+
             try {
               if (!this.currentUid) return false;
               if (this.reportedMap[passengerUid]) return true;
-              
+
               await firstValueFrom(this.reports.createReport({
                 reportedUid: passengerUid,
                 tripId: this.tripId,

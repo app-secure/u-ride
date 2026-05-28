@@ -22,19 +22,19 @@
     align-items: center;
     justify-content: space-between;
   }
-  
+
   .status-badge {
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
-    
+
     &.open { background: #eff6ff; color: #3b82f6; }
     &.completed { background: #f0fdf4; color: #22c55e; }
     &.cancelled { background: #fef2f2; color: #ef4444; }
   }
-  
+
   .completed-msg {
     margin: 0;
     font-size: 14px;
@@ -45,7 +45,7 @@
 .empty-state {
   text-align: center;
   padding: 40px 20px;
-  
+
   .empty-icon-box {
     width: 64px;
     height: 64px;
@@ -58,7 +58,7 @@
     margin: 0 auto 16px;
     font-size: 32px;
   }
-  
+
   h3 { color: #334155; font-weight: 700; margin: 0 0 8px; }
   p { color: #64748b; margin: 0; font-size: 14px; }
 }
@@ -71,13 +71,13 @@
 
 .request-item {
   padding: 16px;
-  
+
   .passenger-info {
     display: flex;
     align-items: center;
     gap: 12px;
     margin-bottom: 16px;
-    
+
     ion-avatar {
       width: 48px;
       height: 48px;
@@ -85,36 +85,71 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      
+
       ion-icon {
         font-size: 32px;
         color: #94a3b8;
       }
     }
-    
+
     .details {
       display: flex;
       flex-direction: column;
-      
+
       h4 { margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: #0f172a; }
-      
+
+      .status-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
       .req-status {
         font-size: 12px;
         font-weight: 600;
-        
+
         &.pending { color: #f59e0b; }
         &.accepted { color: #22c55e; }
         &.rejected { color: #ef4444; }
+        &.cancelled { color: #ef4444; }
+      }
+
+      .payment-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+
+        &.paid {
+          background: #ecfdf3;
+          color: #16a34a;
+          border: 1px solid #86efac;
+        }
+
+        &.pending {
+          background: #fff7ed;
+          color: #c2410c;
+          border: 1px solid #fed7aa;
+        }
+
+        &.refunded {
+          background: #fef2f2;
+          color: #dc2626;
+          border: 1px solid #fecaca;
+        }
       }
     }
   }
-  
+
   .action-buttons {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
     align-items: center;
-    
+
     ion-button {
       flex: 1;
       margin: 0;
@@ -132,13 +167,13 @@
       justify-content: center;
       min-height: 36px;
       flex: 1;
-      
+
       &.rated {
         background: #f0fdf4;
         color: #166534;
         border: 1px solid #86efac;
       }
-      
+
       &.reported {
         background: #fef2f2;
         color: #991b1b;
@@ -165,4 +200,19 @@
   .empty-state .empty-icon-box { background: #0f172a; }
   .request-item .passenger-info .details h4 { color: #f8fafc; }
   .request-item .passenger-info ion-avatar { background: #334155; }
+  .request-item .passenger-info .details .payment-badge.paid {
+    background: rgba(34, 197, 94, 0.15);
+    color: #bbf7d0;
+    border-color: rgba(34, 197, 94, 0.35);
+  }
+  .request-item .passenger-info .details .payment-badge.pending {
+    background: rgba(249, 115, 22, 0.15);
+    color: #fed7aa;
+    border-color: rgba(249, 115, 22, 0.35);
+  }
+  .request-item .passenger-info .details .payment-badge.refunded {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fecaca;
+    border-color: rgba(239, 68, 68, 0.35);
+  }
 }

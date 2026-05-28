@@ -38,9 +38,9 @@
   @media (prefers-color-scheme: dark) {
     background: rgba(239, 68, 68, 0.15);
     border-color: #dc2626;
-    
+
     ion-icon { color: #f87171; }
-    
+
     .suspension-content {
       strong { color: #fca5a5; }
       p { color: #fecaca; }
@@ -50,7 +50,7 @@
 
 .uride-content {
   --background: #f8fafc;
-  
+
   @media (prefers-color-scheme: dark) {
     --background: #0f172a;
   }
@@ -93,7 +93,7 @@
   border: 1px solid #f1f5f9;
   margin-bottom: 24px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   @media (prefers-color-scheme: dark) {
     background: #1f2937;
     border-color: #374151;
@@ -103,13 +103,13 @@
 
 .search-container {
   padding: 24px;
-  
+
   .search-title {
     font-size: 20px;
     font-weight: 700;
     color: #0f172a;
     margin: 0 0 20px 0;
-    
+
     @media (prefers-color-scheme: dark) {
       color: #f9fafb;
     }
@@ -122,7 +122,7 @@
     grid-template-columns: 1fr 180px;
     gap: 16px;
     margin-bottom: 8px;
-    
+
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
     }
@@ -132,13 +132,13 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    
+
     label {
       font-size: 14px;
       font-weight: 700;
       color: #475569;
       padding-left: 4px;
-      
+
       @media (prefers-color-scheme: dark) {
         color: #d1d5db;
       }
@@ -154,33 +154,33 @@
     padding: 0 12px;
     transition: all 0.2s ease;
     height: 48px;
-    
+
     @media (prefers-color-scheme: dark) {
       background: #374151;
       border-color: #4b5563;
     }
-    
+
     &:focus-within {
       border-color: #000000;
       box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
-      
+
       @media (prefers-color-scheme: dark) {
         border-color: #60a5fa;
         box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
       }
     }
-    
+
     ion-icon {
       color: #94a3b8;
       font-size: 20px;
       margin-right: 8px;
       flex-shrink: 0;
-      
+
       @media (prefers-color-scheme: dark) {
         color: #9ca3af;
       }
     }
-    
+
     input {
       flex: 1;
       border: none;
@@ -190,14 +190,14 @@
       color: #1e293b;
       outline: none;
       width: 100%;
-      
+
       @media (prefers-color-scheme: dark) {
         color: #f3f4f6;
       }
-      
-      &::placeholder { 
+
+      &::placeholder {
         color: #94a3b8;
-        
+
         @media (prefers-color-scheme: dark) {
           color: #9ca3af;
         }
@@ -208,7 +208,7 @@
       padding: 0 12px;
       height: auto;
       min-height: 48px;
-      
+
       ion-select {
         width: 100%;
         --padding-start: 4px;
@@ -220,12 +220,12 @@
         font-size: 15px;
         font-weight: 600;
         color: #1e293b;
-        
+
         @media (prefers-color-scheme: dark) {
           color: #f3f4f6;
           --placeholder-color: #9ca3af;
         }
-        
+
         &::part(container) {
           width: 100%;
         }
@@ -262,7 +262,7 @@
     font-weight: 700;
     color: #0f172a;
     margin: 0;
-    
+
     @media (prefers-color-scheme: dark) {
       color: #f9fafb;
     }
@@ -619,16 +619,16 @@
 .trip-card {
   padding: 20px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 28px rgba(0,0,0,0.1);
-    
+
     @media (prefers-color-scheme: dark) {
       box-shadow: 0 12px 28px rgba(0,0,0,0.4);
     }
   }
-  
+
   .trip-card-inner {
     display: flex;
     flex-direction: column;
@@ -649,53 +649,89 @@
   align-items: center;
   gap: 12px;
   flex: 1;
-  
+
   .driver-avatar-wrapper {
     position: relative;
     width: 56px;
     height: 56px;
     flex-shrink: 0;
-    
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    border: 2px solid #f1f5f9;
+    background: linear-gradient(135deg, #e2e8f0, #f1f5f9);
+
+    @media (prefers-color-scheme: dark) {
+      border-color: #374151;
+      background: linear-gradient(135deg, #374151, #4b5563);
+    }
+
     .driver-photo {
       width: 100%;
       height: 100%;
-      border-radius: 14px;
       object-fit: cover;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      border: 2px solid #f1f5f9;
-      
-      @media (prefers-color-scheme: dark) {
-        border-color: #374151;
-      }
     }
-    
+
     .driver-avatar-placeholder {
       width: 100%;
       height: 100%;
-      background: linear-gradient(135deg, #e2e8f0, #f1f5f9);
-      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      border: 2px solid #f1f5f9;
-      
-      @media (prefers-color-scheme: dark) {
-        background: linear-gradient(135deg, #374151, #4b5563);
-        border-color: #4b5563;
-      }
-      
+
       ion-icon {
         font-size: 28px;
         color: #64748b;
-        
+
         @media (prefers-color-scheme: dark) {
           color: #9ca3af;
         }
       }
     }
   }
-  
+
+  .driver-avatar-btn {
+    padding: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+
+    &:hover {
+      transform: scale(1.06);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4), 0 4px 12px rgba(0,0,0,0.12);
+      border-color: #3b82f6;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #60a5fa;
+      outline-offset: 2px;
+      border-radius: 14px;
+    }
+  }
+
+  .avatar-tap-hint {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    border-radius: inherit;
+
+    ion-icon {
+      color: #ffffff;
+      font-size: 20px;
+    }
+  }
+
+  .driver-avatar-btn:hover .avatar-tap-hint {
+    opacity: 1;
+  }
+
   .driver-details {
     display: flex;
     flex-direction: column;
@@ -705,7 +741,7 @@
       font-weight: 700;
       font-size: 16px;
       color: #1e293b;
-      
+
       @media (prefers-color-scheme: dark) {
         color: #f3f4f6;
       }
@@ -717,7 +753,7 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      
+
       @media (prefers-color-scheme: dark) {
         color: #d1d5db;
       }
@@ -731,7 +767,7 @@
   flex-direction: column;
   gap: 8px;
   align-items: flex-end;
-  
+
   .price-badge {
     background: linear-gradient(135deg, #ecfdf5, #d1fae5);
     color: #059669;
@@ -743,19 +779,19 @@
     display: flex;
     align-items: center;
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
-    
+
     @media (prefers-color-scheme: dark) {
       background: linear-gradient(135deg, #065f46, #047857);
       color: #86efac;
       border-color: #059669;
     }
-    
+
     .currency {
       font-size: 14px;
       margin-right: 2px;
     }
   }
-  
+
   .trip-status-indicator {
     padding: 6px 12px;
     border-radius: 999px;
@@ -764,43 +800,43 @@
     min-width: 80px;
     text-align: center;
     transition: all 0.3s ease;
-    
+
     &.none {
       background: transparent;
       color: transparent;
       visibility: hidden;
     }
-    
+
     &.pending {
       background: #fef3c7;
       color: #92400e;
       border: 1px solid #fde68a;
-      
+
       @media (prefers-color-scheme: dark) {
         background: #92400e;
         color: #fef3c7;
         border-color: #b45309;
       }
     }
-    
+
     &.accepted {
       background: #dcfce7;
       color: #166534;
       border: 1px solid #86efac;
       animation: slideInRight 0.4s ease;
-      
+
       @media (prefers-color-scheme: dark) {
         background: #166534;
         color: #dcfce7;
         border-color: #22c55e;
       }
     }
-    
+
     &.rejected {
       background: #fee2e2;
       color: #991b1b;
       border: 1px solid #fca5a5;
-      
+
       @media (prefers-color-scheme: dark) {
         background: #7f1d1d;
         color: #fee2e2;
@@ -814,35 +850,35 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  
+
   .route-item {
     display: flex;
     align-items: center;
     gap: 6px;
     font-size: 13px;
     min-width: 0;
-    
-    .icon-origin { 
+
+    .icon-origin {
       color: #10b981;
       font-size: 18px;
       flex-shrink: 0;
     }
-    .icon-destination { 
+    .icon-destination {
       color: #ef4444;
       font-size: 18px;
       flex-shrink: 0;
     }
-    
+
     .route-label {
       font-weight: 600;
       color: #64748b;
       flex-shrink: 0;
-      
+
       @media (prefers-color-scheme: dark) {
         color: #d1d5db;
       }
     }
-    
+
     .route-value {
       color: #1e293b;
       font-weight: 500;
@@ -850,7 +886,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
       min-width: 0;
-      
+
       @media (prefers-color-scheme: dark) {
         color: #f3f4f6;
       }
@@ -862,7 +898,7 @@
   display: flex;
   gap: 24px;
   flex-wrap: wrap;
-  
+
   .time-item {
     display: flex;
     align-items: center;
@@ -870,11 +906,11 @@
     color: #64748b;
     font-size: 14px;
     font-weight: 500;
-    
+
     @media (prefers-color-scheme: dark) {
       color: #d1d5db;
     }
-    
+
     ion-icon {
       font-size: 18px;
     }
@@ -888,17 +924,17 @@
   background: #f8fafc;
   border-radius: 10px;
   border-left: 3px solid #e2e8f0;
-  
+
   @media (prefers-color-scheme: dark) {
     background: #374151;
     color: #e5e7eb;
     border-left-color: #4b5563;
   }
-  
+
   .notes-label {
     font-weight: 700;
     color: #1e293b;
-    
+
     @media (prefers-color-scheme: dark) {
       color: #f3f4f6;
     }
@@ -913,11 +949,11 @@
   padding-top: 16px;
   border-top: 1px solid #f1f5f9;
   gap: 12px;
-  
+
   @media (prefers-color-scheme: dark) {
     border-top-color: #374151;
   }
-  
+
   .availability {
     display: flex;
     align-items: center;
@@ -925,21 +961,21 @@
     font-size: 14px;
     font-weight: 600;
     color: #0f172a;
-    
+
     @media (prefers-color-scheme: dark) {
       color: #f9fafb;
     }
-    
+
     ion-icon {
       font-size: 18px;
       color: #64748b;
-      
+
       @media (prefers-color-scheme: dark) {
         color: #9ca3af;
       }
     }
   }
-  
+
   .btn-primary {
     background: #000000;
     color: white;
@@ -951,17 +987,17 @@
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    
+
     @media (prefers-color-scheme: dark) {
       background: #e5e7eb;
       color: #111827;
     }
-    
+
     &:hover {
       background: #111827;
       transform: translateY(-2px);
       box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-      
+
       @media (prefers-color-scheme: dark) {
         background: #ffffff;
         box-shadow: 0 8px 20px rgba(255,255,255,0.2);
@@ -977,7 +1013,7 @@
   justify-content: center;
   padding: 60px 20px;
   text-align: center;
-  
+
   .empty-icon-box {
     width: 80px;
     height: 80px;
@@ -988,37 +1024,37 @@
     justify-content: center;
     margin-bottom: 20px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    
+
     @media (prefers-color-scheme: dark) {
       background: linear-gradient(135deg, #374151, #4b5563);
     }
-    
+
     ion-icon {
       font-size: 40px;
       color: #94a3b8;
-      
+
       @media (prefers-color-scheme: dark) {
         color: #9ca3af;
       }
     }
   }
-  
+
   h3 {
     font-size: 18px;
     font-weight: 700;
     color: #0f172a;
     margin: 0 0 8px 0;
-    
+
     @media (prefers-color-scheme: dark) {
       color: #f9fafb;
     }
   }
-  
+
   p {
     font-size: 15px;
     color: #64748b;
     margin: 0;
-    
+
     @media (prefers-color-scheme: dark) {
       color: #d1d5db;
     }
@@ -1047,13 +1083,13 @@
 }
 
 @keyframes fadeInUp {
-  from { 
-    opacity: 0; 
-    transform: translateY(10px); 
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -1064,27 +1100,27 @@
     grid-template-rows: auto auto auto;
     gap: 16px 32px !important;
     align-items: start;
-    
+
     .driver-header-row, .trip-header {
       grid-column: 1 / 2;
       grid-row: 1 / 2;
     }
-    
+
     .trip-route {
       grid-column: 1 / 2;
       grid-row: 2 / 3;
     }
-    
+
     .trip-time, .trip-stats {
       grid-column: 1 / 2;
       grid-row: 3 / 4;
     }
-    
+
     .trip-notes {
       grid-column: 1 / -1;
       grid-row: 4 / 5;
     }
-    
+
     .trip-actions {
       grid-column: 2 / 3;
       grid-row: 1 / 4;
@@ -1095,7 +1131,7 @@
       padding-top: 0;
       margin-top: 0;
       gap: 16px;
-      
+
       .btn-primary {
         margin-top: 16px;
         width: 100%;
@@ -1109,7 +1145,7 @@
   flex-direction: column;
   gap: 8px;
   min-width: 0;
-  
+
   .route-item {
     display: flex;
     align-items: center;
@@ -1117,22 +1153,22 @@
     font-size: 13px;
     min-width: 0;
     width: 100%;
-    
-    .icon-origin { 
+
+    .icon-origin {
       color: #10b981;
       flex-shrink: 0;
     }
-    .icon-destination { 
+    .icon-destination {
       color: #ef4444;
       flex-shrink: 0;
     }
-    
+
     .route-label {
       font-weight: 600;
       color: #1e293b;
       flex-shrink: 0;
     }
-    
+
     .route-value {
       color: #475569;
       overflow: hidden;
@@ -1147,7 +1183,7 @@
 .trip-time {
   display: flex;
   gap: 24px;
-  
+
   .time-item {
     display: flex;
     align-items: center;
@@ -1160,7 +1196,7 @@
 .trip-notes {
   font-size: 14px;
   color: #475569;
-  
+
   .notes-label {
     font-weight: 600;
     color: #1e293b;
@@ -1174,7 +1210,7 @@
   margin-top: 8px;
   padding-top: 16px;
   border-top: 1px solid #f1f5f9;
-  
+
   .availability {
     display: flex;
     align-items: center;
@@ -1182,13 +1218,13 @@
     font-size: 14px;
     font-weight: 500;
     color: #0f172a;
-    
+
     ion-icon {
       font-size: 18px;
       color: #64748b;
     }
   }
-  
+
   .btn-primary {
     background: #000000;
     color: white;
@@ -1199,7 +1235,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
-    
+
     &:hover {
       background: #111827;
     }
@@ -1213,7 +1249,7 @@
   justify-content: center;
   padding: 60px 20px;
   text-align: center;
-  
+
   .empty-icon-box {
     width: 64px;
     height: 64px;
@@ -1223,20 +1259,20 @@
     align-items: center;
     justify-content: center;
     margin-bottom: 16px;
-    
+
     ion-icon {
       font-size: 32px;
       color: #94a3b8;
     }
   }
-  
+
   h3 {
     font-size: 18px;
     font-weight: 700;
     color: #0f172a;
     margin: 0 0 8px 0;
   }
-  
+
   p {
     font-size: 15px;
     color: #64748b;
@@ -1261,27 +1297,27 @@
     grid-template-rows: auto auto auto;
     gap: 16px 32px !important;
     align-items: start;
-    
+
     .driver-info, .trip-header {
       grid-column: 1 / 2;
       grid-row: 1 / 2;
     }
-    
+
     .trip-route {
       grid-column: 1 / 2;
       grid-row: 2 / 3;
     }
-    
+
     .trip-time, .trip-stats {
       grid-column: 1 / 2;
       grid-row: 3 / 4;
     }
-    
+
     .trip-notes {
       grid-column: 1 / -1;
       grid-row: 4 / 5;
     }
-    
+
     .trip-actions {
       grid-column: 2 / 3;
       grid-row: 1 / 4;
@@ -1291,7 +1327,7 @@
       border-top: none;
       padding-top: 0;
       margin-top: 0;
-      
+
       .btn-primary {
         margin-top: 16px;
       }

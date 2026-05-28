@@ -74,12 +74,21 @@
           <!-- DRIVER INFO WITH STATUS BADGE -->
           <div class="driver-header-row">
             <div class="driver-info">
-              <div class="driver-avatar-wrapper">
+              <button
+                type="button"
+                class="driver-avatar-wrapper driver-avatar-btn"
+                (click)="viewDriverProfile(trip)"
+                [attr.aria-label]="'Ver perfil de ' + trip.driverName"
+                title="Ver perfil del conductor"
+              >
                 <img [src]="trip.driverPhotoUrl!" alt="{{ trip.driverName }}" class="driver-photo" *ngIf="trip.driverPhotoUrl">
                 <div *ngIf="!trip.driverPhotoUrl" class="driver-avatar-placeholder">
                   <ion-icon name="person"></ion-icon>
                 </div>
-              </div>
+                <div class="avatar-tap-hint">
+                  <ion-icon name="eye-outline"></ion-icon>
+                </div>
+              </button>
               <div class="driver-details">
                 <span class="driver-name">{{ trip.driverName }}</span>
                 <span class="driver-rating"><ion-icon name="star" color="warning"></ion-icon> Nuevo conductor</span>
