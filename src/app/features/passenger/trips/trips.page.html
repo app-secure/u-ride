@@ -1,321 +1,329 @@
-<ion-content [fullscreen]="true" class="uride-content">
+<ion-content [fullscreen]="true" class="uride-content ion-padding">
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- ================= BANNER SUSPENSIÓN ================= -->
-  <div class="suspension-banner" *ngIf="isSuspended">
-    <ion-icon name="warning-outline"></ion-icon>
-    <div class="suspension-content">
-      <strong>Cuenta suspendida</strong>
-      <p>Tu cuenta está suspendida por conducta indebida hasta el {{ suspendedUntilDate | date:'longDate':'':'es-EC' }}. Algunas funciones están deshabilitadas.</p>
-    </div>
-  </div>
+  <div class="trips-page fade-in-up">
 
-  <div class="trips-dashboard fade-in-up">
-
-    <div class="section-switch">
-      <ion-segment [(ngModel)]="mainSegment" mode="ios" class="custom-segment" (ionChange)="onMainSegmentChanged()">
-        <ion-segment-button value="search">
-          <ion-label>Buscar Viajes</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="recent">
-          <ion-label>Mis Viajes</ion-label>
-        </ion-segment-button>
-      </ion-segment>
+    <!-- ====== SUSPENSION BANNER ====== -->
+    <div class="suspension-banner" *ngIf="isSuspended">
+      <ion-icon name="warning-outline"></ion-icon>
+      <div class="suspension-content">
+        <strong>Cuenta suspendida</strong>
+        <p>Tu cuenta está suspendida hasta el {{ suspendedUntilDate | date:'longDate':'':'es-EC' }}. Algunas funciones
+          están deshabilitadas.</p>
+      </div>
     </div>
 
-    <ng-container *ngIf="mainSegment === 'search'">
-      <div class="search-container modern-card">
-        <h2 class="search-title">Buscar Viajes Disponibles</h2>
-        <form [formGroup]="filters" class="search-form">
-          <div class="form-row">
-            <div class="input-group route-group">
-              <label>Selecciona tu Ruta</label>
-              <div class="input-wrapper select-wrapper">
-                <ion-icon name="map-outline"></ion-icon>
-                <ion-select formControlName="routeName"
-                            placeholder="Todas las rutas"
-                            interface="popover"
-                            [interfaceOptions]="{ cssClass: 'wide-popover' }"
-                            toggleIcon="chevron-down-outline"
-                            expandedIcon="chevron-up-outline">
-                  <ion-select-option value="">Todas las rutas</ion-select-option>
-                  <ion-select-option *ngFor="let r of routes$ | async" [value]="r">{{ r }}</ion-select-option>
-                </ion-select>
-              </div>
-            </div>
-
-            <div class="input-group date-group">
-              <label>Fecha</label>
-              <div class="input-wrapper">
-                <ion-icon name="calendar-outline"></ion-icon>
-                <input type="date" formControlName="date" placeholder="dd/mm/aaaa" [min]="getTodayDate()" />
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      <div class="trips-list-header">
-        <h2>Viajes Disponibles</h2>
-      </div>
-
-      <div class="empty-state modern-card" *ngIf="!loading && trips.length === 0">
-        <div class="empty-icon-box">
+    <!-- ====== MAIN TAB SWITCH ====== -->
+    <div class="trips-navbar-bar">
+      <nav class="trips-navbar">
+        <button class="nav-item" [class.active]="mainSegment === 'search'"
+          (click)="mainSegment = 'search'; onMainSegmentChanged()">
           <ion-icon name="search-outline"></ion-icon>
-        </div>
-        <h3>Sin resultados</h3>
-        <p>No hay viajes disponibles con esos filtros. Intenta cambiar tu búsqueda.</p>
-      </div>
+          <span>Buscar Viajes</span>
+        </button>
+        <button class="nav-item" [class.active]="mainSegment === 'recent'"
+          (click)="mainSegment = 'recent'; onMainSegmentChanged()">
+          <ion-icon name="car-outline"></ion-icon>
+          <span>Mis Viajes</span>
+        </button>
+      </nav>
+    </div>
 
-      <div class="modern-card trip-card" *ngFor="let trip of trips">
-        <div class="trip-card-inner">
-          <!-- DRIVER INFO WITH STATUS BADGE -->
-          <div class="driver-header-row">
-            <div class="driver-info">
-              <button
-                type="button"
-                class="driver-avatar-wrapper driver-avatar-btn"
-                (click)="viewDriverProfile(trip)"
-                [attr.aria-label]="'Ver perfil de ' + trip.driverName"
-                title="Ver perfil del conductor"
-              >
-                <img [src]="trip.driverPhotoUrl!" alt="{{ trip.driverName }}" class="driver-photo" *ngIf="trip.driverPhotoUrl">
-                <div *ngIf="!trip.driverPhotoUrl" class="driver-avatar-placeholder">
-                  <ion-icon name="person"></ion-icon>
+    <!-- ========================== SEARCH TAB ========================== -->
+    <ng-container *ngIf="mainSegment === 'search'">
+
+
+      <div class="page-subheader">
+        <div>
+          <h3 class="subheader-title">Buscar Viajes</h3>
+          <div class="subheader-meta">
+            <ion-icon name="car-outline"></ion-icon>
+            <span>Viajes Disponibles</span>
+            <span class="count-badge" *ngIf="trips.length > 0">{{ trips.length }}</span>
+          </div>
+        </div>
+
+        <!-- Search Filters Card -->
+        <div class="filters-card">
+
+          <form [formGroup]="filters" class="search-form">
+            <div class="form-row">
+              <div class="input-group">
+                <label>Ruta</label>
+                <div class="input-wrapper select-wrapper">
+                  <ion-icon name="map-outline"></ion-icon>
+                  <ion-select formControlName="routeName" placeholder="Todas las rutas" interface="popover"
+                    [interfaceOptions]="{ cssClass: 'wide-popover' }" toggleIcon="chevron-down-outline"
+                    expandedIcon="chevron-up-outline">
+                    <ion-select-option value="">Todas las rutas</ion-select-option>
+                    <ion-select-option *ngFor="let r of routes$ | async" [value]="r">{{ r }}</ion-select-option>
+                  </ion-select>
                 </div>
-                <div class="avatar-tap-hint">
-                  <ion-icon name="eye-outline"></ion-icon>
+              </div>
+              <div class="input-group">
+                <label>Fecha</label>
+                <div class="input-wrapper">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <input type="date" formControlName="date" [min]="getTodayDate()" />
                 </div>
-              </button>
-              <div class="driver-details">
-                <span class="driver-name">{{ trip.driverName }}</span>
-                <span class="driver-rating"><ion-icon name="star" color="warning"></ion-icon> Nuevo conductor</span>
               </div>
             </div>
+          </form>
+        </div>
+      </div>
 
-            <!-- STATUS BADGE -->
-            <div class="status-badge-wrapper">
+
+      <!-- Section: Available Trips -->
+      <section class="section">
+
+        <!-- Loading -->
+        <div class="loading-state" *ngIf="loading && trips.length === 0">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Buscando viajes...</p>
+        </div>
+
+        <!-- Empty -->
+        <div class="empty-state" *ngIf="!loading && trips.length === 0">
+          <div class="empty-icon-box">
+            <ion-icon name="search-outline"></ion-icon>
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No hay viajes disponibles con esos filtros. Intenta cambiar tu búsqueda.</p>
+        </div>
+
+        <!-- Trips Grid -->
+        <div class="trips-grid" *ngIf="trips.length > 0">
+          <div class="trip-card" *ngFor="let trip of trips; let i = index" [style.animation-delay]="i * 0.06 + 's'">
+
+            <!-- Card Top -->
+            <div class="card-top">
+              <div class="driver-info">
+                <button type="button" class="driver-avatar-btn" (click)="viewDriverProfile(trip)"
+                  [attr.aria-label]="'Ver perfil de ' + trip.driverName">
+                  <img [src]="trip.driverPhotoUrl!" alt="{{ trip.driverName }}" *ngIf="trip.driverPhotoUrl">
+                  <ion-icon name="person" *ngIf="!trip.driverPhotoUrl"></ion-icon>
+                  <div class="avatar-overlay">
+                    <ion-icon name="eye-outline"></ion-icon>
+                  </div>
+                </button>
+                <div class="driver-details">
+                  <span class="driver-name">{{ trip.driverName }}</span>
+                  <span class="driver-rating">
+                    <ion-icon name="star" color="warning"></ion-icon> Conductor
+                  </span>
+                </div>
+              </div>
               <div class="price-badge" *ngIf="trip.price != null">
                 <span class="currency">$</span>{{ trip.price | number:'1.2-2' }}
               </div>
             </div>
-          </div>
 
-          <div class="trip-route">
-            <div class="route-item">
-              <ion-icon name="location-outline" class="icon-origin"></ion-icon>
-              <span class="route-label">Origen:</span>
-              <span class="route-value">{{ placeMainLabel(trip.originZone) || 'No especificado' }}</span>
+            <!-- Route Block -->
+            <div class="route-block">
+              <div class="route-item">
+                <ion-icon name="location" class="icon-origin"></ion-icon>
+                <div class="route-info">
+                  <span class="route-label">Origen</span>
+                  <span class="route-value">{{ placeMainLabel(trip.originZone) || 'No especificado' }}</span>
+                </div>
+              </div>
+              <div class="route-item">
+                <ion-icon name="location" class="icon-dest"></ion-icon>
+                <div class="route-info">
+                  <span class="route-label">Destino</span>
+                  <span class="route-value">{{ placeMainLabel(trip.destinationZone) || 'No especificado' }}</span>
+                </div>
+              </div>
             </div>
 
-            <div class="route-item">
-              <ion-icon name="location-outline" class="icon-destination"></ion-icon>
-              <span class="route-label">Destino:</span>
-              <span class="route-value">{{ placeMainLabel(trip.destinationZone) || 'No especificado' }}</span>
-            </div>
-          </div>
-
-          <div class="trip-time">
-            <div class="time-item">
-              <ion-icon name="calendar-outline"></ion-icon>
-              <span>{{ trip.departureAt | date:'d/M/yyyy' }}</span>
-            </div>
-            <div class="time-item">
-              <ion-icon name="time-outline"></ion-icon>
-              <span>{{ trip.departureAt | date:'HH:mm' }}</span>
-            </div>
-          </div>
-
-          <div class="trip-notes" *ngIf="trip.notes">
-            <span class="notes-label">Notas:</span> {{ trip.notes }}
-          </div>
-
-          <div class="trip-actions">
-            <div class="availability">
-              <ion-icon name="people-outline"></ion-icon>
-              <span>{{ trip.seatsAvailable }} de {{ trip.seatsTotal }} disponibles</span>
+            <!-- Meta row -->
+            <div class="meta-row">
+              <div class="meta-item">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <span>{{ trip.departureAt | date:'d MMM yyyy' }}</span>
+              </div>
+              <div class="meta-item">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>{{ trip.departureAt | date:'HH:mm' }}</span>
+              </div>
+              <div class="meta-item">
+                <ion-icon name="people-outline"></ion-icon>
+                <span>{{ trip.seatsAvailable }} / {{ trip.seatsTotal }} cupos</span>
+              </div>
             </div>
 
-            <div class="action-buttons-column" style="display: flex; flex-direction: column; gap: 8px; align-items: stretch;">
-              <button class="btn-primary" (click)="openTrip(trip)">Ver detalle del viaje</button>
+            <div class="notes-block" *ngIf="trip.notes">
+              <ion-icon name="chatbubble-outline"></ion-icon>
+              <span>{{ trip.notes }}</span>
+            </div>
 
-              <!-- Solicitud pendiente -->
-              <div *ngIf="getRequestStatus(trip.id) === 'pending'"
-                style="display: flex; align-items: center; gap: 6px; background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 8px; padding: 8px 12px; color: #92400e; font-size: 13px; font-weight: 600;">
-                <ion-icon name="time-outline" style="font-size: 16px; color: #f59e0b; flex-shrink: 0;"></ion-icon>
-                Solicitud Pendiente
+            <!-- Card Actions -->
+            <div class="card-actions">
+              <!-- Status indicators -->
+              <div class="status-pill pending" *ngIf="getRequestStatus(trip.id) === 'pending'">
+                <ion-icon name="time-outline"></ion-icon>
+                Solicitud pendiente
+              </div>
+              <div class="status-pill accepted" *ngIf="getRequestStatus(trip.id) === 'accepted'">
+                <ion-icon name="checkmark-circle"></ion-icon>
+                Estás en este viaje
               </div>
 
-              <!-- Aceptado: check + cancelar cupo -->
-              <ng-container *ngIf="getRequestStatus(trip.id) === 'accepted'">
-                <div style="display: flex; align-items: center; gap: 6px; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 8px 12px; color: #166534; font-size: 13px; font-weight: 600;">
-                  <ion-icon name="checkmark-circle" style="font-size: 16px; color: #16a34a; flex-shrink: 0;"></ion-icon>
-                  Usted está en este viaje
-                </div>
-                <button style="border: 2px solid #ef4444; color: #ef4444; padding: 10px 12px; border-radius: 8px; font-weight: 700; background: transparent; cursor: pointer; font-size: 13px;" (click)="cancelMySpot(trip)">
-                  Cancelar mi cupo
-                </button>
-              </ng-container>
+              <button class="action-btn primary-btn" (click)="openTrip(trip)">
+                <ion-icon name="eye-outline"></ion-icon>
+                Ver detalle
+              </button>
+              <button class="action-btn danger-btn" *ngIf="getRequestStatus(trip.id) === 'accepted'"
+                (click)="cancelMySpot(trip)">
+                <ion-icon name="close-outline"></ion-icon>
+                Cancelar cupo
+              </button>
             </div>
+
           </div>
         </div>
-      </div>
 
-      <div class="loading-state" *ngIf="loading && trips.length === 0">
-        <ion-spinner name="crescent"></ion-spinner>
-        <p>Buscando viajes...</p>
-      </div>
-
-      <ion-infinite-scroll
-        threshold="120px"
-        [disabled]="loading || !hasMore"
-        (ionInfinite)="loadMore($event)"
-      >
-        <ion-infinite-scroll-content
-          loadingSpinner="crescent"
-          loadingText="Cargando más viajes..."
-        ></ion-infinite-scroll-content>
-      </ion-infinite-scroll>
+        <ion-infinite-scroll threshold="120px" [disabled]="loading || !hasMore" (ionInfinite)="loadMore($event)">
+          <ion-infinite-scroll-content loadingSpinner="crescent" loadingText="Cargando más viajes...">
+          </ion-infinite-scroll-content>
+        </ion-infinite-scroll>
+      </section>
     </ng-container>
 
+    <!-- ========================== MY TRIPS TAB ========================== -->
     <ng-container *ngIf="mainSegment === 'recent'">
-      <div class="recent-trips-section">
-        <div class="driver-trips-dashboard fade-in-up">
-          <div class="header-section">
-            <div class="title-row">
-              <div>
-                <h2 class="title">Mis Viajes</h2>
-                <p class="subtitle">Viajes recientes como pasajero</p>
-              </div>
-            </div>
-
-            <ion-segment [(ngModel)]="recentSegment" mode="ios" class="custom-segment">
-              <ion-segment-button value="active">
-                <ion-label>Solicitudes activas</ion-label>
-              </ion-segment-button>
-              <ion-segment-button value="completed">
-                <ion-label>Historial</ion-label>
-              </ion-segment-button>
-            </ion-segment>
+      <div class="section">
+        <div class="page-subheader">
+          <div>
+            <h3 class="subheader-title">Mis Viajes</h3>
+            <p class="subheader-subtitle">Viajes recientes como pasajero</p>
           </div>
-
-          <div class="empty-state modern-card" *ngIf="!recentLoading && recentFilteredTrips.length === 0">
-            <div class="empty-icon-box">
-              <ion-icon name="car-outline"></ion-icon>
-            </div>
-            <h3>No hay viajes</h3>
-            <p>No tienes viajes {{ recentSegment === 'active' ? 'activos' : 'en el historial' }}.</p>
+          <!-- Compact filter chip -->
+          <div class="filter-chip-wrapper">
+            <button class="filter-chip" [class.completed]="recentSegment === 'completed'"
+              (click)="recentSegment = recentSegment === 'active' ? 'completed' : 'active'">
+              <ion-icon [name]="recentSegment === 'active' ? 'time-outline' : 'checkmark-done-outline'"></ion-icon>
+              <span>{{ recentSegment === 'active' ? 'Activos' : 'Historial' }}</span>
+              <ion-icon name="chevron-down-outline" class="chevron"></ion-icon>
+            </button>
           </div>
-
-          <div class="modern-card trip-card" *ngFor="let trip of recentTrips">
-            <div class="trip-card-inner">
-              <div class="trip-header">
-                <div class="badges-group" style="display: flex; gap: 8px; align-items: center;">
-                  <!-- Estado del viaje -->
-                  <span class="status-badge trip-status-badge" [ngClass]="trip.status">
-                    {{ trip.status === 'open' ? 'Abierto' :
-                       trip.status === 'completed' ? 'Completado' :
-                       trip.status === 'closed' ? 'Cupos llenos' :
-                       trip.status === 'inprogress' ? 'En curso' : 'Cancelado' }}
-                  </span>
-                  <!-- Estado de la solicitud -->
-                  <span class="request-status-badge" [ngClass]="'req-' + getRecentRequestStatus(trip.id)"
-                    *ngIf="getRecentRequestStatus(trip.id) !== 'none'">
-                    <ng-container [ngSwitch]="getRecentRequestStatus(trip.id)">
-                      <ng-container *ngSwitchCase="'pending'">
-                        <ion-icon name="time-outline"></ion-icon> Pendiente
-                      </ng-container>
-                      <ng-container *ngSwitchCase="'accepted'">
-                        <ion-icon name="checkmark-circle"></ion-icon>
-                        {{ trip.status === 'inprogress' ? 'En curso' : 'Aceptado' }}
-                      </ng-container>
-                      <ng-container *ngSwitchCase="'rejected'">
-                        <ion-icon name="close-circle"></ion-icon> Rechazado
-                      </ng-container>
-                    </ng-container>
-                  </span>
-                </div>
-                <span class="date-text">{{ trip.departureAt | date:'dd MMM yyyy, HH:mm' }}</span>
-              </div>
-
-              <div class="trip-route">
-                <div class="route-item">
-                  <ion-icon name="location" class="icon-origin"></ion-icon>
-                  <div class="route-info">
-                    <span class="route-label">Origen</span>
-                    <span class="route-value">{{ trip.originZone }}</span>
-                  </div>
-                </div>
-
-                <div class="route-item">
-                  <ion-icon name="location" class="icon-destination"></ion-icon>
-                  <div class="route-info">
-                    <span class="route-label">Destino</span>
-                    <span class="route-value">{{ trip.destinationZone }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="trip-stats">
-                <div class="stat">
-                  <ion-icon name="people"></ion-icon>
-                  <span>{{ trip.seatsTotal - trip.seatsAvailable }} / {{ trip.seatsTotal }} Pasajeros</span>
-                </div>
-              </div>
-
-              <div class="trip-actions">
-                <!-- Boton de pago: aceptado, pago pendiente, viaje no completado -->
-                <button
-                  class="btn-pay-small"
-                  *ngIf="recentSegment === 'active' && getRecentRequestStatus(trip.id) === 'accepted' && getRecentPaymentStatus(trip.id) !== 'paid' && trip.status !== 'completed'"
-                  (click)="openTrip(trip)"
-                >
-                  <ion-icon name="wallet-outline"></ion-icon>
-                  Pago pendiente
-                </button>
-                <!-- Badge pago completado -->
-                <div
-                  class="payment-complete-badge"
-                  *ngIf="recentSegment === 'active' && getRecentRequestStatus(trip.id) === 'accepted' && getRecentPaymentStatus(trip.id) === 'paid' && trip.status !== 'completed'"
-                >
-                  <ion-icon name="checkmark-circle"></ion-icon>
-                  Pago completado
-                </div>
-                <!-- Boton cancelar: solo en solicitudes activas y si el viaje no inició -->
-                <button
-                  class="btn-cancel-small"
-                  *ngIf="recentSegment === 'active' && (getRecentRequestStatus(trip.id) === 'pending' || getRecentRequestStatus(trip.id) === 'accepted') && (trip.status === 'open' || trip.status === 'closed')"
-                  (click)="cancelRecentRequest(trip)"
-                >
-                  <ion-icon name="close-outline"></ion-icon>
-                  {{ getRecentRequestStatus(trip.id) === 'pending' ? 'Cancelar solicitud' : 'Cancelar cupo' }}
-                </button>
-                <ion-button fill="solid" class="details-btn" expand="block" (click)="openTrip(trip)">
-                  <ion-icon name="map" slot="start"></ion-icon>
-                  Ver detalle
-                </ion-button>
-              </div>
-            </div>
-          </div>
-
-          <div class="loading-state" *ngIf="recentLoading && recentTrips.length === 0">
-            <ion-spinner name="crescent"></ion-spinner>
-            <p>Cargando tus viajes...</p>
-          </div>
-
-          <ion-infinite-scroll
-            threshold="120px"
-            [disabled]="recentLoading || !recentHasMore"
-            (ionInfinite)="loadMoreRecent($event)"
-          >
-            <ion-infinite-scroll-content
-              loadingSpinner="crescent"
-              loadingText="Cargando más viajes..."
-            ></ion-infinite-scroll-content>
-          </ion-infinite-scroll>
         </div>
+
+        <!-- Loading -->
+        <div class="loading-state" *ngIf="recentLoading && recentTrips.length === 0">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Cargando tus viajes...</p>
+        </div>
+
+        <!-- Empty -->
+        <div class="empty-state" *ngIf="!recentLoading && recentFilteredTrips.length === 0">
+          <div class="empty-icon-box secondary">
+            <ion-icon name="car-outline"></ion-icon>
+          </div>
+          <h4>No hay viajes</h4>
+          <p>No tienes viajes {{ recentSegment === 'active' ? 'activos' : 'en el historial' }}.</p>
+        </div>
+
+        <div class="trips-grid" *ngIf="recentFilteredTrips.length > 0">
+          <div class="trip-card recent-card" *ngFor="let trip of recentTrips; let i = index"
+            [style.animation-delay]="i * 0.06 + 's'">
+
+            <!-- Card Top -->
+            <div class="card-top">
+              <div class="badges-group">
+                <span class="status-pill trip-status" [ngClass]="trip.status">
+                  {{ trip.status === 'open' ? 'Abierto' :
+                  trip.status === 'completed' ? 'Completado' :
+                  trip.status === 'closed' ? 'Cupos llenos' :
+                  trip.status === 'inprogress' ? 'En curso' : 'Cancelado' }}
+                </span>
+                <span class="status-pill req-status" [ngClass]="'req-' + getRecentRequestStatus(trip.id)"
+                  *ngIf="getRecentRequestStatus(trip.id) !== 'none'">
+                  <ng-container [ngSwitch]="getRecentRequestStatus(trip.id)">
+                    <ng-container *ngSwitchCase="'pending'">
+                      <ion-icon name="time-outline"></ion-icon> Pendiente
+                    </ng-container>
+                    <ng-container *ngSwitchCase="'accepted'">
+                      <ion-icon name="checkmark-circle"></ion-icon>
+                      {{ trip.status === 'inprogress' ? 'En curso' : 'Aceptado' }}
+                    </ng-container>
+                    <ng-container *ngSwitchCase="'rejected'">
+                      <ion-icon name="close-circle"></ion-icon> Rechazado
+                    </ng-container>
+                  </ng-container>
+                </span>
+              </div>
+              <span class="date-text">{{ trip.departureAt | date:'dd MMM yyyy, HH:mm' }}</span>
+            </div>
+
+            <!-- Route Block -->
+            <div class="route-block">
+              <div class="route-item">
+                <ion-icon name="location" class="icon-origin"></ion-icon>
+                <div class="route-info">
+                  <span class="route-label">Origen</span>
+                  <span class="route-value">{{ trip.originZone }}</span>
+                </div>
+              </div>
+              <div class="route-item">
+                <ion-icon name="location" class="icon-dest"></ion-icon>
+                <div class="route-info">
+                  <span class="route-label">Destino</span>
+                  <span class="route-value">{{ trip.destinationZone }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="meta-row">
+              <div class="meta-item">
+                <ion-icon name="people"></ion-icon>
+                <span>{{ trip.seatsTotal - trip.seatsAvailable }} / {{ trip.seatsTotal }} Pasajeros</span>
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="card-actions">
+              <!-- Payment pending -->
+              <button class="action-btn pay-btn"
+                *ngIf="recentSegment === 'active' && getRecentRequestStatus(trip.id) === 'accepted' && getRecentPaymentStatus(trip.id) !== 'paid' && trip.status !== 'completed'"
+                (click)="openTrip(trip)">
+                <ion-icon name="wallet-outline"></ion-icon>
+                Pago pendiente
+              </button>
+
+              <!-- Payment done badge -->
+              <div class="payment-complete-badge"
+                *ngIf="recentSegment === 'active' && getRecentRequestStatus(trip.id) === 'accepted' && getRecentPaymentStatus(trip.id) === 'paid' && trip.status !== 'completed'">
+                <ion-icon name="checkmark-circle"></ion-icon>
+                Pago completado
+              </div>
+
+              <!-- Cancel -->
+              <button class="action-btn danger-btn"
+                *ngIf="recentSegment === 'active' && (getRecentRequestStatus(trip.id) === 'pending' || getRecentRequestStatus(trip.id) === 'accepted') && (trip.status === 'open' || trip.status === 'closed')"
+                (click)="cancelRecentRequest(trip)">
+                <ion-icon name="close-outline"></ion-icon>
+                {{ getRecentRequestStatus(trip.id) === 'pending' ? 'Cancelar solicitud' : 'Cancelar cupo' }}
+              </button>
+
+              <!-- Details -->
+              <button class="action-btn primary-btn" (click)="openTrip(trip)">
+                <ion-icon name="map-outline"></ion-icon>
+                Ver detalle
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <ion-infinite-scroll threshold="120px" [disabled]="recentLoading || !recentHasMore"
+          (ionInfinite)="loadMoreRecent($event)">
+          <ion-infinite-scroll-content loadingSpinner="crescent" loadingText="Cargando más viajes...">
+          </ion-infinite-scroll-content>
+        </ion-infinite-scroll>
       </div>
     </ng-container>
 
