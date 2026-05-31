@@ -595,8 +595,14 @@
     --background: #0f172a;
   }
 
-  .header-section .title {
-    color: #f8fafc;
+  .header-section {
+    .btn-back-top {
+      color: #f8fafc;
+    }
+    
+    .title {
+      color: #f8fafc;
+    }
   }
 
   .modern-card {

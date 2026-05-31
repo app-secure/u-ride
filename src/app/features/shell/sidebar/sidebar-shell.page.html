@@ -67,7 +67,7 @@
                         <span class="badge-new" *ngIf="!n.read">Nueva</span>
                       </div>
                       <p>{{ n.message }}</p>
-                      <span>{{ n.createdAt | date:'shortTime':deviceTimeZone }}</span>
+                      <span>{{ isSameNotificationDay(n.createdAt) ? (n.createdAt | date:'shortTime':deviceTimeZone) : (n.createdAt | date:'shortDate':deviceTimeZone) }}</span>
                     </div>
 
                   </div>
@@ -157,7 +157,7 @@
           <button (click)="goToNotificationsHistory()">
             <ion-icon name="notifications-outline"></ion-icon>
             Notificaciones
-            <ion-badge *ngIf="unreadNotifs > 0" color="danger" style="margin-left: auto;">
+            <ion-badge *ngIf="unreadNotifs > 0" class="notif-badge">
               {{ unreadNotifs }}
             </ion-badge>
           </button>

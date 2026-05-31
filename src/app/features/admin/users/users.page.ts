@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
@@ -21,6 +21,7 @@ export class AdminUsersPage {
   private readonly authSvc = inject(AuthService);
   private readonly usersSvc = inject(UsersService);
   private readonly toastCtrl = inject(ToastController);
+  private readonly alertCtrl = inject(AlertController);
 
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
 
@@ -91,30 +92,54 @@ export class AdminUsersPage {
 
   async toggleDisabled(u: UserProfile): Promise<void> {
     const next = !u.disabled;
-    const msg = next
-      ? `¿Desactivar a "${u.displayName || u.email}"?`
-      : `¿Activar a "${u.displayName || u.email}"?`;
-    if (!confirm(msg)) return;
-    try {
-      await firstValueFrom(this.usersSvc.toggleDisabled(u.uid));
-      this.refresh$.next();
-      if (this.detailUser?.uid === u.uid) this.closeDetail();
-      await this.toast(next ? 'Usuario desactivado.' : 'Usuario activado.', next ? 'warning' : 'success');
-    } catch {
-      await this.toast('Error al cambiar estado.', 'danger');
-    }
+    const actionStr = next ? 'Desactivar' : 'Activar';
+    const alert = await this.alertCtrl.create({
+      header: `${actionStr} usuario`,
+      message: `¿Confirmas que deseas ${actionStr.toLowerCase()} a "${u.displayName || u.email}"?`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Confirmar',
+          role: next ? 'destructive' : 'confirm',
+          handler: async () => {
+            try {
+              await firstValueFrom(this.usersSvc.toggleDisabled(u.uid));
+              this.refresh$.next();
+              if (this.detailUser?.uid === u.uid) this.closeDetail();
+              await this.toast(next ? 'Usuario desactivado.' : 'Usuario activado.', next ? 'warning' : 'success');
+            } catch {
+              await this.toast('Error al cambiar estado.', 'danger');
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   async unsuspend(u: UserProfile): Promise<void> {
-    if (!confirm(`¿Levantar la suspensión de "${u.displayName || u.email}"?`)) return;
-    try {
-      await firstValueFrom(this.usersSvc.unsuspendUser(u.uid));
-      this.refresh$.next();
-      if (this.detailUser?.uid === u.uid) this.closeDetail();
-      await this.toast('Suspensión levantada.', 'success');
-    } catch {
-      await this.toast('Error al levantar la suspensión.', 'danger');
-    }
+    const alert = await this.alertCtrl.create({
+      header: 'Levantar suspensión',
+      message: `¿Confirmas que deseas levantar la suspensión de "${u.displayName || u.email}"?`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Confirmar',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await firstValueFrom(this.usersSvc.unsuspendUser(u.uid));
+              this.refresh$.next();
+              if (this.detailUser?.uid === u.uid) this.closeDetail();
+              await this.toast('Suspensión levantada.', 'success');
+            } catch {
+              await this.toast('Error al levantar la suspensión.', 'danger');
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   private async toast(message: string, color: 'success' | 'medium' | 'warning' | 'danger'): Promise<void> {

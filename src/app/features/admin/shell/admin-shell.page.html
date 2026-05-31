@@ -57,7 +57,7 @@
                         <span class="badge-new" *ngIf="!n.read">Nueva</span>
                       </div>
                       <p>{{ n.message }}</p>
-                      <span>{{ n.createdAt | date:'shortTime':deviceTimeZone }}</span>
+                      <span>{{ isSameNotificationDay(n.createdAt) ? (n.createdAt | date:'shortTime':deviceTimeZone) : (n.createdAt | date:'shortDate':deviceTimeZone) }}</span>
                     </div>
                   </div>
                 </div>

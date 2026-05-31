@@ -65,7 +65,10 @@
 
   @media (prefers-color-scheme: dark) {
     --color: #e2e8f0 !important;
-    ion-icon { color: #e2e8f0 !important; }
+
+    ion-icon {
+      color: #e2e8f0 !important;
+    }
   }
 }
 
@@ -83,7 +86,10 @@
 
 .logout-btn {
   --color: #ef4444 !important;
-  ion-icon { color: #ef4444 !important; }
+
+  ion-icon {
+    color: #ef4444 !important;
+  }
 }
 
 /* ============ USER CHIP ============ */
@@ -104,7 +110,6 @@
   }
 
   &:hover {
-    background: #eef2f7 !important;
     transform: translateY(-1px);
   }
 
@@ -125,7 +130,9 @@
       object-fit: cover;
     }
 
-    ion-icon { font-size: 18px; }
+    ion-icon {
+      font-size: 18px;
+    }
   }
 
   .user-info {
@@ -139,7 +146,7 @@
     }
 
     .role-label {
-      font-size: 10px;
+      font-size: 11px;
       color: #6366f1 !important;
       font-weight: 600;
     }
@@ -201,7 +208,8 @@
     @media (prefers-color-scheme: dark) {
       color: #94a3b8;
 
-      &:hover, &.active {
+      &:hover,
+      &.active {
         color: #818cf8;
         border-bottom-color: #818cf8;
         background: rgba(99, 102, 241, 0.1);
@@ -256,8 +264,14 @@
     color: #94a3b8;
     gap: 8px;
 
-    ion-icon { font-size: 32px; }
-    p { margin: 0; font-size: 13px; }
+    ion-icon {
+      font-size: 32px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 13px;
+    }
   }
 }
 
@@ -274,7 +288,7 @@
   cursor: pointer;
 
   &:hover {
-    background: rgba(15, 23, 42, 0.06);
+    background: rgba(15, 23, 42, 0.08);
   }
 
   .icon {
@@ -364,8 +378,15 @@
       overflow: hidden;
       flex-shrink: 0;
 
-      img { width: 100%; height: 100%; object-fit: cover; }
-      ion-icon { font-size: 24px; }
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      ion-icon {
+        font-size: 24px;
+      }
     }
 
     h4 {
@@ -401,20 +422,41 @@
       text-align: left;
       transition: background 0.15s;
 
-      ion-icon { font-size: 18px; color: #6366f1; }
+      ion-icon {
+        font-size: 18px;
+        color: #6366f1;
+      }
 
-      &:hover { background: #f1f5f9; }
+      &:hover {
+        background: #f1f5f9;
+      }
 
       &.danger {
         color: #ef4444;
-        ion-icon { color: #ef4444; }
-        &:hover { background: #fef2f2; }
+
+        ion-icon {
+          color: #ef4444;
+        }
+
+        &:hover {
+          background: #fef2f2;
+        }
       }
 
       @media (prefers-color-scheme: dark) {
         color: #e2e8f0;
-        &:hover { background: #1e293b; }
-        &.danger { color: #f87171; ion-icon { color: #f87171; } }
+
+        &:hover {
+          background: #1e293b;
+        }
+
+        &.danger {
+          color: #f87171;
+
+          ion-icon {
+            color: #f87171;
+          }
+        }
       }
     }
   }
@@ -430,4 +472,20 @@ ion-popover.notif-popover-overlay {
 ion-popover::part(content) {
   border-radius: 18px;
   overflow: hidden;
+}
+
+/* Popover content is rendered in an overlay; emit a global hover rule. */
+::ng-deep .notif-popover-overlay .notif-item:hover {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  ::ng-deep .notif-popover-overlay .notif-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .header-left .system-name,
+  .user-chip .user-info .name {
+    color: #f8fafc !important;
+  }
 }

@@ -34,7 +34,7 @@ export class CreateReportPage {
   readonly reportedUser$: Observable<UserProfile | undefined> = this.usersService.profile$(this.reportedUid);
 
   readonly form = this.fb.nonNullable.group({
-    reason: ['', [Validators.required, Validators.minLength(10)]],
+    reason: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(500)]],
     evidenceUrl: [''],
   });
 
@@ -42,6 +42,10 @@ export class CreateReportPage {
   uploading = false;
   evidencePreview: string | null = null;
   selectedFile: File | Blob | null = null;
+
+  goBack(): void {
+    this.location.back();
+  }
 
   async takePhoto(): Promise<void> {
     await this.captureImage(CameraSource.Camera);

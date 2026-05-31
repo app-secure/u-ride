@@ -9,6 +9,11 @@
   --background: rgba(255, 255, 255, 0.9) !important;
   backdrop-filter: blur(18px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+  @media (prefers-color-scheme: dark) {
+    --background: rgba(15, 23, 42, 0.96) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
 }
 
 /* LEFT */
@@ -42,11 +47,26 @@
   position: relative;
   --color: #0f172a !important;
   color: #0f172a !important;
-  /* Force light mode color in all themes */
 
   ion-icon {
     font-size: 22px;
     color: #0f172a !important;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    --color: #e2e8f0 !important;
+
+    ion-icon {
+      color: #e2e8f0 !important;
+    }
+  }
+}
+
+.logout-btn {
+  --color: #ef4444 !important;
+
+  ion-icon {
+    color: #ef4444 !important;
   }
 }
 
@@ -78,6 +98,15 @@
   cursor: pointer;
   transition: 0.2s;
 
+  @media (prefers-color-scheme: dark) {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+
+    &:hover {
+      background: #1e293b !important;
+    }
+  }
+
   &:hover {
     background: #eef2f7;
     transform: translateY(-1px);
@@ -87,8 +116,8 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #0f172a;
-    color: white;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: rgb(15, 23, 42, 0.96);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -121,8 +150,8 @@
 
     .role {
       font-size: 11px;
-      color: #64748b !important;
-      /* Force light mode color in all themes */
+      color: #6366f1 !important;
+      font-weight: 600;
     }
   }
 
@@ -152,6 +181,18 @@
   border-bottom: 1px solid #f1f5f9;
 }
 
+.notif-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  color: white;
+}
+
 .notif-list {
   max-height: 380px;
   overflow-y: auto;
@@ -169,6 +210,11 @@ ion-popover.notif-popover-overlay {
 ion-popover::part(content) {
   border-radius: 18px;
   overflow: hidden;
+}
+
+/* Popover content is rendered in an overlay; emit a global hover rule. */
+::ng-deep .notif-popover-overlay .notif-item:hover {
+  background: rgba(15, 23, 42, 0.08);
 }
 
 .notif-header h3 {
@@ -268,6 +314,15 @@ ion-popover::part(content) {
 @media (prefers-color-scheme: dark) {
   .notif-item:hover {
     background: rgba(255, 255, 255, 0.08);
+  }
+
+  ::ng-deep .notif-popover-overlay .notif-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .header-left .system-name,
+  .user-chip .user-info .email {
+    color: #f8fafc !important;
   }
 }
 

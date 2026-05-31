@@ -85,6 +85,25 @@ export class AdminShellPage implements OnDestroy {
       this.refreshNotifs$.next();
     }
     await this.popoverCtrl.dismiss().catch(() => {});
+
+    if (this.isReportNotification(notif)) {
+      await this.router.navigateByUrl('/app/admin/reports');
+    }
+  }
+
+  isSameNotificationDay(createdAt: string): boolean {
+    const notificationDate = new Date(createdAt);
+    if (Number.isNaN(notificationDate.getTime())) {
+      return false;
+    }
+
+    const today = new Date();
+    return notificationDate.toDateString() === today.toDateString();
+  }
+
+  private isReportNotification(notif: AppNotification): boolean {
+    const content = `${notif.title ?? ''} ${notif.message ?? ''}`.toLowerCase();
+    return content.includes('reporte') || content.includes('report');
   }
 
   async switchToPassenger(): Promise<void> {

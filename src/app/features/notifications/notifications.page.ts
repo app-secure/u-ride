@@ -110,6 +110,11 @@ export class NotificationsPage {
       this.refresh$.next();
     }
 
+    if (this.isReportNotification(notif)) {
+      await this.router.navigateByUrl('/app/admin/reports');
+      return;
+    }
+
     if (notif.type === 'trip_completed') {
       await this.router.navigate(['/app/rate', notif.tripId, notif.driverUid]);
       return;
@@ -126,5 +131,10 @@ export class NotificationsPage {
       this.roleState.setRole('passenger');
     }
     await this.router.navigate(['/app/trips', notif.tripId]);
+  }
+
+  private isReportNotification(notif: AppNotification): boolean {
+    const content = `${notif.title ?? ''} ${notif.message ?? ''}`.toLowerCase();
+    return content.includes('reporte') || content.includes('report');
   }
 }
