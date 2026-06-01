@@ -114,26 +114,14 @@
           </div>
         </div>
 
-        <!-- Active trip actions -->
+        <!-- Active trip actions: primary action only -->
         <div class="card-actions" *ngIf="segment === 'active'">
-
-          <ng-container *ngIf="trip.status === 'open'">
+          <ng-container *ngIf="trip.status === 'open' || trip.status === 'closed'">
             <button class="action-btn success-btn" (click)="$event.stopPropagation(); startTrip(trip)">
               <ion-icon name="play-outline"></ion-icon>
               Iniciar Viaje
             </button>
-            <div class="action-row-2">
-              <button class="action-btn outline-btn" (click)="$event.stopPropagation(); editTrip(trip)">
-                <ion-icon name="create-outline"></ion-icon>
-                Editar
-              </button>
-              <button class="action-btn danger-btn" (click)="$event.stopPropagation(); deleteTrip(trip)">
-                <ion-icon name="trash-outline"></ion-icon>
-                Eliminar
-              </button>
-            </div>
           </ng-container>
-
           <ng-container *ngIf="trip.status === 'inprogress'">
             <button class="action-btn warning-btn" (click)="$event.stopPropagation(); finishTrip(trip)">
               <ion-icon name="checkmark-done-outline"></ion-icon>

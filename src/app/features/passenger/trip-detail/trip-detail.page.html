@@ -28,14 +28,14 @@
                 <span>Volver</span>
               </button>
 
+              <!-- Driver: 3-dot menu opens action sheet -->
               <button
-                class="btn btn-outline"
+                class="btn-icon-menu"
                 *ngIf="isDriver"
-                (click)="openRequests()"
-                style="padding: 8px 14px; font-size: 15px; border-radius: 10px; margin: 0; display: inline-flex; align-items: center; gap: 6px; font-weight: 700;"
+                (click)="openDriverMenu()"
+                aria-label="Más opciones"
               >
-                <ion-icon name="list-outline"></ion-icon>
-                Solicitudes
+                <ion-icon name="ellipsis-vertical"></ion-icon>
               </button>
             </div>
 
@@ -127,6 +127,19 @@
                 <span>Se acepta: <strong>{{ trip.paymentMethod }}</strong></span>
               </div>
 
+              <!-- ============ DRIVER: VER SOLICITUDES (central action) ============ -->
+              <button
+                class="btn-requests-main"
+                *ngIf="isDriver && (trip.status === 'open' || trip.status === 'closed' || trip.status === 'inprogress')"
+                (click)="openRequests()"
+              >
+                <div class="requests-btn-left">
+                  <ion-icon name="people-outline"></ion-icon>
+                  <span>Ver Solicitudes</span>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="requests-chevron"></ion-icon>
+              </button>
+
               <!-- VEHICLE -->
               <div class="vehicle-info" *ngIf="trip.vehicle">
                 <h4>Vehículo</h4>
@@ -150,10 +163,9 @@
 
                 <!-- Compartir trayecto -->
                 <button
-                  class="btn btn-black"
+                  class="btn-share-outline"
                   *ngIf="canShareTrip"
                   (click)="toggleSharingTrip()"
-                  style="width: 100%; margin-top: 16px;"
                 >
                   <ion-icon [name]="sharingTrip ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
                   {{ sharingTrip ? 'Detener compartir ubicación' : 'Compartir mi ubicación' }}
@@ -254,6 +266,16 @@
                 Pagar ahora
               </button>
 
+              <!-- Cancelar solicitud o cupo (pasajero) -->
+              <button
+                class="btn btn-danger-outline"
+                *ngIf="!isDriver && (myRequestStatus === 'pending' || myRequestStatus === 'accepted') && (trip.status === 'open' || trip.status === 'closed')"
+                (click)="cancelMyRequest()"
+              >
+                <ion-icon name="close-outline"></ion-icon>
+                {{ myRequestStatus === 'pending' ? 'Cancelar solicitud' : 'Cancelar cupo' }}
+              </button>
+
               <!-- Pago completado -->
               <div class="payment-done-badge" *ngIf="!isDriver && myRequestStatus === 'accepted' && myPaymentStatus === 'paid'">
                 <ion-icon name="checkmark-circle"></ion-icon>
@@ -280,14 +302,14 @@
                 Reportar conductor
               </button>
 
-              <!-- DANGER: Cancelar -->
+              <!-- DANGER: Eliminar/Cancelar (conductor) -->
               <button
-                class="btn btn-danger"
-                *ngIf="canCancelTrip"
-                (click)="cancelTrip()"
+                class="btn btn-danger-outline"
+                *ngIf="isDriver && (trip.status === 'open' || trip.status === 'closed')"
+                (click)="hasConfirmedPassengers ? cancelTrip() : deleteTrip()"
               >
-                <ion-icon name="close-circle-outline"></ion-icon>
-                Cancelar viaje
+                <ion-icon [name]="hasConfirmedPassengers ? 'close-circle-outline' : 'trash-outline'"></ion-icon>
+                {{ hasConfirmedPassengers ? 'Cancelar viaje' : 'Eliminar viaje' }}
               </button>
 
             </div>

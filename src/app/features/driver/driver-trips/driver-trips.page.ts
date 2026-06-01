@@ -104,8 +104,8 @@ export class DriverTripsPage {
   private applyFilterAndReset(): void {
     this.filteredTrips = (this.allTrips ?? []).filter(t =>
       this.segment === 'active'
-        ? (t.status === 'open' || t.status === 'inprogress')
-        : (t.status === 'completed' || t.status === 'cancelled' || t.status === 'closed')
+        ? (t.status === 'open' || t.status === 'closed' || t.status === 'inprogress')
+        : (t.status === 'completed' || t.status === 'cancelled')
     );
     this.trips = [];
     this.nextIndex = 0;

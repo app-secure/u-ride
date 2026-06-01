@@ -356,11 +356,10 @@ export class TripsPage {
     this.router.navigate(['/app/trips', trip.id]);
   }
 
-  viewDriverProfile(trip: Trip): void {
-    this.router.navigate(['/app/driver-profile', trip.driverUid], {
-      queryParams: { tripId: trip.id },
-    });
+  payTrip(trip: Trip): void {
+    this.router.navigate(['/app/trips', trip.id], { queryParams: { openPayment: 'true' } });
   }
+
 
   placeMainLabel(full: string | null | undefined): string {
     const s = String(full ?? '').trim();
@@ -402,99 +401,5 @@ export class TripsPage {
     }
   }
 
-  async cancelMySpot(trip: Trip): Promise<void> {
-    if (!this.currentUid) return;
-    const mapEntry = this.myRequestsMap[trip.id];
-    if (!mapEntry?.requestId) return;
 
-    const alert = await this.alertCtrl.create({
-      header: 'Cancelar cupo',
-      message: '¿Estás seguro que deseas cancelar tu cupo en este viaje?',
-      buttons: [
-        { text: 'No', role: 'cancel' },
-        {
-          text: 'Sí, cancelar',
-          role: 'destructive',
-          handler: async () => {
-            try {
-              await this.tripRequestsSvc.cancelRequest(mapEntry.requestId).toPromise();
-              const updated = { ...this.myRequestsMap };
-              delete updated[trip.id];
-              this.myRequestsMap = updated;
-              this.resetAndLoad();
-              const toast = await this.toastCtrl.create({
-                message: 'Has liberado tu cupo exitosamente.',
-                duration: 2000,
-                color: 'success',
-                position: 'top'
-              });
-              await toast.present();
-            } catch (e) {
-              const toast = await this.toastCtrl.create({
-                message: 'Error al cancelar el cupo.',
-                duration: 2000,
-                color: 'danger',
-                position: 'top'
-              });
-              await toast.present();
-            }
-          }
-        }
-      ]
-    });
-    await alert.present();
-  }
-
-  /** Cancela una solicitud desde la lista de "Mis Viajes" (pending o accepted) */
-  async cancelRecentRequest(trip: Trip): Promise<void> {
-    if (!this.currentUid) return;
-    const mapEntry = this.recentRequestsMap[trip.id];
-    if (!mapEntry?.requestId) return;
-
-    const isPending = mapEntry.status === 'pending';
-    const header = isPending ? 'Cancelar solicitud' : 'Cancelar cupo';
-    const message = isPending
-      ? '¿Deseas cancelar tu solicitud de viaje? El conductor no la recibirá.'
-      : '¿Estás seguro que deseas cancelar tu cupo en este viaje?';
-
-    const alert = await this.alertCtrl.create({
-      header,
-      message,
-      buttons: [
-        { text: 'No', role: 'cancel' },
-        {
-          text: 'Sí, cancelar',
-          role: 'destructive',
-          handler: async () => {
-            try {
-              await this.tripRequestsSvc.cancelRequest(mapEntry.requestId).toPromise();
-              // Eliminar del mapa y recargar la lista
-              const updated = { ...this.recentRequestsMap };
-              delete updated[trip.id];
-              this.recentRequestsMap = updated;
-              // Recargar la lista de mis viajes
-              this.recentLoaded = false;
-              void this.loadRecentTrips();
-              const toast = await this.toastCtrl.create({
-                message: isPending ? 'Solicitud cancelada.' : 'Has liberado tu cupo exitosamente.',
-                duration: 2000,
-                color: 'success',
-                position: 'top'
-              });
-              await toast.present();
-            } catch (e) {
-              const toast = await this.toastCtrl.create({
-                message: 'Error al cancelar. Intenta de nuevo.',
-                duration: 2000,
-                color: 'danger',
-                position: 'top'
-              });
-              await toast.present();
-            }
-          }
-        }
-      ]
-    });
-    await alert.present();
-  }
 }
