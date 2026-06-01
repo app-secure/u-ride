@@ -549,6 +549,8 @@
   overflow: hidden;
   animation: fadeInUp 0.4s ease backwards;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  outline: none;
 
   &:hover {
     transform: translateY(-3px);
