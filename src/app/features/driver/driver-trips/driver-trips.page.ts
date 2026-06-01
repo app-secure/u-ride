@@ -247,4 +247,11 @@ export class DriverTripsPage {
     });
     await toast.present();
   }
+
+  placeMainLabel(full: string | null | undefined): string {
+    const s = String(full ?? '').trim();
+    if (!s) return '';
+    const first = s.split(',')[0]?.trim();
+    return first || s;
+  }
 }

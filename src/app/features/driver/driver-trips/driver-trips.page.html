@@ -90,14 +90,14 @@
             <ion-icon name="location" class="icon-origin"></ion-icon>
             <div class="route-info">
               <span class="route-label">Origen</span>
-              <span class="route-value">{{ trip.originZone }}</span>
+              <span class="route-value">{{ placeMainLabel(trip.originZone) || 'No especificado' }}</span>
             </div>
           </div>
           <div class="route-item">
             <ion-icon name="location" class="icon-dest"></ion-icon>
             <div class="route-info">
               <span class="route-label">Destino</span>
-              <span class="route-value">{{ trip.destinationZone }}</span>
+              <span class="route-value">{{ placeMainLabel(trip.destinationZone) || 'No especificado' }}</span>
             </div>
           </div>
         </div>
