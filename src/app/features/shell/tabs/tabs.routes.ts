@@ -75,6 +75,10 @@ export const TABS_ROUTES: Routes = [
         path: 'users',
         loadComponent: () => import('../../admin/users/users.page').then(m => m.AdminUsersPage),
       },
+      {
+        path: 'appeals',
+        loadComponent: () => import('../../admin/appeals/appeals.page').then(m => m.AppealsPage),
+      },
     ],
   },
 ];

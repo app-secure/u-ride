@@ -34,6 +34,13 @@ export class AdminUsersPage {
     ),
   );
 
+  handleRefresh(event: any): void {
+    this.refresh$.next();
+    setTimeout(() => {
+      event.target.complete();
+    }, 1000);
+  }
+
   // Detail Modal
   detailUser: UserProfile | null = null;
   showDetailModal = false;

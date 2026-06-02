@@ -1,11 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 
 import { UsersService } from '../../../core/services/users.service';
 import { AuthService } from '../../../core/auth/auth.service';
+import { ReportsService } from '../../../core/services/reports.service';
 import type { UserProfile } from '../../../core/models/user-profile.model';
 
 @Component({
@@ -21,12 +22,16 @@ export class DriverPublicProfilePage {
   private readonly location = inject(Location);
   private readonly users = inject(UsersService);
   private readonly auth = inject(AuthService);
+  private readonly reports = inject(ReportsService);
+  private readonly toastCtrl = inject(ToastController);
 
   driverUid = '';
   tripId: string | null = null;
   profile: UserProfile | null = null;
   loading = true;
   currentUid: string | null = null;
+  /** Indica si el usuario ya envió un reporte para este viaje */
+  hasReported = false;
 
   constructor() {
     this.driverUid = this.route.snapshot.paramMap.get('driverUid') ?? '';
@@ -48,9 +53,18 @@ export class DriverPublicProfilePage {
       this.profile = await firstValueFrom(this.users.getProfile(this.driverUid));
     } catch {
       this.profile = null;
-    } finally {
-      this.loading = false;
     }
+
+    // Verificar si ya reportó este viaje para mantener el estado del botón
+    if (this.tripId) {
+      try {
+        this.hasReported = await firstValueFrom(this.reports.hasReportedForTrip(this.tripId));
+      } catch {
+        this.hasReported = false;
+      }
+    }
+
+    this.loading = false;
   }
 
   get ratingAvg(): number {
@@ -66,7 +80,39 @@ export class DriverPublicProfilePage {
     return Array.from({ length: 5 }, (_, i) => i < avg ? 1 : 0);
   }
 
-  reportDriver(): void {
+  async reportDriver(): Promise<void> {
+    // Si ya reportó, mostrar toast y no navegar
+    if (this.hasReported) {
+      const toast = await this.toastCtrl.create({
+        message: 'Ya hemos recibido tu reporte y lo estamos revisando.',
+        duration: 3000,
+        position: 'top',
+        color: 'warning',
+      });
+      await toast.present();
+      return;
+    }
+
+    // Verificar en la API si ya reportó (segunda verificación por si el estado local no está sincronizado)
+    if (this.tripId) {
+      try {
+        const yaReporto = await firstValueFrom(this.reports.hasReportedForTrip(this.tripId));
+        if (yaReporto) {
+          this.hasReported = true;
+          const toast = await this.toastCtrl.create({
+            message: 'Ya hemos recibido tu reporte y lo estamos revisando.',
+            duration: 3000,
+            position: 'top',
+            color: 'warning',
+          });
+          await toast.present();
+          return;
+        }
+      } catch {
+        // Si falla la verificación, dejar pasar al formulario
+      }
+    }
+
     const params: any = {};
     if (this.tripId) params['tripId'] = this.tripId;
     this.router.navigate(['/app/report', this.driverUid], { queryParams: params });

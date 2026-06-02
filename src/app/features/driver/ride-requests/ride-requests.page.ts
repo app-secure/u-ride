@@ -133,19 +133,13 @@ export class RideRequestsPage {
         if (req.status !== 'accepted') continue;
         const passengerUid = req.passengerUid;
 
+        // ── Rated: check desde campo del request o fallback a API ──
         const ratedFromRequest = req.driverRated === true;
-        const reportedFromRequest = req.driverReported === true;
-
         if (newRatedMap[passengerUid] !== ratedFromRequest) {
           newRatedMap[passengerUid] = ratedFromRequest;
           changed = true;
         }
-        if (newReportedMap[passengerUid] !== reportedFromRequest) {
-          newReportedMap[passengerUid] = reportedFromRequest;
-          changed = true;
-        }
 
-        // Fallback: check reviews via API
         if (!ratedFromRequest) {
           try {
             const reviews = await firstValueFrom(this.reviews.getByTrip(this.tripId));
@@ -154,9 +148,20 @@ export class RideRequestsPage {
               newRatedMap[passengerUid] = true;
               changed = true;
             }
-          } catch {
-            // Ignorar
-          }
+          } catch { /* Ignorar */ }
+        }
+
+        // ── Reported: verificar en la API por pasajero específico ──
+        if (!newReportedMap[passengerUid]) {
+          try {
+            const reported = await firstValueFrom(
+              this.reports.hasReportedForTrip(this.tripId, passengerUid)
+            );
+            if (reported !== newReportedMap[passengerUid]) {
+              newReportedMap[passengerUid] = reported;
+              changed = true;
+            }
+          } catch { /* Ignorar */ }
         }
       }
 
@@ -208,18 +213,26 @@ export class RideRequestsPage {
     this.router.navigate(['/app/rate', this.tripId, passengerUid]);
   }
 
-  reportPassengerPrompt(passengerUid: string, passengerName: string): void {
-    if (this.reportedMap[passengerUid]) {
-      this.toastCtrl.create({
-        message: 'Este pasajero ya fue reportado para este viaje.',
-        duration: 2000,
-        position: 'top',
-        color: 'medium',
-      }).then(toast => toast.present());
-      return;
-    }
-
+  async reportPassengerPrompt(passengerUid: string): Promise<void> {
     if (!this.currentUid || !this.tripId) return;
+
+    // Verificar en la API si ya envió un reporte para este pasajero en este viaje
+    try {
+      const yaReporto = await firstValueFrom(this.reports.hasReportedForTrip(this.tripId));
+      if (yaReporto || this.reportedMap[passengerUid]) {
+        const toast = await this.toastCtrl.create({
+          message: 'Ya hemos recibido tu reporte y lo estamos revisando.',
+          duration: 3000,
+          position: 'top',
+          color: 'warning',
+        });
+        await toast.present();
+        this.reportedMap = { ...this.reportedMap, [passengerUid]: true };
+        return;
+      }
+    } catch {
+      // Si falla la verificación, dejar pasar al formulario
+    }
 
     this.router.navigate(['/app/report', passengerUid], { queryParams: { tripId: this.tripId } });
   }

@@ -130,6 +130,19 @@
   .suspension-content {
     strong { color: #7f1d1d; font-size: 14px; font-weight: 700; }
     p { color: #991b1b; font-size: 13px; margin: 4px 0 0; line-height: 1.4; }
+    .appeal-btn {
+      margin-top: 10px;
+      background: #b91c1c;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      &:hover { background: #991b1b; }
+    }
   }
 
   @media (prefers-color-scheme: dark) {
@@ -139,6 +152,10 @@
     .suspension-content {
       strong { color: #fca5a5; }
       p { color: #fecaca; }
+      .appeal-btn {
+        background: #ef4444;
+        &:hover { background: #dc2626; }
+      }
     }
   }
 }
@@ -300,6 +317,7 @@
     &.completed   { background: #f0fdf4; color: #22c55e; }
     &.closed      { background: #f8fafc; color: #64748b; }
     &.cancelled   { background: #fef2f2; color: #ef4444; }
+    &.expired     { background: #f3f4f6; color: #4b5563; }
   }
 }
 
@@ -434,10 +452,14 @@
     &:hover { background: linear-gradient(135deg, #059669, #047857); }
   }
 
-  &.warning-btn {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-    &:hover { background: linear-gradient(135deg, #d97706, #b45309); }
+  &.outline-warning-btn {
+    background: #d97706; color: white; border: none;
+    box-shadow: 0 4px 10px rgba(217, 119, 6, 0.25);
+    &:hover { background: #b45309; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(217, 119, 6, 0.3); }
+    @media (prefers-color-scheme: dark) {
+      background: #f59e0b; color: white;
+      &:hover { background: #d97706; }
+    }
   }
 
   &.danger-btn {
@@ -454,16 +476,12 @@
   }
 
   &.outline-btn {
-    background: white;
-    color: #6366f1;
-    border: 1.5px solid #c7d2fe;
-    &:hover { background: #eef2ff; }
-
+    background: #6366f1; color: white; border: none;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
+    &:hover { background: #4f46e5; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(99, 102, 241, 0.3); }
     @media (prefers-color-scheme: dark) {
-      background: #1e293b;
-      border-color: #6366f1;
-      color: #818cf8;
-      &:hover { background: rgba(99, 102, 241, 0.1); }
+      background: #818cf8; color: white;
+      &:hover { background: #6366f1; }
     }
   }
 }

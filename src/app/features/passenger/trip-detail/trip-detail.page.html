@@ -258,7 +258,7 @@
 
               <!-- PASO 2: Pagar (solo cuando el conductor aceptó, el pago está pendiente y el viaje no ha terminado) -->
               <button
-                class="btn btn-pay"
+                class="btn btn-outline"
                 *ngIf="!isDriver && myRequestStatus === 'accepted' && myPaymentStatus !== 'paid' && trip.status !== 'completed' && trip.status !== 'cancelled'"
                 (click)="openPaymentModal()"
               >

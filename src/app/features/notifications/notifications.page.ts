@@ -47,7 +47,7 @@ import type { AppNotification } from '../../core/models/notification.model';
             >
               <ion-icon
                 slot="start"
-                [name]="n.type === 'trip_completed' ? 'star' : 'checkmark-circle'"
+                [name]="n.type === 'trip_completed' ? 'star' : (n.type === 'trip_reminder' ? 'time' : 'checkmark-circle')"
               ></ion-icon>
 
               <ion-label>

@@ -70,7 +70,7 @@
                 *ngIf="!(reportedMap[req.passengerUid] || req.driverReported)"
                 color="danger"
                 fill="outline"
-                (click)="reportPassengerPrompt(req.passengerUid, req.passengerName)"
+                (click)="reportPassengerPrompt(req.passengerUid)"
                 onKeyDown=""
               >
                 <ion-icon name="warning" slot="start"></ion-icon> Reportar

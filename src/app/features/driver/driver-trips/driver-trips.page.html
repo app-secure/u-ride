@@ -28,6 +28,7 @@
       <div class="suspension-content">
         <strong>Cuenta suspendida</strong>
         <p>Tu cuenta está suspendida hasta el {{ suspendedUntilDate | date:'longDate':'':'es-EC' }}. Algunas funciones están deshabilitadas.</p>
+        <button class="appeal-btn" (click)="openAppealAlert()">Apelar Suspensión</button>
       </div>
     </div>
 
@@ -78,7 +79,8 @@
               {{ trip.status === 'open' ? 'Activo' :
                  trip.status === 'inprogress' ? 'En curso' :
                  trip.status === 'completed' ? 'Completado' :
-                 trip.status === 'closed' ? 'Cupos llenos' : 'Cancelado' }}
+                 trip.status === 'closed' ? 'Cupos llenos' : 
+                 trip.status === 'expired' ? 'Expirado' : 'Cancelado' }}
             </span>
           </div>
           <span class="date-text">{{ trip.departureAt | date:'dd MMM yyyy, HH:mm' }}</span>
@@ -117,13 +119,13 @@
         <!-- Active trip actions: primary action only -->
         <div class="card-actions" *ngIf="segment === 'active'">
           <ng-container *ngIf="trip.status === 'open' || trip.status === 'closed'">
-            <button class="action-btn success-btn" (click)="$event.stopPropagation(); startTrip(trip)">
+            <button class="action-btn outline-btn" (click)="$event.stopPropagation(); startTrip(trip)">
               <ion-icon name="play-outline"></ion-icon>
               Iniciar Viaje
             </button>
           </ng-container>
           <ng-container *ngIf="trip.status === 'inprogress'">
-            <button class="action-btn warning-btn" (click)="$event.stopPropagation(); finishTrip(trip)">
+            <button class="action-btn outline-warning-btn" (click)="$event.stopPropagation(); finishTrip(trip)">
               <ion-icon name="checkmark-done-outline"></ion-icon>
               Finalizar Viaje
             </button>

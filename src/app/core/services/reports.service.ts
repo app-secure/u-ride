@@ -38,6 +38,17 @@ export class ReportsService {
   }
 
   /**
+   * Verifica si el usuario autenticado ya reportó un viaje específico.
+   * Si se provee reportedUid, verifica específicamente contra ese usuario reportado.
+   * GET /api/reports/has-reported?tripId={guid}&reportedUid={uid}
+   */
+  hasReportedForTrip(tripId: string, reportedUid?: string): Observable<boolean> {
+    const params: any = { tripId };
+    if (reportedUid) params['reportedUid'] = reportedUid;
+    return this.http.get<boolean>(`${this.base}/has-reported`, { params });
+  }
+
+  /**
    * Sube una evidencia directamente a Cloudinary.
    */
   uploadEvidence(file: File | Blob): Observable<{ evidenceUrl: string }> {

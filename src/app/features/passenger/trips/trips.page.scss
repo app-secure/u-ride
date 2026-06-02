@@ -94,6 +94,20 @@
 
     strong { color: #7f1d1d; font-size: 14px; font-weight: 700; }
     p { color: #991b1b; font-size: 13px; margin: 0; line-height: 1.4; }
+    .appeal-btn {
+      margin-top: 10px;
+      background: #b91c1c;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      align-self: flex-start;
+      &:hover { background: #991b1b; }
+    }
   }
 
   @media (prefers-color-scheme: dark) {
@@ -103,6 +117,10 @@
     .suspension-content {
       strong { color: #fca5a5; }
       p { color: #fecaca; }
+      .appeal-btn {
+        background: #ef4444;
+        &:hover { background: #dc2626; }
+      }
     }
   }
 }
@@ -657,13 +675,14 @@
 
 /* Price badge */
 .price-badge {
-  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-  color: #059669;
+  background: #6366f1;
+  color: white;
   font-weight: 800;
   font-size: 17px;
   padding: 7px 12px;
   border-radius: 10px;
-  border: 1px solid #a7f3d0;
+  border: none;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
   display: flex;
   align-items: center;
   flex-shrink: 0;
@@ -671,9 +690,8 @@
   .currency { font-size: 12px; margin-right: 1px; }
 
   @media (prefers-color-scheme: dark) {
-    background: linear-gradient(135deg, #065f46, #047857);
-    color: #86efac;
-    border-color: #059669;
+    background: #818cf8;
+    color: white;
   }
 }
 
@@ -834,19 +852,25 @@
     }
   }
 
-  &.pay-btn {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    border: none;
-    animation: pulse-green 2s infinite;
-
-    &:hover { background: linear-gradient(135deg, #059669, #047857); }
+  &.outline-btn {
+    background: #6366f1; color: white; border: none;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
+    &:hover { background: #4f46e5; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(99, 102, 241, 0.3); }
+    @media (prefers-color-scheme: dark) {
+      background: #818cf8; color: white;
+      &:hover { background: #6366f1; }
+    }
   }
-}
 
-@keyframes pulse-green {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
-  50%       { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  &.outline-warning-btn {
+    background: #d97706; color: white; border: none;
+    box-shadow: 0 4px 10px rgba(217, 119, 6, 0.25);
+    &:hover { background: #b45309; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(217, 119, 6, 0.3); }
+    @media (prefers-color-scheme: dark) {
+      background: #f59e0b; color: white;
+      &:hover { background: #d97706; }
+    }
+  }
 }
 
 /* ---- Status Pills ---- */
@@ -885,6 +909,7 @@
     &.cancelled  { background: #fef2f2; color: #ef4444; }
     &.inprogress { background: #fffbeb; color: #d97706; }
     &.closed     { background: #f8fafc; color: #64748b; }
+    &.expired    { background: #f3f4f6; color: #4b5563; }
   }
 
   &.req-status {

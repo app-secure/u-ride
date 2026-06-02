@@ -12,6 +12,7 @@
         <strong>Cuenta suspendida</strong>
         <p>Tu cuenta está suspendida hasta el {{ suspendedUntilDate | date:'longDate':'':'es-EC' }}. Algunas funciones
           están deshabilitadas.</p>
+        <button class="appeal-btn" (click)="openAppealAlert()">Apelar Suspensión</button>
       </div>
     </div>
 
@@ -159,11 +160,11 @@
             <!-- Card Actions -->
             <div class="card-actions" *ngIf="getRequestStatus(trip.id) !== 'none'">
               <!-- Status indicators -->
-              <div class="status-pill pending" *ngIf="getRequestStatus(trip.id) === 'pending'">
+              <div class="action-btn outline-warning-btn" *ngIf="getRequestStatus(trip.id) === 'pending'" style="cursor: default">
                 <ion-icon name="time-outline"></ion-icon>
                 Solicitud pendiente
               </div>
-              <div class="status-pill accepted" *ngIf="getRequestStatus(trip.id) === 'accepted'">
+              <div class="action-btn outline-btn" *ngIf="getRequestStatus(trip.id) === 'accepted'" style="cursor: default">
                 <ion-icon name="checkmark-circle"></ion-icon>
                 Estás en este viaje
               </div>
@@ -225,7 +226,8 @@
                   {{ trip.status === 'open' ? 'Abierto' :
                   trip.status === 'completed' ? 'Completado' :
                   trip.status === 'closed' ? 'Cupos llenos' :
-                  trip.status === 'inprogress' ? 'En curso' : 'Cancelado' }}
+                  trip.status === 'inprogress' ? 'En curso' : 
+                  trip.status === 'expired' ? 'Expirado' : 'Cancelado' }}
                 </span>
                 <span class="status-pill req-status" [ngClass]="'req-' + getRecentRequestStatus(trip.id)"
                   *ngIf="getRecentRequestStatus(trip.id) !== 'none'">
@@ -277,7 +279,7 @@
             <div class="card-actions"
               *ngIf="recentSegment === 'active' && getRecentRequestStatus(trip.id) !== 'none'">
               <!-- Payment pending -->
-              <button class="action-btn pay-btn"
+              <button class="action-btn outline-btn"
                 *ngIf="getRecentRequestStatus(trip.id) === 'accepted' && getRecentPaymentStatus(trip.id) !== 'paid' && trip.status !== 'completed'"
                 (click)="$event.stopPropagation(); payTrip(trip)">
                 <ion-icon name="wallet-outline"></ion-icon>

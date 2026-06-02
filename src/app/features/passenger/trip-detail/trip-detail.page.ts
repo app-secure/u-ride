@@ -233,18 +233,22 @@ export class TripDetailPage {
   private async checkDriverActionStatus(): Promise<void> {
     if (!this.trip || !this.currentUid || this.isDriver) return;
 
-    // Solo verificar si el viaje está finalizado
+    // Verificar si ya reportó este viaje (aplica para cualquier estado del viaje)
+    try {
+      this.reportedDriver = await firstValueFrom(this.reports.hasReportedForTrip(this.tripId));
+    } catch {
+      this.reportedDriver = false;
+    }
+
+    // Las verificaciones de calificación solo aplican para viajes completados
     if (this.trip.status !== 'completed') return;
 
-    // Check via reviews API
     try {
       const reviews = await firstValueFrom(this.reviews.getByTrip(this.tripId));
       this.ratedDriver = reviews.some(r => r.fromUid === this.currentUid && r.toUid === this.trip!.driverUid);
     } catch {
       this.ratedDriver = false;
     }
-    // reportedDriver: no hay endpoint para verificar, dejamos false
-    this.reportedDriver = false;
   }
 
   private initMapIfReady(): void {
@@ -949,10 +953,28 @@ export class TripDetailPage {
     }, 150);
   }
 
-  reportDriver(): void {
+  async reportDriver(): Promise<void> {
     if (!this.trip) return;
     const tId = this.trip.id;
     const dUid = this.trip.driverUid;
+
+    // Verificar si ya envió un reporte para este viaje
+    try {
+      const yaReporto = await firstValueFrom(this.reports.hasReportedForTrip(tId));
+      if (yaReporto) {
+        const toast = await this.toastCtrl.create({
+          message: 'Ya hemos recibido tu reporte y lo estamos revisando.',
+          duration: 3000,
+          position: 'top',
+          color: 'warning',
+        });
+        await toast.present();
+        this.reportedDriver = true;
+        return;
+      }
+    } catch {
+      // Si falla la verificación, dejar pasar al formulario
+    }
 
     this.isModalOpen = false;
     setTimeout(() => {

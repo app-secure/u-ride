@@ -1,15 +1,10 @@
-<ion-header [translucent]="true" class="dpro-header">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <button class="dpro-back-btn" (click)="goBack()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </button>
-    </ion-buttons>
-    <ion-title>Perfil del conductor</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true" class="dpro-content">
+  <div class="header-section">
+    <button type="button" class="btn-back-top" (click)="goBack()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+      Volver
+    </button>
+  </div>
 
   <!-- LOADING -->
   <div class="dpro-loading" *ngIf="loading">
@@ -123,9 +118,13 @@
 
     <!-- ── Report Button ── -->
     <div class="dpro-actions" *ngIf="currentUid && currentUid !== driverUid">
-      <button class="dpro-report-btn" (click)="reportDriver()">
-        <ion-icon name="flag-outline"></ion-icon>
-        Reportar a este conductor
+      <button
+        class="dpro-report-btn"
+        [class.dpro-report-btn--reported]="hasReported"
+        (click)="reportDriver()"
+      >
+        <ion-icon [name]="hasReported ? 'checkmark-circle-outline' : 'flag-outline'"></ion-icon>
+        {{ hasReported ? 'Reporte enviado' : 'Reportar a este conductor' }}
       </button>
     </div>
 

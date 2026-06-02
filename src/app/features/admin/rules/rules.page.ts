@@ -26,6 +26,13 @@ export class AdminRulesPage {
     map(items => items.sort((a, b) => a.text.localeCompare(b.text))),
   );
 
+  handleRefresh(event: any): void {
+    this.refresh$.next();
+    setTimeout(() => {
+      event.target.complete();
+    }, 1000);
+  }
+
   async createRule(): Promise<void> {
     const alert = await this.alertCtrl.create({
       header: 'Nueva regla',

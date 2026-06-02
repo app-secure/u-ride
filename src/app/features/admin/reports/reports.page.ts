@@ -73,6 +73,13 @@ export class ReportsPage {
     map(reports => reports.filter(r => r.status === 'resolved'))
   );
 
+  handleRefresh(event: any): void {
+    this.refresh$.next();
+    setTimeout(() => {
+      event.target.complete();
+    }, 1000);
+  }
+
   openEvidenceModal(report: ReportWithNames): void {
     this.selectedReport = report;
     this.showEvidenceModal = true;

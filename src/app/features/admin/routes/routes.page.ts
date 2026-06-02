@@ -26,6 +26,13 @@ export class AdminRoutesPage {
     map(items => items.sort((a, b) => a.name.localeCompare(b.name))),
   );
 
+  handleRefresh(event: any): void {
+    this.refresh$.next();
+    setTimeout(() => {
+      event.target.complete();
+    }, 1000);
+  }
+
   async createRoute(): Promise<void> {
     const alert = await this.alertCtrl.create({
       header: 'Nueva ruta',

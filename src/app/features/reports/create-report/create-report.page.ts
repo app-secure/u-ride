@@ -127,6 +127,21 @@ export class CreateReportPage {
       await toast.present();
 
       this.location.back();
+    } catch (err: any) {
+      // 409 = ya reportó este viaje
+      const msg = err?.status === 409
+        ? 'Ya hemos recibido tu reporte y lo estamos revisando.'
+        : 'Ocurrió un error al enviar el reporte. Intenta de nuevo.';
+
+      const toast = await this.toastCtrl.create({
+        message: msg,
+        duration: 3000,
+        position: 'top',
+        color: err?.status === 409 ? 'warning' : 'danger',
+      });
+      await toast.present();
+
+      if (err?.status === 409) this.location.back();
     } finally {
       this.saving = false;
     }
