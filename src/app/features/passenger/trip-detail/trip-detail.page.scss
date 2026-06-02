@@ -413,17 +413,17 @@ ion-content.sheet-content {
 }
 
 .trip-price-tag {
-  background: #10b981;
+  background: #6366f1;
   color: white;
   padding: 10px 18px;
   border-radius: 14px;
   font-weight: 800;
   font-size: 18px;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
   letter-spacing: -0.3px;
 
   @media (prefers-color-scheme: dark) {
-    background: #059669;
+    background: #818cf8;
   }
 }
 
@@ -963,8 +963,8 @@ ion-content.sheet-content {
   }
 }
 
-/* GREEN PAY BUTTON */
-.btn-outline {
+/* INDIGO PAY BUTTON */
+.btn-pay {
   background: #6366f1; color: white; border: none;
   box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
   &:hover { background: #4f46e5; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(99, 102, 241, 0.3); }
@@ -1112,6 +1112,27 @@ ion-content.sheet-content {
     color: #94a3b8;
     &:hover { background: #334155; }
   }
+
+  &.btn-report-icon {
+    color: #ef4444;
+    background: #fef2f2;
+    border-color: #fecaca;
+    &:hover { background: #fee2e2; }
+
+    @media (prefers-color-scheme: dark) {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      &:hover { background: rgba(239, 68, 68, 0.25); }
+    }
+  }
+}
+
+.passenger-state-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 /* REQUESTS MAIN BUTTON */

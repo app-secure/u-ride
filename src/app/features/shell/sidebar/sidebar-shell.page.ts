@@ -217,10 +217,15 @@ export class SidebarShellPage implements OnDestroy {
   }, 800);
 }
 
- async goToProfile(): Promise<void> {
-  await this.popoverCtrl.dismiss().catch(() => {});
-  await this.router.navigateByUrl('/app/profile');
-}
+  async goToAdmin(): Promise<void> {
+    await this.popoverCtrl.dismiss().catch(() => {});
+    await this.router.navigateByUrl('/app/admin');
+  }
+
+  async goToProfile(): Promise<void> {
+    await this.popoverCtrl.dismiss().catch(() => {});
+    await this.router.navigateByUrl('/app/profile');
+  }
 
   async goToVehicles(): Promise<void> {
     await this.popoverCtrl.dismiss().catch(() => {});

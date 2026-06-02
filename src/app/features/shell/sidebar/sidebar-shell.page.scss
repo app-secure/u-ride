@@ -32,6 +32,10 @@
     font-weight: 900;
     font-size: 18px;
     color: #0f172a !important;
+
+    @media (max-width: 480px) {
+      display: none;
+    }
   }
 }
 
@@ -40,6 +44,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
+
+  @media (max-width: 480px) {
+    gap: 4px;
+  }
 }
 
 /* ICON BUTTON */
@@ -112,6 +120,11 @@
     transform: translateY(-1px);
   }
 
+  @media (max-width: 480px) {
+    gap: 6px;
+    padding: 4px 8px;
+  }
+
   .avatar {
     width: 32px;
     height: 32px;
@@ -123,6 +136,7 @@
     justify-content: center;
     font-weight: 700;
     overflow: hidden;
+    flex-shrink: 0;
 
     img {
       width: 100%;
@@ -140,24 +154,36 @@
   .user-info {
     display: flex;
     flex-direction: column;
+    max-width: 110px;
+
+    @media (max-width: 480px) {
+      max-width: 85px;
+    }
 
     .email {
       font-size: 12px;
       font-weight: 600;
       color: #0f172a !important;
       /* Force light mode color in all themes */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .role {
       font-size: 11px;
       color: #6366f1 !important;
       font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 
   >ion-icon {
     color: #0f172a !important;
     /* Force light mode color in all themes */
+    flex-shrink: 0;
   }
 }
 

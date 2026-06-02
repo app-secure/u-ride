@@ -28,15 +28,27 @@
                 <span>Volver</span>
               </button>
 
-              <!-- Driver: 3-dot menu opens action sheet -->
-              <button
-                class="btn-icon-menu"
-                *ngIf="isDriver"
-                (click)="openDriverMenu()"
-                aria-label="Más opciones"
-              >
-                <ion-icon name="ellipsis-vertical"></ion-icon>
-              </button>
+              <div style="display: flex; gap: 8px;">
+                <!-- Passenger: Report driver -->
+                <button
+                  class="btn-icon-menu btn-report-icon"
+                  *ngIf="!isDriver && myRequestStatus !== 'none' && !reportedDriver"
+                  (click)="reportDriver()"
+                  aria-label="Reportar conductor"
+                >
+                  <ion-icon name="flag"></ion-icon>
+                </button>
+
+                <!-- Driver: 3-dot menu opens action sheet -->
+                <button
+                  class="btn-icon-menu"
+                  *ngIf="isDriver"
+                  (click)="openDriverMenu()"
+                  aria-label="Más opciones"
+                >
+                  <ion-icon name="ellipsis-vertical"></ion-icon>
+                </button>
+              </div>
             </div>
 
             <div class="trip-header-section">
@@ -125,6 +137,54 @@
               <div class="payment-method-info" *ngIf="trip.paymentMethod">
                 <ion-icon name="wallet-outline"></ion-icon>
                 <span>Se acepta: <strong>{{ trip.paymentMethod }}</strong></span>
+              </div>
+
+              <!-- ================= STATES AND PASSENGER ACTIONS ================= -->
+              <div class="passenger-state-actions" *ngIf="!isDriver && myRequestStatus !== 'none'">
+                
+                <!-- PENDING -->
+                <div class="pending-message" *ngIf="myRequestStatus === 'pending'">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span>Solicitud enviada. Esperando respuesta del conductor...</span>
+                </div>
+
+                <!-- ACCEPTED (Not Paid yet) -->
+                <div class="accepted-message" *ngIf="myRequestStatus === 'accepted' && myPaymentStatus !== 'paid'">
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                  <span>¡El conductor aceptó tu solicitud!</span>
+                </div>
+
+                <!-- REJECTED -->
+                <div class="rejected-message" *ngIf="myRequestStatus === 'rejected'">
+                  <ion-icon name="close-circle"></ion-icon>
+                  <span>El conductor no pudo aceptar tu solicitud.</span>
+                </div>
+
+                <!-- PAID (Replaces ACCEPTED) -->
+                <div class="payment-done-badge" *ngIf="myRequestStatus === 'accepted' && myPaymentStatus === 'paid'">
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                  <span>Pago completado</span>
+                </div>
+
+                <!-- PASO 2: Pagar -->
+                <button
+                  class="btn btn-pay mt-2"
+                  *ngIf="myRequestStatus === 'accepted' && myPaymentStatus !== 'paid' && trip.status !== 'completed' && trip.status !== 'cancelled'"
+                  (click)="openPaymentModal()"
+                >
+                  <ion-icon name="wallet-outline"></ion-icon>
+                  Pagar ahora
+                </button>
+
+                <!-- WARNING: Calificar -->
+                <button
+                  class="btn btn-warning mt-2"
+                  *ngIf="canRateDriver && !ratedDriver"
+                  (click)="rateDriver()"
+                >
+                  <ion-icon name="star-outline"></ion-icon>
+                  Calificar conductor
+                </button>
               </div>
 
               <!-- ============ DRIVER: VER SOLICITUDES (central action) ============ -->
@@ -219,28 +279,7 @@
 
 </div>
 
-            <!-- ================= STATES ================= -->
-            <div class="state-box">
 
-              <!-- PENDING -->
-              <div class="pending-message" *ngIf="myRequestStatus === 'pending'">
-                <ion-icon name="time-outline"></ion-icon>
-                <span>Solicitud enviada. Esperando respuesta del conductor...</span>
-              </div>
-
-              <!-- ACCEPTED -->
-              <div class="accepted-message" *ngIf="myRequestStatus === 'accepted'">
-                <ion-icon name="checkmark-circle"></ion-icon>
-                <span>¡El conductor aceptó tu solicitud!</span>
-              </div>
-
-              <!-- REJECTED -->
-              <div class="rejected-message" *ngIf="myRequestStatus === 'rejected'">
-                <ion-icon name="close-circle"></ion-icon>
-                <span>El conductor no pudo aceptar tu solicitud.</span>
-              </div>
-
-            </div>
 
             <!-- ================= ACTIONS ================= -->
             <div class="action-buttons">
@@ -256,16 +295,6 @@
                 Solicitar unirme
               </button>
 
-              <!-- PASO 2: Pagar (solo cuando el conductor aceptó, el pago está pendiente y el viaje no ha terminado) -->
-              <button
-                class="btn btn-outline"
-                *ngIf="!isDriver && myRequestStatus === 'accepted' && myPaymentStatus !== 'paid' && trip.status !== 'completed' && trip.status !== 'cancelled'"
-                (click)="openPaymentModal()"
-              >
-                <ion-icon name="wallet-outline"></ion-icon>
-                Pagar ahora
-              </button>
-
               <!-- Cancelar solicitud o cupo (pasajero) -->
               <button
                 class="btn btn-danger-outline"
@@ -274,32 +303,6 @@
               >
                 <ion-icon name="close-outline"></ion-icon>
                 {{ myRequestStatus === 'pending' ? 'Cancelar solicitud' : 'Cancelar cupo' }}
-              </button>
-
-              <!-- Pago completado -->
-              <div class="payment-done-badge" *ngIf="!isDriver && myRequestStatus === 'accepted' && myPaymentStatus === 'paid'">
-                <ion-icon name="checkmark-circle"></ion-icon>
-                <span>Pago completado</span>
-              </div>
-
-              <!-- WARNING: Calificar -->
-              <button
-                class="btn btn-warning"
-                *ngIf="canRateDriver && !ratedDriver"
-                (click)="rateDriver()"
-              >
-                <ion-icon name="star-outline"></ion-icon>
-                Calificar conductor
-              </button>
-
-              <!-- REPORT: Reportar conductor (solo pasajero, solo si hay solicitud activa o viaje completado) -->
-              <button
-                class="btn btn-report"
-                *ngIf="!isDriver && myRequestStatus !== 'none' && !reportedDriver"
-                (click)="reportDriver()"
-              >
-                <ion-icon name="flag-outline"></ion-icon>
-                Reportar conductor
               </button>
 
               <!-- DANGER: Eliminar/Cancelar (conductor) -->
