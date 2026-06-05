@@ -1,0 +1,269 @@
+.admin-page-content {
+  --background: #f1f5f9;
+
+  @media (prefers-color-scheme: dark) {
+    --background: #0f172a;
+  }
+}
+
+.admin-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============ PAGE HEADER ============ */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding: 0 4px;
+
+  .page-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.5px;
+    @media (prefers-color-scheme: dark) { color: #f8fafc; }
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+  }
+}
+
+/* ============ APPEALS GRID ============ */
+.appeals-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
+}
+
+/* ============ APPEAL CARD ============ */
+.appeal-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  animation: fadeInUp 0.4s ease backwards;
+  transition: transform 0.15s, box-shadow 0.15s;
+
+  &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
+
+  @media (prefers-color-scheme: dark) {
+    background: #1e293b;
+    border-color: #334155;
+  }
+}
+
+.appeal-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  
+  @media (prefers-color-scheme: dark) {
+    border-color: #334155;
+  }
+}
+
+.appeal-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e2e8f0, #f1f5f9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid #f1f5f9;
+
+  ion-icon { font-size: 24px; color: #64748b; }
+
+  @media (prefers-color-scheme: dark) {
+    background: #334155;
+    border-color: #475569;
+    ion-icon { color: #94a3b8; }
+  }
+}
+
+.appeal-info {
+  flex: 1;
+  min-width: 0;
+
+  .name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 2px;
+  }
+
+  .display-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+    @media (prefers-color-scheme: dark) { color: #e2e8f0; }
+  }
+
+  .user-email {
+    font-size: 13px;
+    color: #64748b;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .appeal-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+
+    .tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      
+      &.pending { background: #fffbeb; color: #d97706; }
+      &.approved { background: #dcfce7; color: #16a34a; }
+      &.rejected { background: #fef2f2; color: #ef4444; }
+      &.muted { background: #f1f5f9; color: #64748b; font-weight: 600; text-transform: none; letter-spacing: 0; }
+      
+      @media (prefers-color-scheme: dark) {
+        &.pending { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        &.approved { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+        &.rejected { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        &.muted { background: #334155; color: #cbd5e1; }
+      }
+    }
+  }
+}
+
+.appeal-details {
+  padding: 16px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .detail-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+  }
+
+  .reason-box, .admin-notes-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-style: italic;
+    color: #334155;
+    font-size: 13px;
+    line-height: 1.5;
+
+    @media (prefers-color-scheme: dark) {
+      background: #0f172a;
+      border-color: #334155;
+      color: #cbd5e1;
+    }
+  }
+}
+
+.mt-2 { margin-top: 10px; }
+
+/* ============ QUICK ACTIONS ============ */
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+
+  @media (prefers-color-scheme: dark) {
+    background: #1a2234;
+    border-color: #334155;
+  }
+}
+
+.quick-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  flex: 1;
+
+  ion-icon { font-size: 16px; }
+
+  &.danger   { background: #fef2f2; color: #ef4444; &:hover { background: #fee2e2; } }
+  &.success  { background: #f0fdf4; color: #16a34a; &:hover { background: #dcfce7; } }
+  
+  @media (prefers-color-scheme: dark) {
+    &.danger { background: rgba(239, 68, 68, 0.15); color: #f87171; &:hover { background: rgba(239, 68, 68, 0.25); } }
+    &.success { background: rgba(34, 197, 94, 0.15); color: #4ade80; &:hover { background: rgba(34, 197, 94, 0.25); } }
+  }
+}
+
+/* ============ EMPTY STATE & LOADING ============ */
+.empty-state, .loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+  background: white;
+  border-radius: 16px;
+  border: 1.5px dashed #cbd5e1;
+
+  .empty-icon-box {
+    width: 72px; height: 72px;
+    background: #ede9fe;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+    ion-icon { font-size: 36px; color: #6366f1; }
+  }
+
+  h4 { font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 8px 0; }
+  p  { font-size: 14px; color: #64748b; margin: 0; }
+
+  ion-spinner { margin-bottom: 16px; color: #6366f1; }
+
+  @media (prefers-color-scheme: dark) {
+    background: #1e293b;
+    border-color: #334155;
+    h4 { color: #f8fafc; }
+    .empty-icon-box { background: rgba(99, 102, 241, 0.2); }
+  }
+}

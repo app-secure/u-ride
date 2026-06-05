@@ -10,6 +10,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { UsersService } from '../../../core/services/users.service';
 import type { Trip } from '../../../core/models/trip.model';
 import type { UserProfile } from '../../../core/models/user-profile.model';
+import { AppealService } from '../../../core/services/appeal.service';
 
 @Component({
   selector: 'app-driver-trips',
@@ -25,6 +26,7 @@ export class DriverTripsPage {
   private readonly router = inject(Router);
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
+  private readonly appealSvc = inject(AppealService);
 
   userProfile: UserProfile | null = null;
 
@@ -60,6 +62,40 @@ export class DriverTripsPage {
     this.usersSvc.myProfile$.subscribe(profile => {
       this.userProfile = profile;
     });
+  }
+
+  async openAppealAlert() {
+    const alert = await this.alertCtrl.create({
+      header: 'Apelar Suspensión',
+      message: 'Por favor, explica detalladamente por qué consideras que tu cuenta debe ser desbloqueada.',
+      inputs: [
+        {
+          name: 'reason',
+          type: 'textarea',
+          placeholder: 'Escribe tus motivos aquí...'
+        }
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Enviar Apelación',
+          handler: async (data) => {
+            if (!data.reason?.trim()) {
+              this.presentToast('El motivo es obligatorio.', 'warning');
+              return false;
+            }
+            try {
+              await this.appealSvc.createAppeal(data.reason).toPromise();
+              this.presentToast('Apelación enviada correctamente. Será revisada por un administrador.', 'success');
+            } catch (e: any) {
+              this.presentToast(e.error?.message || 'Error al enviar la apelación.', 'danger');
+            }
+            return true;
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   ionViewWillEnter(): void {
@@ -104,8 +140,8 @@ export class DriverTripsPage {
   private applyFilterAndReset(): void {
     this.filteredTrips = (this.allTrips ?? []).filter(t =>
       this.segment === 'active'
-        ? (t.status === 'open' || t.status === 'inprogress')
-        : (t.status === 'completed' || t.status === 'cancelled' || t.status === 'closed')
+        ? (t.status === 'open' || t.status === 'closed' || t.status === 'inprogress')
+        : (t.status === 'completed' || t.status === 'cancelled' || t.status === 'expired')
     );
     this.trips = [];
     this.nextIndex = 0;
@@ -246,5 +282,12 @@ export class DriverTripsPage {
       position: 'top'
     });
     await toast.present();
+  }
+
+  placeMainLabel(full: string | null | undefined): string {
+    const s = String(full ?? '').trim();
+    if (!s) return '';
+    const first = s.split(',')[0]?.trim();
+    return first || s;
   }
 }

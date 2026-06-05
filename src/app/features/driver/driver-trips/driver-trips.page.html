@@ -28,6 +28,7 @@
       <div class="suspension-content">
         <strong>Cuenta suspendida</strong>
         <p>Tu cuenta está suspendida hasta el {{ suspendedUntilDate | date:'longDate':'':'es-EC' }}. Algunas funciones están deshabilitadas.</p>
+        <button class="appeal-btn" (click)="openAppealAlert()">Apelar Suspensión</button>
       </div>
     </div>
 
@@ -68,7 +69,8 @@
 
     <!-- Trips Grid -->
     <div class="trips-grid" *ngIf="trips.length > 0">
-      <div class="trip-card" *ngFor="let trip of trips; let i = index" [style.animation-delay]="i * 0.06 + 's'">
+      <div class="trip-card" *ngFor="let trip of trips; let i = index" [style.animation-delay]="i * 0.06 + 's'"
+        role="button" tabindex="0" (click)="goToTripMap(trip)" (keydown.enter)="goToTripMap(trip)">
 
         <!-- Card Top: status + date -->
         <div class="card-top">
@@ -77,7 +79,8 @@
               {{ trip.status === 'open' ? 'Activo' :
                  trip.status === 'inprogress' ? 'En curso' :
                  trip.status === 'completed' ? 'Completado' :
-                 trip.status === 'closed' ? 'Cupos llenos' : 'Cancelado' }}
+                 trip.status === 'closed' ? 'Cupos llenos' : 
+                 trip.status === 'expired' ? 'Expirado' : 'Cancelado' }}
             </span>
           </div>
           <span class="date-text">{{ trip.departureAt | date:'dd MMM yyyy, HH:mm' }}</span>
@@ -89,14 +92,14 @@
             <ion-icon name="location" class="icon-origin"></ion-icon>
             <div class="route-info">
               <span class="route-label">Origen</span>
-              <span class="route-value">{{ trip.originZone }}</span>
+              <span class="route-value">{{ placeMainLabel(trip.originZone) || 'No especificado' }}</span>
             </div>
           </div>
           <div class="route-item">
             <ion-icon name="location" class="icon-dest"></ion-icon>
             <div class="route-info">
               <span class="route-label">Destino</span>
-              <span class="route-value">{{ trip.destinationZone }}</span>
+              <span class="route-value">{{ placeMainLabel(trip.destinationZone) || 'No especificado' }}</span>
             </div>
           </div>
         </div>
@@ -113,32 +116,16 @@
           </div>
         </div>
 
-        <!-- Active trip actions -->
+        <!-- Active trip actions: primary action only -->
         <div class="card-actions" *ngIf="segment === 'active'">
-          <button class="action-btn primary-btn" (click)="goToTripMap(trip)">
-            <ion-icon name="map-outline"></ion-icon>
-            Detalle del viaje
-          </button>
-
-          <ng-container *ngIf="trip.status === 'open'">
-            <button class="action-btn success-btn" (click)="startTrip(trip)">
+          <ng-container *ngIf="trip.status === 'open' || trip.status === 'closed'">
+            <button class="action-btn outline-btn" (click)="$event.stopPropagation(); startTrip(trip)">
               <ion-icon name="play-outline"></ion-icon>
               Iniciar Viaje
             </button>
-            <div class="action-row-2">
-              <button class="action-btn outline-btn" (click)="editTrip(trip)">
-                <ion-icon name="create-outline"></ion-icon>
-                Editar
-              </button>
-              <button class="action-btn danger-btn" (click)="deleteTrip(trip)">
-                <ion-icon name="trash-outline"></ion-icon>
-                Eliminar
-              </button>
-            </div>
           </ng-container>
-
           <ng-container *ngIf="trip.status === 'inprogress'">
-            <button class="action-btn warning-btn" (click)="finishTrip(trip)">
+            <button class="action-btn outline-warning-btn" (click)="$event.stopPropagation(); finishTrip(trip)">
               <ion-icon name="checkmark-done-outline"></ion-icon>
               Finalizar Viaje
             </button>
@@ -146,8 +133,8 @@
         </div>
 
         <!-- Completed trip actions -->
-        <div class="card-actions" *ngIf="segment === 'completed'">
-          <button class="action-btn outline-btn" (click)="reportPassengers(trip)" *ngIf="trip.status === 'completed'">
+        <div class="card-actions" *ngIf="segment === 'completed' && trip.status === 'completed'">
+          <button class="action-btn outline-btn" (click)="$event.stopPropagation(); reportPassengers(trip)">
             <ion-icon name="people-outline"></ion-icon>
             Ver Lista de Pasajeros
           </button>

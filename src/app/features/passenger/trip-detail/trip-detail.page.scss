@@ -413,17 +413,17 @@ ion-content.sheet-content {
 }
 
 .trip-price-tag {
-  background: #10b981;
+  background: #6366f1;
   color: white;
   padding: 10px 18px;
   border-radius: 14px;
   font-weight: 800;
   font-size: 18px;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
   letter-spacing: -0.3px;
 
   @media (prefers-color-scheme: dark) {
-    background: #059669;
+    background: #818cf8;
   }
 }
 
@@ -574,31 +574,31 @@ ion-content.sheet-content {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #eff6ff;
+  background: #f8fafc;
   padding: 16px;
   border-radius: 14px;
   margin-top: 16px;
 
   @media (prefers-color-scheme: dark) {
-    background: #1e3a8a;
+    background: #374151;
   }
 
   ion-icon {
     font-size: 24px;
-    color: #2563eb;
+    color: #3b82f6;
 
     @media (prefers-color-scheme: dark) {
-      color: #93c5fd;
+      color: #60a5fa;
     }
   }
 
   span {
     font-size: 15px;
-    color: #1e40af;
+    color: #475569;
     font-weight: 500;
 
     @media (prefers-color-scheme: dark) {
-      color: #bfdbfe;
+      color: #d1d5db;
     }
 
     strong {
@@ -963,17 +963,14 @@ ion-content.sheet-content {
   }
 }
 
-/* GREEN PAY BUTTON */
+/* INDIGO PAY BUTTON */
 .btn-pay {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-  animation: payPulse 2s infinite;
-
-  &:hover {
-    background: linear-gradient(135deg, #059669, #047857);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+  background: #6366f1; color: white; border: none;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
+  &:hover { background: #4f46e5; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(99, 102, 241, 0.3); }
+  @media (prefers-color-scheme: dark) {
+    background: #818cf8; color: white;
+    &:hover { background: #6366f1; }
   }
 }
 
@@ -1088,6 +1085,148 @@ ion-content.sheet-content {
     background: #dc2626;
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+  }
+}
+
+/* ICON MENU (3 dots) */
+.btn-icon-menu {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #475569;
+  transition: all 0.2s;
+
+  ion-icon { font-size: 20px; }
+
+  &:hover { background: #e2e8f0; }
+
+  @media (prefers-color-scheme: dark) {
+    background: #1e293b;
+    border-color: #334155;
+    color: #94a3b8;
+    &:hover { background: #334155; }
+  }
+
+  &.btn-report-icon {
+    color: #ef4444;
+    background: #fef2f2;
+    border-color: #fecaca;
+    &:hover { background: #fee2e2; }
+
+    @media (prefers-color-scheme: dark) {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      &:hover { background: rgba(239, 68, 68, 0.25); }
+    }
+  }
+}
+
+.passenger-state-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* REQUESTS MAIN BUTTON */
+.btn-requests-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 16px 0;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #4f46e5;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &:hover { background: #818cf8; }
+  }
+
+  .requests-btn-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    ion-icon { font-size: 18px; }
+  }
+
+  .requests-chevron { font-size: 18px; opacity: 0.8; }
+}
+
+.btn-danger-outline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: transparent;
+  border: 2px solid #ef4444;
+  color: #ef4444;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  ion-icon { font-size: 18px; }
+
+  &:hover {
+    background: #fef2f2;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    border-color: #f87171;
+    color: #f87171;
+    &:hover { background: rgba(239, 68, 68, 0.1); }
+  }
+}
+
+/* SHARE BUTTON (Outline Blue) */
+.btn-share-outline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: transparent;
+  border: 2px solid #3b82f6;
+  color: #3b82f6;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 16px;
+
+  ion-icon { font-size: 18px; }
+
+  &:hover {
+    background: #eff6ff;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    border-color: #60a5fa;
+    color: #60a5fa;
+    &:hover { background: rgba(59, 130, 246, 0.1); }
   }
 }
 

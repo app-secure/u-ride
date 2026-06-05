@@ -13,6 +13,7 @@ import { UsersService } from '../../../core/services/users.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import type { Trip } from '../../../core/models/trip.model';
 import type { UserProfile } from '../../../core/models/user-profile.model';
+import { AppealService } from '../../../core/services/appeal.service';
 
 /** Extensión de Trip que incluye la foto del conductor */
 interface TripWithDriverPhoto extends Trip {
@@ -35,6 +36,7 @@ export class TripsPage {
   private readonly auth = inject(AuthService);
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
+  private readonly appealSvc = inject(AppealService);
 
   mainSegment: 'search' | 'recent' = 'search';
 
@@ -123,6 +125,40 @@ export class TripsPage {
     if (this.mainSegment === 'recent') {
       this.ensureRecentTripsLoaded();
     }
+  }
+
+  async openAppealAlert() {
+    const alert = await this.alertCtrl.create({
+      header: 'Apelar Suspensión',
+      message: 'Por favor, explica detalladamente por qué consideras que tu cuenta debe ser desbloqueada.',
+      inputs: [
+        {
+          name: 'reason',
+          type: 'textarea',
+          placeholder: 'Escribe tus motivos aquí...'
+        }
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Enviar Apelación',
+          handler: async (data) => {
+            if (!data.reason?.trim()) {
+              this.presentToast('El motivo es obligatorio.', 'warning');
+              return false;
+            }
+            try {
+              await this.appealSvc.createAppeal(data.reason).toPromise();
+              this.presentToast('Apelación enviada correctamente. Será revisada por un administrador.', 'success');
+            } catch (e: any) {
+              this.presentToast(e.error?.message || 'Error al enviar la apelación.', 'danger');
+            }
+            return true;
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   ionViewWillEnter(): void {
@@ -325,11 +361,11 @@ export class TripsPage {
       const reqStatus = this.recentRequestsMap[t.id]?.status;
 
       if (this.recentSegment === 'completed') {
-        // Historial: viajes completados O solicitudes rechazadas
-        return t.status === 'completed' || reqStatus === 'rejected';
+        // Historial: viajes completados, expirados O solicitudes rechazadas
+        return t.status === 'completed' || t.status === 'expired' || reqStatus === 'rejected';
       } else {
-        // Solicitudes activas: request pendiente o aceptada, y el viaje no está completado ni rechazado
-        return (reqStatus === 'pending' || reqStatus === 'accepted') && t.status !== 'completed';
+        // Solicitudes activas: request pendiente o aceptada, y el viaje no está completado ni expirado ni rechazado
+        return (reqStatus === 'pending' || reqStatus === 'accepted') && (t.status !== 'completed' && t.status !== 'expired');
       }
     });
 
@@ -356,11 +392,10 @@ export class TripsPage {
     this.router.navigate(['/app/trips', trip.id]);
   }
 
-  viewDriverProfile(trip: Trip): void {
-    this.router.navigate(['/app/driver-profile', trip.driverUid], {
-      queryParams: { tripId: trip.id },
-    });
+  payTrip(trip: Trip): void {
+    this.router.navigate(['/app/trips', trip.id], { queryParams: { openPayment: 'true' } });
   }
+
 
   placeMainLabel(full: string | null | undefined): string {
     const s = String(full ?? '').trim();
@@ -402,99 +437,14 @@ export class TripsPage {
     }
   }
 
-  async cancelMySpot(trip: Trip): Promise<void> {
-    if (!this.currentUid) return;
-    const mapEntry = this.myRequestsMap[trip.id];
-    if (!mapEntry?.requestId) return;
 
-    const alert = await this.alertCtrl.create({
-      header: 'Cancelar cupo',
-      message: '¿Estás seguro que deseas cancelar tu cupo en este viaje?',
-      buttons: [
-        { text: 'No', role: 'cancel' },
-        {
-          text: 'Sí, cancelar',
-          role: 'destructive',
-          handler: async () => {
-            try {
-              await this.tripRequestsSvc.cancelRequest(mapEntry.requestId).toPromise();
-              const updated = { ...this.myRequestsMap };
-              delete updated[trip.id];
-              this.myRequestsMap = updated;
-              this.resetAndLoad();
-              const toast = await this.toastCtrl.create({
-                message: 'Has liberado tu cupo exitosamente.',
-                duration: 2000,
-                color: 'success',
-                position: 'top'
-              });
-              await toast.present();
-            } catch (e) {
-              const toast = await this.toastCtrl.create({
-                message: 'Error al cancelar el cupo.',
-                duration: 2000,
-                color: 'danger',
-                position: 'top'
-              });
-              await toast.present();
-            }
-          }
-        }
-      ]
-    });
-    await alert.present();
-  }
-
-  /** Cancela una solicitud desde la lista de "Mis Viajes" (pending o accepted) */
-  async cancelRecentRequest(trip: Trip): Promise<void> {
-    if (!this.currentUid) return;
-    const mapEntry = this.recentRequestsMap[trip.id];
-    if (!mapEntry?.requestId) return;
-
-    const isPending = mapEntry.status === 'pending';
-    const header = isPending ? 'Cancelar solicitud' : 'Cancelar cupo';
-    const message = isPending
-      ? '¿Deseas cancelar tu solicitud de viaje? El conductor no la recibirá.'
-      : '¿Estás seguro que deseas cancelar tu cupo en este viaje?';
-
-    const alert = await this.alertCtrl.create({
-      header,
+  private async presentToast(message: string, color: string = 'success') {
+    const toast = await this.toastCtrl.create({
       message,
-      buttons: [
-        { text: 'No', role: 'cancel' },
-        {
-          text: 'Sí, cancelar',
-          role: 'destructive',
-          handler: async () => {
-            try {
-              await this.tripRequestsSvc.cancelRequest(mapEntry.requestId).toPromise();
-              // Eliminar del mapa y recargar la lista
-              const updated = { ...this.recentRequestsMap };
-              delete updated[trip.id];
-              this.recentRequestsMap = updated;
-              // Recargar la lista de mis viajes
-              this.recentLoaded = false;
-              void this.loadRecentTrips();
-              const toast = await this.toastCtrl.create({
-                message: isPending ? 'Solicitud cancelada.' : 'Has liberado tu cupo exitosamente.',
-                duration: 2000,
-                color: 'success',
-                position: 'top'
-              });
-              await toast.present();
-            } catch (e) {
-              const toast = await this.toastCtrl.create({
-                message: 'Error al cancelar. Intenta de nuevo.',
-                duration: 2000,
-                color: 'danger',
-                position: 'top'
-              });
-              await toast.present();
-            }
-          }
-        }
-      ]
+      duration: 3000,
+      color,
+      position: 'bottom'
     });
-    await alert.present();
+    await toast.present();
   }
 }

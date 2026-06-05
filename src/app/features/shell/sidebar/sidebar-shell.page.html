@@ -167,6 +167,11 @@
             Cambiar rol
           </button>
 
+          <button (click)="goToAdmin()" *ngIf="(profile$ | async)?.roles?.admin">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            Modo administrador
+          </button>
+
           <button (click)="goToProfile()">
             <ion-icon name="person-outline"></ion-icon>
             Perfil

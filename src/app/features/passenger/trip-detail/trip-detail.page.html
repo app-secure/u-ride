@@ -28,15 +28,27 @@
                 <span>Volver</span>
               </button>
 
-              <button
-                class="btn btn-outline"
-                *ngIf="isDriver"
-                (click)="openRequests()"
-                style="padding: 8px 14px; font-size: 15px; border-radius: 10px; margin: 0; display: inline-flex; align-items: center; gap: 6px; font-weight: 700;"
-              >
-                <ion-icon name="list-outline"></ion-icon>
-                Solicitudes
-              </button>
+              <div style="display: flex; gap: 8px;">
+                <!-- Passenger: Report driver -->
+                <button
+                  class="btn-icon-menu btn-report-icon"
+                  *ngIf="!isDriver && myRequestStatus !== 'none' && !reportedDriver"
+                  (click)="reportDriver()"
+                  aria-label="Reportar conductor"
+                >
+                  <ion-icon name="flag"></ion-icon>
+                </button>
+
+                <!-- Driver: 3-dot menu opens action sheet -->
+                <button
+                  class="btn-icon-menu"
+                  *ngIf="isDriver"
+                  (click)="openDriverMenu()"
+                  aria-label="Más opciones"
+                >
+                  <ion-icon name="ellipsis-vertical"></ion-icon>
+                </button>
+              </div>
             </div>
 
             <div class="trip-header-section">
@@ -127,6 +139,67 @@
                 <span>Se acepta: <strong>{{ trip.paymentMethod }}</strong></span>
               </div>
 
+              <!-- ================= STATES AND PASSENGER ACTIONS ================= -->
+              <div class="passenger-state-actions" *ngIf="!isDriver && myRequestStatus !== 'none'">
+                
+                <!-- PENDING -->
+                <div class="pending-message" *ngIf="myRequestStatus === 'pending'">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span>Solicitud enviada. Esperando respuesta del conductor...</span>
+                </div>
+
+                <!-- ACCEPTED (Not Paid yet) -->
+                <div class="accepted-message" *ngIf="myRequestStatus === 'accepted' && myPaymentStatus !== 'paid'">
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                  <span>¡El conductor aceptó tu solicitud!</span>
+                </div>
+
+                <!-- REJECTED -->
+                <div class="rejected-message" *ngIf="myRequestStatus === 'rejected'">
+                  <ion-icon name="close-circle"></ion-icon>
+                  <span>El conductor no pudo aceptar tu solicitud.</span>
+                </div>
+
+                <!-- PAID (Replaces ACCEPTED) -->
+                <div class="payment-done-badge" *ngIf="myRequestStatus === 'accepted' && myPaymentStatus === 'paid'">
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                  <span>Pago completado</span>
+                </div>
+
+                <!-- PASO 2: Pagar -->
+                <button
+                  class="btn btn-pay mt-2"
+                  *ngIf="myRequestStatus === 'accepted' && myPaymentStatus !== 'paid' && trip.status !== 'completed' && trip.status !== 'cancelled'"
+                  (click)="openPaymentModal()"
+                >
+                  <ion-icon name="wallet-outline"></ion-icon>
+                  Pagar ahora
+                </button>
+
+                <!-- WARNING: Calificar -->
+                <button
+                  class="btn btn-warning mt-2"
+                  *ngIf="canRateDriver && !ratedDriver"
+                  (click)="rateDriver()"
+                >
+                  <ion-icon name="star-outline"></ion-icon>
+                  Calificar conductor
+                </button>
+              </div>
+
+              <!-- ============ DRIVER: VER SOLICITUDES (central action) ============ -->
+              <button
+                class="btn-requests-main"
+                *ngIf="isDriver && (trip.status === 'open' || trip.status === 'closed' || trip.status === 'inprogress')"
+                (click)="openRequests()"
+              >
+                <div class="requests-btn-left">
+                  <ion-icon name="people-outline"></ion-icon>
+                  <span>Ver Solicitudes</span>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="requests-chevron"></ion-icon>
+              </button>
+
               <!-- VEHICLE -->
               <div class="vehicle-info" *ngIf="trip.vehicle">
                 <h4>Vehículo</h4>
@@ -150,10 +223,9 @@
 
                 <!-- Compartir trayecto -->
                 <button
-                  class="btn btn-black"
+                  class="btn-share-outline"
                   *ngIf="canShareTrip"
                   (click)="toggleSharingTrip()"
-                  style="width: 100%; margin-top: 16px;"
                 >
                   <ion-icon [name]="sharingTrip ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
                   {{ sharingTrip ? 'Detener compartir ubicación' : 'Compartir mi ubicación' }}
@@ -207,28 +279,7 @@
 
 </div>
 
-            <!-- ================= STATES ================= -->
-            <div class="state-box">
 
-              <!-- PENDING -->
-              <div class="pending-message" *ngIf="myRequestStatus === 'pending'">
-                <ion-icon name="time-outline"></ion-icon>
-                <span>Solicitud enviada. Esperando respuesta del conductor...</span>
-              </div>
-
-              <!-- ACCEPTED -->
-              <div class="accepted-message" *ngIf="myRequestStatus === 'accepted'">
-                <ion-icon name="checkmark-circle"></ion-icon>
-                <span>¡El conductor aceptó tu solicitud!</span>
-              </div>
-
-              <!-- REJECTED -->
-              <div class="rejected-message" *ngIf="myRequestStatus === 'rejected'">
-                <ion-icon name="close-circle"></ion-icon>
-                <span>El conductor no pudo aceptar tu solicitud.</span>
-              </div>
-
-            </div>
 
             <!-- ================= ACTIONS ================= -->
             <div class="action-buttons">
@@ -244,50 +295,24 @@
                 Solicitar unirme
               </button>
 
-              <!-- PASO 2: Pagar (solo cuando el conductor aceptó, el pago está pendiente y el viaje no ha terminado) -->
+              <!-- Cancelar solicitud o cupo (pasajero) -->
               <button
-                class="btn btn-pay"
-                *ngIf="!isDriver && myRequestStatus === 'accepted' && myPaymentStatus !== 'paid' && trip.status !== 'completed' && trip.status !== 'cancelled'"
-                (click)="openPaymentModal()"
+                class="btn btn-danger-outline"
+                *ngIf="!isDriver && (myRequestStatus === 'pending' || myRequestStatus === 'accepted') && (trip.status === 'open' || trip.status === 'closed')"
+                (click)="cancelMyRequest()"
               >
-                <ion-icon name="wallet-outline"></ion-icon>
-                Pagar ahora
+                <ion-icon name="close-outline"></ion-icon>
+                {{ myRequestStatus === 'pending' ? 'Cancelar solicitud' : 'Cancelar cupo' }}
               </button>
 
-              <!-- Pago completado -->
-              <div class="payment-done-badge" *ngIf="!isDriver && myRequestStatus === 'accepted' && myPaymentStatus === 'paid'">
-                <ion-icon name="checkmark-circle"></ion-icon>
-                <span>Pago completado</span>
-              </div>
-
-              <!-- WARNING: Calificar -->
+              <!-- DANGER: Eliminar/Cancelar (conductor) -->
               <button
-                class="btn btn-warning"
-                *ngIf="canRateDriver && !ratedDriver"
-                (click)="rateDriver()"
+                class="btn btn-danger-outline"
+                *ngIf="isDriver && (trip.status === 'open' || trip.status === 'closed')"
+                (click)="hasConfirmedPassengers ? cancelTrip() : deleteTrip()"
               >
-                <ion-icon name="star-outline"></ion-icon>
-                Calificar conductor
-              </button>
-
-              <!-- REPORT: Reportar conductor (solo pasajero, solo si hay solicitud activa o viaje completado) -->
-              <button
-                class="btn btn-report"
-                *ngIf="!isDriver && myRequestStatus !== 'none' && !reportedDriver"
-                (click)="reportDriver()"
-              >
-                <ion-icon name="flag-outline"></ion-icon>
-                Reportar conductor
-              </button>
-
-              <!-- DANGER: Cancelar -->
-              <button
-                class="btn btn-danger"
-                *ngIf="canCancelTrip"
-                (click)="cancelTrip()"
-              >
-                <ion-icon name="close-circle-outline"></ion-icon>
-                Cancelar viaje
+                <ion-icon [name]="hasConfirmedPassengers ? 'close-circle-outline' : 'trash-outline'"></ion-icon>
+                {{ hasConfirmedPassengers ? 'Cancelar viaje' : 'Eliminar viaje' }}
               </button>
 
             </div>

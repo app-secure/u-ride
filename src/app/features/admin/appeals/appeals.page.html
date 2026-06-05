@@ -1,0 +1,89 @@
+<ion-content class="ion-padding admin-page-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadAppeals($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="admin-page fade-in-up">
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Gestión de Apelaciones</h2>
+        <p class="page-subtitle">Revisa y responde a las solicitudes de desbloqueo</p>
+      </div>
+    </div>
+
+    <!-- Cargando -->
+    <div class="loading-state" *ngIf="isLoading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando apelaciones...</p>
+    </div>
+
+    <!-- Lista vacía -->
+    <div class="empty-state" *ngIf="!isLoading && appeals.length === 0">
+      <div class="empty-icon-box">
+        <ion-icon name="document-text-outline"></ion-icon>
+      </div>
+      <h4>Sin apelaciones</h4>
+      <p>No hay apelaciones de usuarios bloqueados en este momento.</p>
+    </div>
+
+    <!-- Grid de Apelaciones -->
+    <div class="appeals-grid" *ngIf="!isLoading && appeals.length > 0">
+      <div class="appeal-card"
+        *ngFor="let appeal of appeals; let i = index"
+        [style.animation-delay]="i * 0.04 + 's'"
+      >
+        <div class="appeal-main">
+          <div class="appeal-avatar">
+            <ion-icon name="person"></ion-icon>
+          </div>
+          
+          <div class="appeal-info">
+            <div class="name-row">
+              <span class="display-name">{{ appeal.userName }}</span>
+            </div>
+            <span class="user-email">{{ appeal.userEmail }}</span>
+            <div class="appeal-tags">
+              <span class="tag" [ngClass]="appeal.status">
+                {{ appeal.status === 'pending' ? 'Pendiente' : (appeal.status === 'approved' ? 'Aprobada' : 'Rechazada') }}
+              </span>
+              <span class="tag muted">
+                <ion-icon name="time-outline" style="margin-right:2px; vertical-align:-2px;"></ion-icon>
+                {{ appeal.createdAt | date:'dd MMM, HH:mm' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="appeal-details">
+          <div class="detail-item full-width">
+            <span class="detail-label">Motivo de la apelación</span>
+            <div class="reason-box">
+              {{ appeal.reason }}
+            </div>
+          </div>
+
+          <div class="detail-item full-width mt-2" *ngIf="appeal.adminNotes">
+            <span class="detail-label">Notas del Admin</span>
+            <div class="admin-notes-box">
+              {{ appeal.adminNotes }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="quick-actions" *ngIf="appeal.status === 'pending'">
+          <button class="quick-btn danger" (click)="processAppeal(appeal, false)">
+            <ion-icon name="close-circle-outline"></ion-icon>
+            Rechazar
+          </button>
+          <button class="quick-btn success" (click)="processAppeal(appeal, true)">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            Aprobar
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

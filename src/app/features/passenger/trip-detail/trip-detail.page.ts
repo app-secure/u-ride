@@ -2,7 +2,7 @@ import { Component, ElementRef, ViewChild, inject, DestroyRef } from '@angular/c
 import { Capacitor } from '@capacitor/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router, NavigationStart } from '@angular/router';
-import { IonicModule, AlertController, ToastController, ModalController } from '@ionic/angular';
+import { IonicModule, AlertController, ToastController, ModalController, ActionSheetController } from '@ionic/angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { of, switchMap, firstValueFrom } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -49,6 +49,7 @@ export class TripDetailPage {
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
   private readonly modalCtrl = inject(ModalController);
+  private readonly actionSheetCtrl = inject(ActionSheetController);
   private readonly roleState = inject(RoleStateService);
   private readonly reviews = inject(ReviewsService);
   private readonly reports = inject(ReportsService);
@@ -193,6 +194,16 @@ export class TripDetailPage {
     // Cargar viaje one-shot
     this.loadTrip();
 
+    this.route.queryParams.pipe(takeUntilDestroyed()).subscribe(params => {
+      if (params['openPayment'] === 'true') {
+        setTimeout(() => {
+          if (!this.isDriver && this.myRequestStatus === 'accepted' && this.myPaymentStatus !== 'paid') {
+            this.openPaymentModal();
+          }
+        }, 800);
+      }
+    });
+
     // Seguridad: Si el usuario pierde la sesión (logout), cerramos el modal y navegamos de vuelta.
     this.auth.user$.pipe(takeUntilDestroyed()).subscribe(user => {
       if (!user) {
@@ -201,11 +212,11 @@ export class TripDetailPage {
         this.sharingTrip = false;
 
         // Dismiss todos los modales abiertos de forma explícita
-        this.modalCtrl.dismiss(null, 'logout').catch(() => {});
+        this.modalCtrl.dismiss(null, 'logout').catch(() => { });
 
         // Navega de vuelta al login
         setTimeout(() => {
-          this.router.navigate(['/auth/login']).catch(() => {});
+          this.router.navigate(['/auth/login']).catch(() => { });
         }, 150);
       }
     });
@@ -291,7 +302,7 @@ export class TripDetailPage {
 
     // Si el conductor estaba compartiendo, detenemos al salir.
     if (this.isDriver && this.sharingTrip) {
-      this.stopSharingTrip().catch(() => {});
+      this.stopSharingTrip().catch(() => { });
     }
   }
 
@@ -307,10 +318,10 @@ export class TripDetailPage {
     this.isPaymentModalOpen = false;
 
     if (this.tripModal) {
-      this.tripModal.dismiss(null, 'route-change').catch(() => {});
+      this.tripModal.dismiss(null, 'route-change').catch(() => { });
     }
     if (this.paymentModal) {
-      this.paymentModal.dismiss(null, 'route-change').catch(() => {});
+      this.paymentModal.dismiss(null, 'route-change').catch(() => { });
     }
   }
 
@@ -347,18 +358,22 @@ export class TripDetailPage {
   private async checkDriverActionStatus(): Promise<void> {
     if (!this.trip || !this.currentUid || this.isDriver) return;
 
-    // Solo verificar si el viaje está finalizado
+    // Verificar si ya reportó este viaje (aplica para cualquier estado del viaje)
+    try {
+      this.reportedDriver = await firstValueFrom(this.reports.hasReportedForTrip(this.tripId));
+    } catch {
+      this.reportedDriver = false;
+    }
+
+    // Las verificaciones de calificación solo aplican para viajes completados
     if (this.trip.status !== 'completed') return;
 
-    // Check via reviews API
     try {
       const reviews = await firstValueFrom(this.reviews.getByTrip(this.tripId));
       this.ratedDriver = reviews.some(r => r.fromUid === this.currentUid && r.toUid === this.trip!.driverUid);
     } catch {
       this.ratedDriver = false;
     }
-    // reportedDriver: no hay endpoint para verificar, dejamos false
-    this.reportedDriver = false;
   }
 
   private initMapIfReady(): void {
@@ -488,9 +503,9 @@ export class TripDetailPage {
       return;
     }
 
-      const icon = L.divIcon({
-        className: '',
-        html: `<div style="display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 4px 4px rgba(0,0,0,0.3));">
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 4px 4px rgba(0,0,0,0.3));">
                  <div style="background-color:#2563eb;border:2px solid white;border-radius:999px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;">
                    <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
                      <path d="M5 11l1.5-4.5h11L19 11v7h-2v-2H7v2H5v-7zm3.5 1.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
@@ -498,11 +513,11 @@ export class TripDetailPage {
                  </div>
                  <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #2563eb;margin-top:-1px;"></div>
                </div>`,
-        iconSize: [34, 42],
-        iconAnchor: [17, 42],
-      });
-      this.driverMarker = L.marker(pos, { icon }).addTo(this.map);
-      this.driverMarker.bindPopup('Conductor');
+      iconSize: [34, 42],
+      iconAnchor: [17, 42],
+    });
+    this.driverMarker = L.marker(pos, { icon }).addTo(this.map);
+    this.driverMarker.bindPopup('Conductor');
   }
 
   private async syncRouteLine(): Promise<void> {
@@ -586,15 +601,19 @@ export class TripDetailPage {
   }
 
   get canFinalize(): boolean {
-    return !!this.trip && this.isDriver && this.trip.status === 'open';
+    return !!this.trip && this.isDriver && (this.trip.status === 'open' || this.trip.status === 'closed');
   }
 
   get canCancelTrip(): boolean {
-    return !!this.trip && this.isDriver && this.trip.status === 'open';
+    return !!this.trip && this.isDriver && (this.trip.status === 'open' || this.trip.status === 'closed');
+  }
+
+  get hasConfirmedPassengers(): boolean {
+    return !!this.trip && Array.isArray(this.trip.confirmedPassengerUids) && this.trip.confirmedPassengerUids.length > 0;
   }
 
   get canShareTrip(): boolean {
-    return !!this.trip && this.isDriver && (this.trip.status === 'open' || this.trip.status === 'inprogress');
+    return !!this.trip && this.isDriver && (this.trip.status === 'open' || this.trip.status === 'closed' || this.trip.status === 'inprogress');
   }
 
   async toggleSharingTrip(): Promise<void> {
@@ -672,7 +691,7 @@ export class TripDetailPage {
     if (this.currentUid) {
       try {
         await firstValueFrom(this.trips.setDriverLiveLocation(this.tripId, { driverUid: this.currentUid!, lat: 0, lng: 0, active: false }));
-      } catch {}
+      } catch { }
     }
 
     const toast = await this.toastCtrl.create({
@@ -698,7 +717,7 @@ export class TripDetailPage {
             this.syncDriverMarker();
           }
         },
-        error: () => {}
+        error: () => { }
       });
     }, 5000);
   }
@@ -797,6 +816,48 @@ export class TripDetailPage {
       });
       await toast.present();
     }
+  }
+
+  async cancelMyRequest(): Promise<void> {
+    if (!this.tripId || !this.myRequestId || !this.currentUid) return;
+
+    const alert = await this.alertCtrl.create({
+      header: this.myRequestStatus === 'pending' ? 'Cancelar Solicitud' : 'Cancelar Cupo',
+      message: this.myRequestStatus === 'pending' 
+        ? '¿Deseas cancelar tu solicitud para este viaje?' 
+        : '¿Estás seguro de que deseas cancelar tu cupo? El conductor será notificado.',
+      buttons: [
+        { text: 'No', role: 'cancel' },
+        {
+          text: 'Sí, cancelar',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await firstValueFrom(this.tripRequests.cancelRequest(this.myRequestId!));
+              this.myRequestStatus = 'none';
+              this.myRequestId = null;
+              
+              const toast = await this.toastCtrl.create({
+                message: 'Operación realizada con éxito.',
+                duration: 2500,
+                color: 'success',
+                position: 'bottom'
+              });
+              await toast.present();
+            } catch (error) {
+              const toast = await this.toastCtrl.create({
+                message: 'Ocurrió un error al cancelar.',
+                duration: 2500,
+                color: 'danger',
+                position: 'bottom'
+              });
+              await toast.present();
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   /** PASO 2: El conductor aceptó. El pasajero puede pagar ahora. */
@@ -1125,10 +1186,28 @@ export class TripDetailPage {
     }, 150);
   }
 
-  reportDriver(): void {
+  async reportDriver(): Promise<void> {
     if (!this.trip) return;
     const tId = this.trip.id;
     const dUid = this.trip.driverUid;
+
+    // Verificar si ya envió un reporte para este viaje
+    try {
+      const yaReporto = await firstValueFrom(this.reports.hasReportedForTrip(tId));
+      if (yaReporto) {
+        const toast = await this.toastCtrl.create({
+          message: 'Ya hemos recibido tu reporte y lo estamos revisando.',
+          duration: 3000,
+          position: 'top',
+          color: 'warning',
+        });
+        await toast.present();
+        this.reportedDriver = true;
+        return;
+      }
+    } catch {
+      // Si falla la verificación, dejar pasar al formulario
+    }
 
     this.isModalOpen = false;
     setTimeout(() => {
@@ -1136,5 +1215,62 @@ export class TripDetailPage {
         queryParams: { tripId: tId }
       });
     }, 150);
+  }
+
+  async openDriverMenu(): Promise<void> {
+    const sheet = await this.actionSheetCtrl.create({
+      header: 'Opciones del viaje',
+      buttons: [
+        {
+          text: 'Editar viaje',
+          icon: 'create-outline',
+          handler: () => {
+            if (!this.tripId) return;
+            this.isModalOpen = false;
+            setTimeout(() => {
+              this.router.navigate(['/app/publish', this.tripId]);
+            }, 250);
+          }
+        }
+      ]
+    });
+    await sheet.present();
+  }
+
+  async deleteTrip(): Promise<void> {
+    if (!this.tripId || !this.trip) return;
+    const alert = await this.alertCtrl.create({
+      header: 'Eliminar viaje',
+      message: '¿Seguro que deseas eliminar este viaje? Esta acción no se puede deshacer.',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await firstValueFrom(this.trips.deleteTrip(this.tripId!));
+              const toast = await this.toastCtrl.create({
+                message: 'Viaje eliminado.',
+                duration: 2000,
+                color: 'success',
+                position: 'top'
+              });
+              await toast.present();
+              this.router.navigate(['/app/my-trips']);
+            } catch {
+              const toast = await this.toastCtrl.create({
+                message: 'Error al eliminar el viaje.',
+                duration: 2000,
+                color: 'danger',
+                position: 'top'
+              });
+              await toast.present();
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 }

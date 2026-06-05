@@ -12,6 +12,7 @@
         <strong>Cuenta suspendida</strong>
         <p>Tu cuenta está suspendida hasta el {{ suspendedUntilDate | date:'longDate':'':'es-EC' }}. Algunas funciones
           están deshabilitadas.</p>
+        <button class="appeal-btn" (click)="openAppealAlert()">Apelar Suspensión</button>
       </div>
     </div>
 
@@ -95,19 +96,16 @@
 
         <!-- Trips Grid -->
         <div class="trips-grid" *ngIf="trips.length > 0">
-          <div class="trip-card" *ngFor="let trip of trips; let i = index" [style.animation-delay]="i * 0.06 + 's'">
+          <div class="trip-card" *ngFor="let trip of trips; let i = index" [style.animation-delay]="i * 0.06 + 's'"
+            role="button" tabindex="0" (click)="openTrip(trip)" (keydown.enter)="openTrip(trip)">
 
             <!-- Card Top -->
             <div class="card-top">
               <div class="driver-info">
-                <button type="button" class="driver-avatar-btn" (click)="viewDriverProfile(trip)"
-                  [attr.aria-label]="'Ver perfil de ' + trip.driverName">
+                <div class="driver-avatar">
                   <img [src]="trip.driverPhotoUrl!" alt="{{ trip.driverName }}" *ngIf="trip.driverPhotoUrl">
                   <ion-icon name="person" *ngIf="!trip.driverPhotoUrl"></ion-icon>
-                  <div class="avatar-overlay">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                </button>
+                </div>
                 <div class="driver-details">
                   <span class="driver-name">{{ trip.driverName }}</span>
                   <span class="driver-rating">
@@ -160,27 +158,17 @@
             </div>
 
             <!-- Card Actions -->
-            <div class="card-actions">
+            <div class="card-actions" *ngIf="getRequestStatus(trip.id) !== 'none'">
               <!-- Status indicators -->
-              <div class="status-pill pending" *ngIf="getRequestStatus(trip.id) === 'pending'">
+              <div class="action-btn outline-warning-btn" *ngIf="getRequestStatus(trip.id) === 'pending'" style="cursor: default">
                 <ion-icon name="time-outline"></ion-icon>
                 Solicitud pendiente
               </div>
-              <div class="status-pill accepted" *ngIf="getRequestStatus(trip.id) === 'accepted'">
+              <div class="action-btn outline-btn" *ngIf="getRequestStatus(trip.id) === 'accepted'" style="cursor: default">
                 <ion-icon name="checkmark-circle"></ion-icon>
                 Estás en este viaje
               </div>
-
-              <button class="action-btn primary-btn" (click)="openTrip(trip)">
-                <ion-icon name="eye-outline"></ion-icon>
-                Ver detalle
-              </button>
-              <button class="action-btn danger-btn" *ngIf="getRequestStatus(trip.id) === 'accepted'"
-                (click)="cancelMySpot(trip)">
-                <ion-icon name="close-outline"></ion-icon>
-                Cancelar cupo
-              </button>
-            </div>
+              </div>
 
           </div>
         </div>
@@ -228,7 +216,8 @@
 
         <div class="trips-grid" *ngIf="recentFilteredTrips.length > 0">
           <div class="trip-card recent-card" *ngFor="let trip of recentTrips; let i = index"
-            [style.animation-delay]="i * 0.06 + 's'">
+            [style.animation-delay]="i * 0.06 + 's'"
+            role="button" tabindex="0" (click)="openTrip(trip)" (keydown.enter)="openTrip(trip)">
 
             <!-- Card Top -->
             <div class="card-top">
@@ -237,7 +226,8 @@
                   {{ trip.status === 'open' ? 'Abierto' :
                   trip.status === 'completed' ? 'Completado' :
                   trip.status === 'closed' ? 'Cupos llenos' :
-                  trip.status === 'inprogress' ? 'En curso' : 'Cancelado' }}
+                  trip.status === 'inprogress' ? 'En curso' : 
+                  trip.status === 'expired' ? 'Expirado' : 'Cancelado' }}
                 </span>
                 <span class="status-pill req-status" [ngClass]="'req-' + getRecentRequestStatus(trip.id)"
                   *ngIf="getRecentRequestStatus(trip.id) !== 'none'">
@@ -254,6 +244,7 @@
                     </ng-container>
                   </ng-container>
                 </span>
+
               </div>
               <span class="date-text">{{ trip.departureAt | date:'dd MMM yyyy, HH:mm' }}</span>
             </div>
@@ -264,14 +255,14 @@
                 <ion-icon name="location" class="icon-origin"></ion-icon>
                 <div class="route-info">
                   <span class="route-label">Origen</span>
-                  <span class="route-value">{{ trip.originZone }}</span>
+                  <span class="route-value">{{ placeMainLabel(trip.originZone) || 'No especificado' }}</span>
                 </div>
               </div>
               <div class="route-item">
                 <ion-icon name="location" class="icon-dest"></ion-icon>
                 <div class="route-info">
                   <span class="route-label">Destino</span>
-                  <span class="route-value">{{ trip.destinationZone }}</span>
+                  <span class="route-value">{{ placeMainLabel(trip.destinationZone) || 'No especificado' }}</span>
                 </div>
               </div>
             </div>
@@ -284,36 +275,24 @@
               </div>
             </div>
 
-            <!-- Card Actions -->
-            <div class="card-actions">
+            <!-- Card Actions (only when there's something actionable) -->
+            <div class="card-actions"
+              *ngIf="recentSegment === 'active' && getRecentRequestStatus(trip.id) !== 'none'">
               <!-- Payment pending -->
-              <button class="action-btn pay-btn"
-                *ngIf="recentSegment === 'active' && getRecentRequestStatus(trip.id) === 'accepted' && getRecentPaymentStatus(trip.id) !== 'paid' && trip.status !== 'completed'"
-                (click)="openTrip(trip)">
+              <button class="action-btn outline-btn"
+                *ngIf="getRecentRequestStatus(trip.id) === 'accepted' && getRecentPaymentStatus(trip.id) !== 'paid' && trip.status !== 'completed'"
+                (click)="$event.stopPropagation(); payTrip(trip)">
                 <ion-icon name="wallet-outline"></ion-icon>
-                Pago pendiente
+                Pagar ahora
               </button>
 
               <!-- Payment done badge -->
               <div class="payment-complete-badge"
-                *ngIf="recentSegment === 'active' && getRecentRequestStatus(trip.id) === 'accepted' && getRecentPaymentStatus(trip.id) === 'paid' && trip.status !== 'completed'">
+                *ngIf="getRecentRequestStatus(trip.id) === 'accepted' && getRecentPaymentStatus(trip.id) === 'paid' && trip.status !== 'completed'">
                 <ion-icon name="checkmark-circle"></ion-icon>
                 Pago completado
               </div>
 
-              <!-- Cancel -->
-              <button class="action-btn danger-btn"
-                *ngIf="recentSegment === 'active' && (getRecentRequestStatus(trip.id) === 'pending' || getRecentRequestStatus(trip.id) === 'accepted') && (trip.status === 'open' || trip.status === 'closed')"
-                (click)="cancelRecentRequest(trip)">
-                <ion-icon name="close-outline"></ion-icon>
-                {{ getRecentRequestStatus(trip.id) === 'pending' ? 'Cancelar solicitud' : 'Cancelar cupo' }}
-              </button>
-
-              <!-- Details -->
-              <button class="action-btn primary-btn" (click)="openTrip(trip)">
-                <ion-icon name="map-outline"></ion-icon>
-                Ver detalle
-              </button>
             </div>
 
           </div>

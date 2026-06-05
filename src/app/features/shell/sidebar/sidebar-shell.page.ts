@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnDestroy } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { IonicModule, LoadingController, PopoverController } from '@ionic/angular';
-import { Observable, of, BehaviorSubject } from 'rxjs';
+import { IonicModule, LoadingController, PopoverController, ToastController } from '@ionic/angular';
+import { Observable, of, BehaviorSubject, firstValueFrom } from 'rxjs';
 import { filter, switchMap, catchError, startWith, shareReplay } from 'rxjs/operators';
 
 import { AuthService } from '../../../core/auth/auth.service';
@@ -12,6 +12,7 @@ import { RoleStateService, AppRole } from '../../../core/services/role-state.ser
 import { NotificationsService } from '../../../core/services/notifications.service';
 import { AppNotification } from '../../../core/models/notification.model';
 import { UsersService } from '../../../core/services/users.service';
+import { TripRequestsService } from '../../../core/services/trip-requests.service';
 import type { UserProfile } from '../../../core/models/user-profile.model';
 
 @Component({
@@ -28,7 +29,9 @@ export class SidebarShellPage implements OnDestroy {
   private readonly router = inject(Router);
   private readonly loadingCtrl = inject(LoadingController);
   private readonly popoverCtrl = inject(PopoverController);
+  private readonly toastCtrl = inject(ToastController);
   private readonly trips = inject(TripsService);
+  private readonly tripRequestsSvc = inject(TripRequestsService);
   private readonly notifications = inject(NotificationsService);
   private readonly users = inject(UsersService);
 
@@ -66,6 +69,7 @@ export class SidebarShellPage implements OnDestroy {
 
   private readonly refreshIntervalMs = 10000;
   private refreshTimerId: number | null = null;
+  private notifiedTripIds = new Set<string>();
 
   isAdminArea = false;
   isRoleArea = false;
@@ -94,7 +98,71 @@ export class SidebarShellPage implements OnDestroy {
 
     this.refreshTimerId = window.setInterval(() => {
       this.refreshNotifs$.next();
+      this.checkUpcomingTrips();
     }, this.refreshIntervalMs);
+
+    setTimeout(() => this.checkUpcomingTrips(), 2000);
+  }
+
+  private async checkUpcomingTrips(): Promise<void> {
+    const role = this.currentRole;
+    if (!role || this.isAdminArea) return;
+
+    try {
+      const user = await this.auth.getUser();
+      if (!user) return;
+
+      let tripsToCheck: Trip[] = [];
+      if (role === 'driver') {
+        const allTrips = await firstValueFrom(this.trips.getMyTrips());
+        tripsToCheck = allTrips.filter(t => t.status === 'open');
+      } else if (role === 'passenger') {
+        const reqs = await firstValueFrom(this.tripRequestsSvc.getMyRequests());
+        const acceptedReqs = reqs.filter(r => r.status === 'accepted');
+        
+        const tripPromises = acceptedReqs.map(req => 
+          firstValueFrom(this.trips.getById(req.tripId)).catch(() => null)
+        );
+        const trips = await Promise.all(tripPromises);
+        tripsToCheck = trips.filter((t): t is Trip => t !== null && t.status === 'open');
+      }
+
+      const now = new Date();
+      for (const trip of tripsToCheck) {
+        const departureTime = new Date(trip.departureAt);
+        const diffMs = departureTime.getTime() - now.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+
+        if (diffMins >= 0 && diffMins <= 15 && !this.notifiedTripIds.has(trip.id)) {
+          this.notifiedTripIds.add(trip.id);
+          
+          const toast = await this.toastCtrl.create({
+            message: `🚗 El viaje hacia ${trip.destinationZone} inicia en ${diffMins} ${diffMins === 1 ? 'minuto' : 'minutos'}.`,
+            duration: 5000,
+            position: 'top',
+            color: 'warning',
+            icon: 'time-outline'
+          });
+          await toast.present();
+
+          const localNotif: AppNotification = {
+            id: 'local_reminder_' + trip.id + '_' + Date.now(),
+            type: 'trip_reminder',
+            title: 'Viaje próximo a iniciar',
+            message: `El viaje hacia ${trip.destinationZone} inicia en ${diffMins} ${diffMins === 1 ? 'minuto' : 'minutos'}.`,
+            tripId: trip.id,
+            driverUid: trip.driverUid,
+            read: false,
+            createdAt: new Date().toISOString()
+          };
+
+          this.currentNotifs = [localNotif, ...this.currentNotifs];
+          this.unreadNotifs++;
+        }
+      }
+    } catch (err) {
+      // Silencioso para no ensuciar la consola
+    }
   }
 
   ngOnDestroy(): void {
@@ -149,10 +217,15 @@ export class SidebarShellPage implements OnDestroy {
   }, 800);
 }
 
- async goToProfile(): Promise<void> {
-  await this.popoverCtrl.dismiss().catch(() => {});
-  await this.router.navigateByUrl('/app/profile');
-}
+  async goToAdmin(): Promise<void> {
+    await this.popoverCtrl.dismiss().catch(() => {});
+    await this.router.navigateByUrl('/app/admin');
+  }
+
+  async goToProfile(): Promise<void> {
+    await this.popoverCtrl.dismiss().catch(() => {});
+    await this.router.navigateByUrl('/app/profile');
+  }
 
   async goToVehicles(): Promise<void> {
     await this.popoverCtrl.dismiss().catch(() => {});

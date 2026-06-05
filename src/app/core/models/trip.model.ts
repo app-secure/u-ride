@@ -1,4 +1,4 @@
-export type TripStatus = 'open' | 'inprogress' | 'closed' | 'cancelled' | 'completed';
+export type TripStatus = 'open' | 'inprogress' | 'closed' | 'cancelled' | 'completed' | 'expired';
 
 export interface TripRuleSet {
   punctuality: boolean;

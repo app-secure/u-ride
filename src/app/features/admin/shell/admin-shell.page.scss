@@ -32,6 +32,10 @@
     font-weight: 900;
     font-size: 17px;
     color: #0f172a !important;
+
+    @media (max-width: 480px) {
+      display: none;
+    }
   }
 
   .admin-chip {
@@ -43,6 +47,10 @@
     color: white;
     padding: 2px 8px;
     border-radius: 999px;
+
+    @media (max-width: 480px) {
+      display: none;
+    }
   }
 }
 
@@ -51,6 +59,11 @@
   align-items: center;
   gap: 8px;
   padding-right: 8px;
+
+  @media (max-width: 480px) {
+    gap: 4px;
+    padding-right: 4px;
+  }
 }
 
 .icon-btn {
@@ -113,6 +126,11 @@
     transform: translateY(-1px);
   }
 
+  @media (max-width: 480px) {
+    gap: 6px;
+    padding: 4px 8px;
+  }
+
   .avatar {
     width: 32px;
     height: 32px;
@@ -123,6 +141,7 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    flex-shrink: 0;
 
     img {
       width: 100%;
@@ -138,23 +157,35 @@
   .user-info {
     display: flex;
     flex-direction: column;
+    max-width: 110px;
+
+    @media (max-width: 480px) {
+      max-width: 85px;
+    }
 
     .name {
       font-size: 12px;
       font-weight: 700;
       color: #0f172a !important;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .role-label {
       font-size: 11px;
       color: #6366f1 !important;
       font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 
   ion-icon {
     color: #0f172a !important;
     font-size: 16px;
+    flex-shrink: 0;
   }
 }
 
