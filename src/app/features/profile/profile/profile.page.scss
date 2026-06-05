@@ -332,11 +332,11 @@
 .data-row .data-value {
   font-size: 16px;
   color: #0f172a;
+  font-weight: 500;
   
   @media (prefers-color-scheme: dark) {
     color: #f3f4f6;
   }
-  font-weight: 500;
 }
 
 .data-value.with-icon {

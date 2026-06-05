@@ -1402,6 +1402,10 @@ ion-content.sheet-content {
 }
 
 .payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
   .methods-title {
     font-size: 14px;
     font-weight: 700;
@@ -1413,9 +1417,6 @@ ion-content.sheet-content {
     }
   }
 
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 .payment-method-btn {
