@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:5132/api', // TODO: Cambiar por la URL de producción del backend en Azure/Vercel/etc.
+  apiUrl: 'https://u-ride-backend.onrender.com/api',
   institutionEmailDomain: 'uta.edu.ec',
   firebaseConfig: {
     apiKey: "AIzaSyB8eELUMGPKrccEIgIipGw23ijL9kgnmx4",
