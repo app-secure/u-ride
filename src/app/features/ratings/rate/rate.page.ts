@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -30,6 +30,7 @@ export class RatePage {
   private readonly users = inject(UsersService);
   private readonly reviews = inject(ReviewsService);
   private readonly toastCtrl = inject(ToastController);
+  private readonly location = inject(Location);
 
   readonly tripId = this.route.snapshot.paramMap.get('tripId') ?? '';
   readonly toUid = this.route.snapshot.paramMap.get('toUid') ?? '';
@@ -191,5 +192,9 @@ export class RatePage {
     } finally {
       this.submitting = false;
     }
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

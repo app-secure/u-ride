@@ -69,6 +69,12 @@
               {{ appeal.adminNotes }}
             </div>
           </div>
+
+          <!-- Evidence -->
+          <button class="evidence-btn" *ngIf="appeal.evidenceUrl" (click)="openEvidenceModal(appeal)">
+            <ion-icon name="image-outline"></ion-icon>
+            Ver evidencia adjunta
+          </button>
         </div>
 
         <!-- Acciones Rápidas -->
@@ -87,3 +93,22 @@
 
   </div>
 </ion-content>
+
+<!-- EVIDENCE MODAL -->
+<div class="evidence-overlay" *ngIf="showEvidenceModal" (click)="closeEvidenceModal()">
+  <div class="evidence-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Evidencia adjunta</h4>
+      <button class="close-btn" (click)="closeEvidenceModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <img [src]="selectedAppeal?.evidenceUrl" alt="Evidencia" class="evidence-img" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </div>
+    <div class="modal-info" *ngIf="selectedAppeal">
+      <p><strong>Motivo:</strong> {{ selectedAppeal.reason }}</p>
+      <p><strong>Usuario:</strong> {{ selectedAppeal.userName }}</p>
+    </div>
+  </div>
+</div>

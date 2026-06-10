@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonicModule, ToastController, AlertController } from '@ionic/angular';
+import { IonicModule, ToastController, AlertController, ModalController } from '@ionic/angular';
 import { debounceTime, startWith, map, catchError } from 'rxjs/operators';
 import { of, forkJoin, firstValueFrom } from 'rxjs';
 
@@ -14,6 +14,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import type { Trip } from '../../../core/models/trip.model';
 import type { UserProfile } from '../../../core/models/user-profile.model';
 import { AppealService } from '../../../core/services/appeal.service';
+import { PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal.component';
 
 /** Extensión de Trip que incluye la foto del conductor */
 interface TripWithDriverPhoto extends Trip {
@@ -37,6 +38,7 @@ export class TripsPage {
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
   private readonly appealSvc = inject(AppealService);
+  private readonly modalCtrl = inject(ModalController);
 
   mainSegment: 'search' | 'recent' = 'search';
 
@@ -77,6 +79,8 @@ export class TripsPage {
   get suspendedUntilDate(): Date | null {
     return this.userProfile?.suspendedUntil ? new Date(this.userProfile.suspendedUntil) : null;
   }
+
+  hasPendingAppeal = false;
 
   /** Mapa de tripId -> estado de solicitud del usuario */
   myRequestsMap: Record<string, { status: string; requestId: string; paymentStatus: string }> = {};
@@ -124,45 +128,35 @@ export class TripsPage {
   onMainSegmentChanged(): void {
     if (this.mainSegment === 'recent') {
       this.ensureRecentTripsLoaded();
+    } else {
+      // Forzar recarga al volver a 'Buscar Viajes' para limpiar cacheados
+      this.lastQueryKey = '';
+      this.resetAndLoad();
+      this.loadMyRequests();
     }
   }
 
-  async openAppealAlert() {
-    const alert = await this.alertCtrl.create({
-      header: 'Apelar Suspensión',
-      message: 'Por favor, explica detalladamente por qué consideras que tu cuenta debe ser desbloqueada.',
-      inputs: [
-        {
-          name: 'reason',
-          type: 'textarea',
-          placeholder: 'Escribe tus motivos aquí...'
-        }
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Enviar Apelación',
-          handler: async (data) => {
-            if (!data.reason?.trim()) {
-              this.presentToast('El motivo es obligatorio.', 'warning');
-              return false;
-            }
-            try {
-              await this.appealSvc.createAppeal(data.reason).toPromise();
-              this.presentToast('Apelación enviada correctamente. Será revisada por un administrador.', 'success');
-            } catch (e: any) {
-              this.presentToast(e.error?.message || 'Error al enviar la apelación.', 'danger');
-            }
-            return true;
-          }
-        }
-      ]
-    });
-    await alert.present();
+  openAppealAlert(): void {
+    this.router.navigate(['/app/appeals/create']);
   }
 
   ionViewWillEnter(): void {
     this.usersSvc.refreshMyProfile();
+    this.checkPendingAppeal();
+    if (this.mainSegment === 'search') {
+      this.lastQueryKey = '';
+      this.resetAndLoad();
+      this.loadMyRequests();
+    }
+  }
+
+  private async checkPendingAppeal(): Promise<void> {
+    try {
+      const appeals = await firstValueFrom(this.appealSvc.getMyAppeals());
+      this.hasPendingAppeal = appeals.some(a => a.status === 'pending');
+    } catch (e) {
+      console.error('Error checking pending appeals', e);
+    }
   }
 
   private ensureRecentTripsLoaded(): void {
@@ -369,6 +363,10 @@ export class TripsPage {
       }
     });
 
+    if (this.recentSegment === 'active') {
+      this.recentFilteredTrips.sort((a, b) => new Date(a.departureAt).getTime() - new Date(b.departureAt).getTime());
+    }
+
     this.recentTrips = [];
     this.recentNextIndex = 0;
     this.recentHasMore = this.recentFilteredTrips.length > 0;
@@ -392,8 +390,27 @@ export class TripsPage {
     this.router.navigate(['/app/trips', trip.id]);
   }
 
-  payTrip(trip: Trip): void {
-    this.router.navigate(['/app/trips', trip.id], { queryParams: { openPayment: 'true' } });
+  async payTrip(trip: Trip): Promise<void> {
+    const mapEntry = this.recentRequestsMap[trip.id] || this.myRequestsMap[trip.id];
+    if (!mapEntry || mapEntry.status !== 'accepted') return;
+
+    const modal = await this.modalCtrl.create({
+      component: PaymentModalComponent,
+      componentProps: {
+        trip: trip,
+        myRequestStatus: mapEntry.status,
+        myRequestId: mapEntry.requestId
+      },
+      cssClass: 'payment-modal'
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+    if (data?.success) {
+      this.loadRecentTrips();
+      this.loadMyRequests();
+    }
   }
 
 

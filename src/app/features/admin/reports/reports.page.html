@@ -89,13 +89,13 @@
 
             <!-- Actions -->
             <div class="card-actions">
-              <button class="action-btn warn-btn" (click)="markWarned(r)" [disabled]="busy">
-                <ion-icon name="warning-outline"></ion-icon>
-                Advertir
+              <button class="action-btn dismiss-btn" (click)="dismissReport(r)" [disabled]="busy">
+                <ion-icon name="close-circle-outline"></ion-icon>
+                Desestimar
               </button>
-              <button class="action-btn suspend-btn" (click)="suspend7d(r)" [disabled]="busy">
-                <ion-icon name="ban-outline"></ion-icon>
-                Suspender 7 días
+              <button class="action-btn sanction-btn" (click)="openSanctionMenu(r)" [disabled]="busy">
+                <ion-icon name="hammer-outline"></ion-icon>
+                Sancionar...
               </button>
             </div>
 

@@ -10,9 +10,10 @@ export class VerifiedGuard implements CanActivate {
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
   private readonly users = inject(UsersService);
+  private readonly user$ = authState(this.auth);
 
   canActivate() {
-    return authState(this.auth).pipe(
+    return this.user$.pipe(
       switchMap(user => {
         if (!user) {
           this.router.navigateByUrl('/auth/login');

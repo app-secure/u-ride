@@ -252,29 +252,62 @@ export class LocationPickerModalComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  /** Actualiza/crea la línea punteada entre ambos marcadores */
-  private syncRouteLine(): void {
+  /** Actualiza/crea la línea entre ambos marcadores mostrando la ruta real */
+  private async syncRouteLine(): Promise<void> {
     if (!this.map) return;
 
     const hasMain = this.mainMarker != null;
     const hasOther = this.otherMarker != null;
 
     if (hasMain && hasOther) {
-      const pts: L.LatLngExpression[] = [
-        this.mainMarker!.getLatLng(),
-        this.otherMarker!.getLatLng(),
-      ];
+      const mainPos = this.mainMarker!.getLatLng();
+      const otherPos = this.otherMarker!.getLatLng();
+      
+      const pts: L.LatLngExpression[] = [mainPos, otherPos];
 
       if (this.routeLine) {
         this.routeLine.setLatLngs(pts);
       } else {
         this.routeLine = L.polyline(pts, {
           color: '#6366f1',
-          weight: 3,
+          weight: 4,
           dashArray: '8 6',
-          opacity: 0.75,
+          opacity: 0.5,
         }).addTo(this.map);
       }
+
+      try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${mainPos.lng},${mainPos.lat};${otherPos.lng},${otherPos.lat}?overview=full&geometries=geojson`;
+        const response = await fetch(url);
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.routes && data.routes.length > 0) {
+            const coordinates = data.routes[0].geometry.coordinates;
+            const latLngs: L.LatLngExpression[] = coordinates.map((c: [number, number]) => [c[1], c[0]]);
+
+            this.routeLine.setLatLngs(latLngs);
+            this.routeLine.setStyle({
+              color: '#ef4444',
+              weight: 5,
+              opacity: 0.9,
+              dashArray: ''
+            });
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching real route from OSRM:', error);
+      }
+
+      // Si falla la API de ruta, lo deja como línea punteada
+      this.routeLine.setStyle({
+        color: '#6366f1',
+        weight: 3,
+        dashArray: '8 6',
+        opacity: 0.75,
+      });
+
     } else if (this.routeLine) {
       this.routeLine.remove();
       this.routeLine = undefined;

@@ -28,7 +28,9 @@
       <div class="suspension-content">
         <strong>Cuenta suspendida</strong>
         <p>Tu cuenta está suspendida hasta el {{ suspendedUntilDate | date:'longDate':'':'es-EC' }}. Algunas funciones están deshabilitadas.</p>
-        <button class="appeal-btn" (click)="openAppealAlert()">Apelar Suspensión</button>
+        <button class="appeal-btn" (click)="openAppealAlert()" [disabled]="hasPendingAppeal">
+          {{ hasPendingAppeal ? 'Apelación enviada' : 'Apelar Suspensión' }}
+        </button>
       </div>
     </div>
 

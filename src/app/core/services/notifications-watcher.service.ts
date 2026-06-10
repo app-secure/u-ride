@@ -81,8 +81,15 @@ export class NotificationsWatcherService implements OnDestroy {
     for (const n of newNotifications) {
       if (n.id) nextSeen[n.id] = true;
 
-      // Mostrar toast si es una notificación del sistema u otra que el backend mande
-      void this.presentToast(n);
+      // Mostrar toast si es una notificación general. 
+      // Si tiene tripId, evitamos mostrarla aquí porque los watchers especializados 
+      // (TripRequestStatusWatcherService y DriverTripRequestsWatcherService) ya muestran una alerta mejorada (las blancas).
+      // EXCEPCIÓN: Las notificaciones del estado general del viaje (iniciado, finalizado, cancelado por conductor)
+      // no tienen un watcher especializado para el pasajero, por lo que las mostramos aquí.
+      const type = n.type?.toLowerCase();
+      if (!n.tripId || type === 'tripstarted' || type === 'tripcompleted' || type === 'tripcancelled') {
+        void this.presentToast(n);
+      }
     }
 
     this.seenNotificationIds = nextSeen;

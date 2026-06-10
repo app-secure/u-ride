@@ -350,20 +350,21 @@
 
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  &.warn-btn {
-    background: white;
-    color: #d97706;
-    border: 1.5px solid #fcd34d;
+  &.dismiss-btn {
+    background: transparent;
+    color: #64748b;
+    border: 1.5px solid #e2e8f0;
 
-    &:hover:not(:disabled) { background: #fffbeb; }
+    &:hover:not(:disabled) { background: #f1f5f9; }
 
     @media (prefers-color-scheme: dark) {
-      background: #1e293b;
-      border-color: #d97706;
+      color: #cbd5e1;
+      border-color: #475569;
+      &:hover:not(:disabled) { background: #334155; }
     }
   }
 
-  &.suspend-btn {
+  &.sanction-btn {
     background: #ef4444;
     color: white;
 

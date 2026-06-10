@@ -19,7 +19,8 @@
 
         <div class="input-group">
           <label>Selecciona la ruta</label>
-          <div class="custom-input-box" [class.has-error]="publishForm.controls.routeName.invalid && publishForm.controls.routeName.touched">
+          <div class="custom-input-box"
+            [class.has-error]="publishForm.controls.routeName.invalid && publishForm.controls.routeName.touched">
             <ion-icon name="git-branch-outline" class="icon-gray"></ion-icon>
             <ion-select formControlName="routeName" placeholder="Seleccionar ruta" interface="popover"
               [interfaceOptions]="{ cssClass: 'wide-popover' }" toggleIcon="chevron-down-outline"
@@ -28,7 +29,8 @@
               <ion-select-option *ngFor="let r of (routeOptions$ | async)" [value]="r">{{ r }}</ion-select-option>
             </ion-select>
           </div>
-          <div class="error-msg" *ngIf="publishForm.controls.routeName.invalid && publishForm.controls.routeName.touched">
+          <div class="error-msg"
+            *ngIf="publishForm.controls.routeName.invalid && publishForm.controls.routeName.touched">
             La ruta es requerida.
           </div>
         </div>
@@ -43,7 +45,8 @@
             <div class="label-row">
               <label>Origen</label>
             </div>
-            <div class="custom-input-box" [class.has-error]="publishForm.controls.originZone.invalid && publishForm.controls.originZone.touched">
+            <div class="custom-input-box"
+              [class.has-error]="publishForm.controls.originZone.invalid && publishForm.controls.originZone.touched">
               <ion-icon name="location-outline" class="icon-origin"></ion-icon>
               <button type="button" class="location-select-btn"
                 [class.is-placeholder]="!publishForm.controls.originZone.value" (click)="openLocationPicker('origin')">
@@ -53,7 +56,8 @@
               <ion-icon name="chevron-forward-outline" class="icon-gray"
                 style="font-size: 16px; margin-left: 4px;"></ion-icon>
             </div>
-            <div class="error-msg" *ngIf="publishForm.controls.originZone.invalid && publishForm.controls.originZone.touched">
+            <div class="error-msg"
+              *ngIf="publishForm.controls.originZone.invalid && publishForm.controls.originZone.touched">
               El punto de origen es requerido.
             </div>
             <span class="hint">Busca una dirección y toca el mapa para fijar el punto exacto</span>
@@ -63,7 +67,8 @@
             <div class="label-row">
               <label>Destino</label>
             </div>
-            <div class="custom-input-box" [class.has-error]="publishForm.controls.destinationZone.invalid && publishForm.controls.destinationZone.touched">
+            <div class="custom-input-box"
+              [class.has-error]="publishForm.controls.destinationZone.invalid && publishForm.controls.destinationZone.touched">
               <ion-icon name="location" class="icon-dest"></ion-icon>
               <button type="button" class="location-select-btn"
                 [class.is-placeholder]="!publishForm.controls.destinationZone.value"
@@ -74,7 +79,8 @@
               <ion-icon name="chevron-forward-outline" class="icon-gray"
                 style="font-size: 16px; margin-left: 4px;"></ion-icon>
             </div>
-            <div class="error-msg" *ngIf="publishForm.controls.destinationZone.invalid && publishForm.controls.destinationZone.touched">
+            <div class="error-msg"
+              *ngIf="publishForm.controls.destinationZone.invalid && publishForm.controls.destinationZone.touched">
               El punto de destino es requerido.
             </div>
             <span class="hint">Busca una dirección y toca el mapa para fijar el punto exacto</span>
@@ -90,9 +96,10 @@
         <div class="row-inputs">
           <div class="input-group">
             <label>Fecha</label>
-            <div class="custom-input-box" [class.has-error]="publishForm.controls.date.invalid && publishForm.controls.date.touched">
+            <div class="custom-input-box"
+              [class.has-error]="publishForm.controls.date.invalid && publishForm.controls.date.touched">
               <ion-icon name="calendar-outline" class="icon-gray"></ion-icon>
-              <input type="date" formControlName="date" [min]="todayDate()" />
+              <input type="date" formControlName="date" [min]="todayDate()" (change)="onTimeChange()" />
             </div>
             <div class="error-msg" *ngIf="publishForm.controls.date.invalid && publishForm.controls.date.touched">
               La fecha es requerida.
@@ -101,9 +108,10 @@
 
           <div class="input-group">
             <label>Hora de Salida</label>
-            <div class="custom-input-box" [class.has-error]="publishForm.controls.time.invalid && publishForm.controls.time.touched">
+            <div class="custom-input-box"
+              [class.has-error]="publishForm.controls.time.invalid && publishForm.controls.time.touched">
               <ion-icon name="time-outline" class="icon-gray"></ion-icon>
-              <input type="time" formControlName="time" (change)="onTimeChange()" />
+              <input type="time" formControlName="time" [min]="minTimeForSelectedDate()" (change)="onTimeChange()" />
             </div>
             <div class="error-msg" *ngIf="publishForm.controls.time.invalid && publishForm.controls.time.touched">
               La hora de salida es requerida.
@@ -111,8 +119,13 @@
           </div>
         </div>
 
-        <div class="error-msg" *ngIf="publishForm.errors?.['departureInPast'] && (publishForm.controls.date.touched && publishForm.controls.time.touched)">
+        <div class="error-msg"
+          *ngIf="publishForm.errors?.['departureInPast'] && (publishForm.controls.date.touched && publishForm.controls.time.touched)">
           La fecha y hora de salida no puede estar en el pasado.
+        </div>
+        <div class="error-msg"
+          *ngIf="publishForm.errors?.['differenceTooLarge'] && (publishForm.controls.date.touched && publishForm.controls.time.touched)">
+          La hora de salida no puede exceder los 15 minutos desde la hora actual.
         </div>
       </div>
 
@@ -135,7 +148,8 @@
         <ng-container *ngIf="myVehicles.length > 0">
           <div class="input-group" style="margin-bottom: 16px;">
             <label>Selecciona un vehículo</label>
-            <div class="custom-input-box" [class.has-error]="publishForm.controls.vehicleBrand.invalid && publishForm.controls.vehicleBrand.touched">
+            <div class="custom-input-box"
+              [class.has-error]="publishForm.controls.vehicleBrand.invalid && publishForm.controls.vehicleBrand.touched">
               <ion-icon name="car-sport" class="icon-gray"></ion-icon>
               <ion-select interface="popover" placeholder="Seleccionar..." (ionChange)="onVehicleSelected($event)"
                 style="width: 100%;">
@@ -143,7 +157,8 @@
                   }}</ion-select-option>
               </ion-select>
             </div>
-            <div class="error-msg" *ngIf="publishForm.controls.vehicleBrand.invalid && publishForm.controls.vehicleBrand.touched">
+            <div class="error-msg"
+              *ngIf="publishForm.controls.vehicleBrand.invalid && publishForm.controls.vehicleBrand.touched">
               Debes seleccionar un vehículo.
             </div>
           </div>
@@ -176,18 +191,25 @@
 
         <div class="input-group">
           <label>Cupos Disponibles</label>
-          <div class="custom-input-box" [class.has-error]="publishForm.controls.seatsTotal.invalid && publishForm.controls.seatsTotal.touched">
+          <div class="custom-input-box"
+            [class.has-error]="publishForm.controls.seatsTotal.invalid && publishForm.controls.seatsTotal.touched">
             <ion-icon name="people-outline" class="icon-gray"></ion-icon>
             <input type="number" formControlName="seatsTotal" min="1" max="40" inputmode="numeric" placeholder="Ej: 3"
               (keydown)="blockInvalidNumber($event)" (input)="sanitizeNumberInput($event)" />
           </div>
-          <div class="error-msg" *ngIf="publishForm.controls.seatsTotal.invalid && publishForm.controls.seatsTotal.touched">
+          <div class="error-msg"
+            *ngIf="publishForm.controls.seatsTotal.invalid && publishForm.controls.seatsTotal.touched">
             <span *ngIf="publishForm.controls.seatsTotal.errors?.['required']">Debe ingresar el número de cupos.</span>
-            <span *ngIf="publishForm.controls.seatsTotal.errors?.['min'] || publishForm.controls.seatsTotal.errors?.['max']">Debe ser entre 1 y 40.</span>
-            <span *ngIf="publishForm.controls.seatsTotal.errors?.['exceedsVehicleSeats']">Los cupos deben ser menores a los {{ selectedVehicleSeats }} asientos del vehículo (máximo {{ selectedVehicleSeats! - 1 }}).</span>
+            <span
+              *ngIf="publishForm.controls.seatsTotal.errors?.['min'] || publishForm.controls.seatsTotal.errors?.['max']">Debe
+              ser entre 1 y 40.</span>
+            <span *ngIf="publishForm.controls.seatsTotal.errors?.['exceedsVehicleSeats']">Los cupos deben ser menores a
+              los {{ selectedVehicleSeats }} asientos del vehículo (máximo {{ selectedVehicleSeats! - 1 }}).</span>
           </div>
-          <span class="hint" *ngIf="selectedVehicleSeats !== null">Máximo {{ selectedVehicleSeats! - 1 }} cupos (el vehículo tiene {{ selectedVehicleSeats }} asientos en total)</span>
-          <span class="hint" *ngIf="selectedVehicleSeats === null">Selecciona primero un vehículo para ver el límite de cupos</span>
+          <span class="hint" *ngIf="selectedVehicleSeats !== null">Máximo {{ selectedVehicleSeats! - 1 }} cupos (el
+            vehículo tiene {{ selectedVehicleSeats }} asientos en total)</span>
+          <span class="hint" *ngIf="selectedVehicleSeats === null">Selecciona primero un vehículo para ver el límite de
+            cupos</span>
         </div>
       </div>
 
@@ -196,7 +218,8 @@
         <h3 class="section-title">Aporte por Pasajero</h3>
         <div class="input-group">
           <label>Costo sugerido o fijo (Ej: 0.50)</label>
-          <div class="custom-input-box" [class.has-error]="publishForm.controls.price.invalid && publishForm.controls.price.touched">
+          <div class="custom-input-box"
+            [class.has-error]="publishForm.controls.price.invalid && publishForm.controls.price.touched">
             <ion-icon name="cash-outline" class="icon-gray"></ion-icon>
             <span class="currency-prefix">$</span>
             <input type="number" formControlName="price" placeholder="0.50" step="0.10" min="0" inputmode="decimal"
@@ -210,16 +233,18 @@
 
       <!-- Método de pago -->
       <div class="form-section">
-        <h3 class="section-title">Método de Pago</h3>
+        <h3 class="section-title">Método de Pago Preferido</h3>
         <div class="input-group">
-          <label>Indica cómo se realizará el pago</label>
-          <div class="custom-input-box" [class.has-error]="publishForm.controls.paymentMethod.invalid && publishForm.controls.paymentMethod.touched">
+          <label>Indica cuál es el método de pago preferido para este viaje</label>
+          <div class="custom-input-box"
+            [class.has-error]="publishForm.controls.paymentMethod.invalid && publishForm.controls.paymentMethod.touched">
             <ion-icon name="card-outline" class="icon-gray"></ion-icon>
             <ion-select formControlName="paymentMethod" interface="popover" placeholder="Seleccionar método">
               <ion-select-option *ngFor="let method of paymentMethods" [value]="method">{{ method }}</ion-select-option>
             </ion-select>
           </div>
-          <div class="error-msg" *ngIf="publishForm.controls.paymentMethod.invalid && publishForm.controls.paymentMethod.touched">
+          <div class="error-msg"
+            *ngIf="publishForm.controls.paymentMethod.invalid && publishForm.controls.paymentMethod.touched">
             El método de pago es requerido.
           </div>
           <span class="hint" *ngIf="!hasPrice">Ingresa primero el costo para habilitar el método de pago</span>
@@ -250,9 +275,11 @@
 
         <div class="input-group">
           <label>Reglas o Preferencias</label>
-          <div class="custom-textarea-box" [class.has-error]="publishForm.controls.notes.invalid && publishForm.controls.notes.touched">
+          <div class="custom-textarea-box"
+            [class.has-error]="publishForm.controls.notes.invalid && publishForm.controls.notes.touched">
             <ion-icon name="document-text-outline" class="icon-gray"></ion-icon>
-            <textarea formControlName="notes" placeholder="Ej: Salida puntual, no fumar, etc." rows="3" maxlength="400"></textarea>
+            <textarea formControlName="notes" placeholder="Ej: Salida puntual, no fumar, etc." rows="3"
+              maxlength="400"></textarea>
           </div>
           <div class="char-count" *ngIf="publishForm.controls.notes.value">
             {{ publishForm.controls.notes.value.length }} / 400

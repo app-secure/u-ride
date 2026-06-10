@@ -53,7 +53,7 @@ export class PublishTripPage {
 
   readonly routeOptions$ = this.trips.tripRoutes$();
   readonly ruleOptions$ = this.trips.tripRules$();
-  readonly paymentMethods = ['Efectivo', 'Tarjeta', 'Transferencia'];
+  readonly paymentMethods = ['Efectivo', 'Tarjeta', 'Transferencia', 'Cualquiera'];
 
   readonly publishForm = this.fb.nonNullable.group({
     routeName: ['', [Validators.required]],
@@ -420,7 +420,19 @@ export class PublishTripPage {
       const now = new Date();
       now.setSeconds(0, 0);
 
-      return selected < now ? { departureInPast: true } : null;
+      if (selected < now) {
+        return { departureInPast: true };
+      }
+
+      const diffMs = selected.getTime() - now.getTime();
+      const diffMinutes = Math.floor(diffMs / 60000);
+
+      // Si la diferencia es mayor o igual a 15 minutos
+      if (diffMinutes >= 15) {
+        return { differenceTooLarge: true };
+      }
+
+      return null;
     };
   }
 

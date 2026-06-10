@@ -39,6 +39,8 @@ export class DriverTripsPage {
     return this.userProfile?.suspendedUntil ? new Date(this.userProfile.suspendedUntil) : null;
   }
 
+  hasPendingAppeal = false;
+
   private _segment: 'active' | 'completed' = 'active';
   private readonly pageSize = 10;
   private nextIndex = 0;
@@ -64,43 +66,23 @@ export class DriverTripsPage {
     });
   }
 
-  async openAppealAlert() {
-    const alert = await this.alertCtrl.create({
-      header: 'Apelar Suspensión',
-      message: 'Por favor, explica detalladamente por qué consideras que tu cuenta debe ser desbloqueada.',
-      inputs: [
-        {
-          name: 'reason',
-          type: 'textarea',
-          placeholder: 'Escribe tus motivos aquí...'
-        }
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Enviar Apelación',
-          handler: async (data) => {
-            if (!data.reason?.trim()) {
-              this.presentToast('El motivo es obligatorio.', 'warning');
-              return false;
-            }
-            try {
-              await this.appealSvc.createAppeal(data.reason).toPromise();
-              this.presentToast('Apelación enviada correctamente. Será revisada por un administrador.', 'success');
-            } catch (e: any) {
-              this.presentToast(e.error?.message || 'Error al enviar la apelación.', 'danger');
-            }
-            return true;
-          }
-        }
-      ]
-    });
-    await alert.present();
+  openAppealAlert(): void {
+    this.router.navigate(['/app/appeals/create']);
   }
 
   ionViewWillEnter(): void {
     this.usersSvc.refreshMyProfile();
+    this.checkPendingAppeal();
     this.loadTrips();
+  }
+
+  private async checkPendingAppeal(): Promise<void> {
+    try {
+      const appeals = await firstValueFrom(this.appealSvc.getMyAppeals());
+      this.hasPendingAppeal = appeals.some(a => a.status === 'pending');
+    } catch (e) {
+      console.error('Error checking pending appeals', e);
+    }
   }
 
   doRefresh(event: any): void {
@@ -143,6 +125,11 @@ export class DriverTripsPage {
         ? (t.status === 'open' || t.status === 'closed' || t.status === 'inprogress')
         : (t.status === 'completed' || t.status === 'cancelled' || t.status === 'expired')
     );
+
+    if (this.segment === 'active') {
+      this.filteredTrips.sort((a, b) => new Date(a.departureAt).getTime() - new Date(b.departureAt).getTime());
+    }
+
     this.trips = [];
     this.nextIndex = 0;
     this.hasMore = this.filteredTrips.length > 0;
@@ -163,6 +150,11 @@ export class DriverTripsPage {
   }
 
   async startTrip(trip: Trip): Promise<void> {
+    if (this.isSuspended) {
+      await this.presentToast('Acción denegada. Tu cuenta está suspendida y no puedes iniciar viajes.', 'danger');
+      return;
+    }
+    
     const alert = await this.alertCtrl.create({
       header: 'Iniciar Viaje',
       message: '¿Estás listo para iniciar el viaje? Ya no recibirás más solicitudes de pasajeros.',

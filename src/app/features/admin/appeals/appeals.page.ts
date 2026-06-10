@@ -7,7 +7,7 @@ import {
   IonBadge, AlertController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { shieldCheckmarkOutline, closeCircleOutline, refreshOutline, documentTextOutline, timeOutline } from 'ionicons/icons';
+import { shieldCheckmarkOutline, closeCircleOutline, refreshOutline, documentTextOutline, timeOutline, imageOutline, closeOutline } from 'ionicons/icons';
 import { AppealService, Appeal } from '../../../core/services/appeal.service';
 
 @Component({
@@ -17,8 +17,8 @@ import { AppealService, Appeal } from '../../../core/services/appeal.service';
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    IonContent, IonHeader, IonTitle, IonToolbar, IonSpinner,
-    IonRefresher, IonRefresherContent, IonIcon, IonButton, IonBadge
+    IonContent, IonSpinner,
+    IonRefresher, IonRefresherContent, IonIcon
   ]
 })
 export class AppealsPage implements OnInit {
@@ -28,9 +28,11 @@ export class AppealsPage implements OnInit {
 
   appeals: Appeal[] = [];
   isLoading = true;
+  selectedAppeal: Appeal | null = null;
+  showEvidenceModal = false;
 
   constructor() {
-    addIcons({ shieldCheckmarkOutline, closeCircleOutline, refreshOutline, documentTextOutline, timeOutline });
+    addIcons({ shieldCheckmarkOutline, closeCircleOutline, refreshOutline, documentTextOutline, timeOutline, imageOutline, closeOutline });
   }
 
   ngOnInit() {
@@ -82,6 +84,16 @@ export class AppealsPage implements OnInit {
     });
 
     await alert.present();
+  }
+
+  openEvidenceModal(appeal: Appeal): void {
+    this.selectedAppeal = appeal;
+    this.showEvidenceModal = true;
+  }
+
+  closeEvidenceModal(): void {
+    this.showEvidenceModal = false;
+    this.selectedAppeal = null;
   }
 
   async showToast(msg: string, color: string = 'success') {

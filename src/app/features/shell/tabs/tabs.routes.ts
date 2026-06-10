@@ -52,6 +52,10 @@ export const TABS_ROUTES: Routes = [
     path: 'rate/:tripId/:toUid',
     loadComponent: () => import('../../ratings/rate/rate.page').then(m => m.RatePage),
   },
+  {
+    path: 'appeals/create',
+    loadComponent: () => import('../../appeals/create-appeal/create-appeal.page').then(m => m.CreateAppealPage),
+  },
   // ─── ADMIN (nested under AdminShellPage so navbar is persistent) ───
   {
     path: 'admin',

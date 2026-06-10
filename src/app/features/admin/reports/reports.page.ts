@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ModalController, ToastController } from '@ionic/angular';
+import { IonicModule, ModalController, ToastController, ActionSheetController } from '@ionic/angular';
 import { BehaviorSubject, switchMap, map, forkJoin, of } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 
@@ -28,6 +28,7 @@ export class ReportsPage {
   private readonly usersSvc = inject(UsersService);
   private readonly toastCtrl = inject(ToastController);
   private readonly modalCtrl = inject(ModalController);
+  private readonly actionSheetCtrl = inject(ActionSheetController);
 
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
   busy = false;
@@ -94,6 +95,7 @@ export class ReportsPage {
     switch (action) {
       case 'warned': return 'Advertido';
       case 'suspended': return 'Suspendido';
+      case 'dismissed': return 'Desestimado';
       default: return 'Sin acción';
     }
   }
@@ -102,6 +104,7 @@ export class ReportsPage {
     switch (action) {
       case 'warned': return 'warning';
       case 'suspended': return 'danger';
+      case 'dismissed': return 'medium';
       default: return 'medium';
     }
   }
@@ -126,12 +129,71 @@ export class ReportsPage {
       await firstValueFrom(this.usersSvc.suspendUser(report.reportedUid, until));
       await firstValueFrom(this.reportsSvc.resolveReport(report.id, 'suspended', `Suspendido hasta ${until.toLocaleDateString()}`));
       this.refresh$.next();
-      await this.toast('Reporte resuelto: usuario suspendido 7 días.', 'warning');
+      await this.toast('Reporte resuelto: usuario suspendido 7 días.', 'danger');
     } catch {
       await this.toast('Error al suspender usuario.', 'danger');
     } finally {
       this.busy = false;
     }
+  }
+
+  async suspend30d(report: Report): Promise<void> {
+    this.busy = true;
+    try {
+      const until = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      await firstValueFrom(this.usersSvc.suspendUser(report.reportedUid, until));
+      await firstValueFrom(this.reportsSvc.resolveReport(report.id, 'suspended', `Suspendido hasta ${until.toLocaleDateString()}`));
+      this.refresh$.next();
+      await this.toast('Reporte resuelto: usuario suspendido 30 días.', 'danger');
+    } catch {
+      await this.toast('Error al suspender usuario.', 'danger');
+    } finally {
+      this.busy = false;
+    }
+  }
+
+  async dismissReport(report: Report): Promise<void> {
+    this.busy = true;
+    try {
+      await firstValueFrom(this.reportsSvc.resolveReport(report.id, 'dismissed', 'Reporte desestimado.'));
+      this.refresh$.next();
+      await this.toast('Reporte desestimado correctamente.', 'medium');
+    } catch {
+      await this.toast('Error al desestimar el reporte.', 'danger');
+    } finally {
+      this.busy = false;
+    }
+  }
+
+  async openSanctionMenu(report: Report): Promise<void> {
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: `Sancionar a ${'reportedName' in report ? (report as any).reportedName : 'Usuario'}`,
+      buttons: [
+        {
+          text: 'Enviar Advertencia',
+          icon: 'warning-outline',
+          handler: () => { this.markWarned(report); }
+        },
+        {
+          text: 'Suspender 7 días',
+          icon: 'ban-outline',
+          role: 'destructive',
+          handler: () => { this.suspend7d(report); }
+        },
+        {
+          text: 'Suspender 30 días',
+          icon: 'ban-outline',
+          role: 'destructive',
+          handler: () => { this.suspend30d(report); }
+        },
+        {
+          text: 'Cancelar',
+          icon: 'close',
+          role: 'cancel'
+        }
+      ]
+    });
+    await actionSheet.present();
   }
 
   private async toast(message: string, color: 'success' | 'warning' | 'medium' | 'danger'): Promise<void> {

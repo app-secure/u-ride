@@ -10,8 +10,10 @@ import { TripRequestsService } from '../../../core/services/trip-requests.servic
 import { ReviewsService } from '../../../core/services/reviews.service';
 import { ReportsService } from '../../../core/services/reports.service';
 import { AuthService } from '../../../core/auth/auth.service';
+import { UsersService } from '../../../core/services/users.service';
 import type { TripRequest } from '../../../core/models/trip-request.model';
 import type { Trip } from '../../../core/models/trip.model';
+import type { UserProfile } from '../../../core/models/user-profile.model';
 
 @Component({
   selector: 'app-ride-requests',
@@ -28,6 +30,7 @@ export class RideRequestsPage {
   private readonly reviews = inject(ReviewsService);
   private readonly reports = inject(ReportsService);
   private readonly auth = inject(AuthService);
+  private readonly users = inject(UsersService);
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
   private readonly location = inject(Location);
@@ -42,6 +45,11 @@ export class RideRequestsPage {
 
   trip: Trip | null = null;
   currentUid: string | null = null;
+  userProfile: UserProfile | null = null;
+  get isSuspended(): boolean {
+    if (!this.userProfile?.suspendedUntil) return false;
+    return new Date(this.userProfile.suspendedUntil) > new Date();
+  }
 
   // Mapas para ocultar botones
   ratedMap: Record<string, boolean> = {};
@@ -50,7 +58,12 @@ export class RideRequestsPage {
   constructor() {
     this.auth.user$.pipe(takeUntilDestroyed()).subscribe(user => {
       this.currentUid = user?.uid ?? null;
-      if (this.currentUid) this.checkActionsStatus();
+      if (this.currentUid) {
+        this.checkActionsStatus();
+        this.users.myProfile$.pipe(takeUntilDestroyed()).subscribe(profile => {
+          this.userProfile = profile;
+        });
+      }
     });
 
     // Cargar viaje one-shot
@@ -184,6 +197,13 @@ export class RideRequestsPage {
   }
 
   async accept(req: TripRequest): Promise<void> {
+    if (this.isSuspended) {
+      await (await this.toastCtrl.create({
+        message: 'Acción denegada. Tu cuenta está suspendida y no puedes gestionar pasajeros.',
+        duration: 2500, color: 'danger', position: 'top'
+      })).present();
+      return;
+    }
     await firstValueFrom(this.tripRequests.acceptRequest(req.id));
     this.refresh$.next();
     const toast = await this.toastCtrl.create({
@@ -196,6 +216,13 @@ export class RideRequestsPage {
   }
 
   async reject(req: TripRequest): Promise<void> {
+    if (this.isSuspended) {
+      await (await this.toastCtrl.create({
+        message: 'Acción denegada. Tu cuenta está suspendida y no puedes gestionar pasajeros.',
+        duration: 2500, color: 'danger', position: 'top'
+      })).present();
+      return;
+    }
     await firstValueFrom(this.tripRequests.rejectRequest(req.id));
     this.refresh$.next();
     const toast = await this.toastCtrl.create({
