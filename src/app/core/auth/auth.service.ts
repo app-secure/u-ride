@@ -106,7 +106,8 @@ export class AuthService {
     // FLUJO WEB (Navegador)
     const provider = this.buildMicrosoftProvider();
     try {
-      await signInWithRedirect(this.auth, provider);
+      const cred = await signInWithPopup(this.auth, provider);
+      await this.finalizeMicrosoftLogin(cred);
       return 'done';
     } catch (error: any) {
       console.error('[AuthService] Error web:', error);
@@ -115,13 +116,12 @@ export class AuthService {
   }
 
   async completeMicrosoftRedirectIfNeeded(): Promise<boolean> {
-    if (Capacitor.isNativePlatform()) return false;
+    if (!Capacitor.isNativePlatform()) return false;
 
     let cred: UserCredential | null = null;
     try {
       cred = await getRedirectResult(this.auth);
-    } catch (error) {
-      console.error('[AuthService] getRedirectResult error:', error);
+    } catch {
       return false;
     }
 
