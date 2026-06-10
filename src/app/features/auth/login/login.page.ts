@@ -36,7 +36,7 @@ export class LoginPage {
   showPassword = false;
 
   async ionViewWillEnter(): Promise<void> {
-    // Si venimos de un redirect de Microsoft (Android/iOS), completamos aquí.
+    // Si venimos de un redirect de Microsoft (Web), completamos aquí.
     this.loading = true;
     try {
       const handled = await this.auth.completeMicrosoftRedirectIfNeeded();
