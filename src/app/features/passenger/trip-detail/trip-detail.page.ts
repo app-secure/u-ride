@@ -9,11 +9,13 @@ import { filter } from 'rxjs/operators';
 
 import * as L from 'leaflet';
 import { Geolocation } from '@capacitor/geolocation';
+import { Browser } from '@capacitor/browser';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { UsersService } from '../../../core/services/users.service';
 import { TripsService } from '../../../core/services/trips.service';
 import { TripRequestsService } from '../../../core/services/trip-requests.service';
+import { PayPalPaymentsService } from '../../../core/services/paypal-payments.service';
 import { RoleStateService } from '../../../core/services/role-state.service';
 import { ReviewsService } from '../../../core/services/reviews.service';
 import { ReportsService } from '../../../core/services/reports.service';
@@ -43,6 +45,7 @@ export class TripDetailPage {
   private readonly users = inject(UsersService);
   private readonly trips = inject(TripsService);
   private readonly tripRequests = inject(TripRequestsService);
+  private readonly payPal = inject(PayPalPaymentsService);
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
   private readonly modalCtrl = inject(ModalController);
@@ -88,7 +91,7 @@ export class TripDetailPage {
   paymentReferenceCode = '';
   qrExpirationTime = 120; // 2 minutos
   paymentMethods: Array<{ id: 'card' | 'transfer' | 'qr' | 'cash' | 'institutional'; label: string; icon: string; color: string }> = [
-    { id: 'card', label: 'Tarjeta de crédito/débito', icon: 'card-outline', color: '#3b82f6' },
+    { id: 'card', label: 'PayPal', icon: 'logo-paypal', color: '#3b82f6' },
     { id: 'transfer', label: 'Transferencia bancaria', icon: 'swap-horizontal-outline', color: '#8b5cf6' },
     { id: 'qr', label: 'Pago con QR', icon: 'qr-code-outline', color: '#10b981' },
     { id: 'cash', label: 'Efectivo', icon: 'cash-outline', color: '#f59e0b' },
@@ -108,6 +111,9 @@ export class TripDetailPage {
   private watchId: string | null = null;
   private driverLive?: DriverLiveLocation;
   private locationPollTimer?: any;
+
+  private paypalPopup: Window | null = null;
+  private paypalPopupPoll?: number;
 
   constructor() {
     this.tripId = this.route.snapshot.paramMap.get('tripId') ?? '';
@@ -131,6 +137,59 @@ export class TripDetailPage {
       .subscribe(() => {
         this.closeAllModals();
       });
+
+    // Web: escuchar retorno de PayPal desde popup
+    if (!Capacitor.isNativePlatform()) {
+      window.addEventListener('message', (event: MessageEvent) => {
+        if (event.origin !== window.location.origin) return;
+        const data = event.data as any;
+        if (!data || data.type !== 'paypal' || typeof data.status !== 'string') return;
+
+        // Cierra popup si sigue abierto
+        try {
+          this.paypalPopup?.close();
+        } catch {}
+        this.stopPayPalPopupPolling();
+
+        // Ya terminó la interacción con el popup
+        this.processingPayment = false;
+
+        if (data.status === 'success') {
+          this.loadMyRequestStatus();
+          void this.toastCtrl
+            .create({
+              message: '✓ Pago completado con PayPal.',
+              duration: 3200,
+              position: 'top',
+              color: 'success',
+            })
+            .then(t => t.present());
+          this.closePaymentModal();
+        } else if (data.status === 'cancel') {
+          this.paymentStep = 'selection';
+          this.selectedPaymentMethod = null;
+          void this.toastCtrl
+            .create({
+              message: 'Pago cancelado. Puedes intentarlo de nuevo.',
+              duration: 3200,
+              position: 'top',
+              color: 'warning',
+            })
+            .then(t => t.present());
+        } else {
+          this.paymentStep = 'selection';
+          this.selectedPaymentMethod = null;
+          void this.toastCtrl
+            .create({
+              message: 'No se pudo completar el pago con PayPal.',
+              duration: 3500,
+              position: 'top',
+              color: 'danger',
+            })
+            .then(t => t.present());
+        }
+      });
+    }
 
     // Cargar viaje one-shot
     this.loadTrip();
@@ -168,6 +227,72 @@ export class TripDetailPage {
     this.isModalOpen = true;
     this.checkDriverActionStatus();
     this.startPollingLocation();
+
+    // Retorno PayPal (vía redirect)
+    const paypal = this.route.snapshot.queryParamMap.get('paypal');
+    const tripRequestId = this.route.snapshot.queryParamMap.get('tripRequestId');
+    if (paypal === 'success') {
+      // Si estamos dentro de un popup, notificamos a la ventana padre y cerramos.
+      if (!Capacitor.isNativePlatform()) {
+        try {
+          window.opener?.postMessage({ type: 'paypal', status: 'success', tripRequestId }, window.location.origin);
+        } catch {}
+        try {
+          window.close();
+          return;
+        } catch {}
+      }
+      this.loadMyRequestStatus();
+      void this.toastCtrl.create({
+        message: '✓ Pago completado con PayPal.',
+        duration: 3200,
+        position: 'top',
+        color: 'success',
+      }).then(t => t.present());
+      this.closePaymentModal();
+      // Limpia query params para evitar repetir el toast
+      this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true }).catch(() => {});
+    } else if (paypal === 'cancel') {
+      if (!Capacitor.isNativePlatform()) {
+        try {
+          window.opener?.postMessage({ type: 'paypal', status: 'cancel', tripRequestId }, window.location.origin);
+        } catch {}
+        try {
+          window.close();
+          return;
+        } catch {}
+      }
+      void this.toastCtrl.create({
+        message: 'Pago cancelado. Puedes intentarlo de nuevo.',
+        duration: 3200,
+        position: 'top',
+        color: 'warning',
+      }).then(t => t.present());
+      // Limpia query params
+      this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true }).catch(() => {});
+    } else if (paypal === 'error') {
+      if (!Capacitor.isNativePlatform()) {
+        try {
+          window.opener?.postMessage({ type: 'paypal', status: 'error', tripRequestId }, window.location.origin);
+        } catch {}
+        try {
+          window.close();
+          return;
+        } catch {}
+      }
+      void this.toastCtrl
+        .create({
+          message: 'No se pudo completar el pago con PayPal.',
+          duration: 3500,
+          position: 'top',
+          color: 'danger',
+        })
+        .then(t => t.present());
+      this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true }).catch(() => {});
+    } else if (tripRequestId) {
+      // Si viene solo el id (por compat), refrescamos
+      this.loadMyRequestStatus();
+    }
   }
 
   ionViewWillLeave(): void {
@@ -750,8 +875,116 @@ export class TripDetailPage {
     if (method === 'qr') {
       this.paymentStep = 'qr';
       this.generatePaymentQR();
+    } else if (method === 'card') {
+      void this.startPayPalPayment();
     } else {
       this.processPayment();
+    }
+  }
+
+  private async startPayPalPayment(): Promise<void> {
+    if (!this.trip || !this.currentUid) return;
+    if (!this.myRequestId) {
+      const toast = await this.toastCtrl.create({
+        message: 'No se encontró la solicitud de viaje.',
+        duration: 3500,
+        position: 'top',
+        color: 'danger'
+      });
+      await toast.present();
+      return;
+    }
+
+    this.paymentStep = 'processing';
+    this.processingPayment = true;
+
+    try {
+      const res = await firstValueFrom(this.payPal.createOrder(this.myRequestId));
+
+      // Web: abrir en ventana emergente (popup)
+      if (!Capacitor.isNativePlatform()) {
+        const popup = this.openPayPalPopup(res.approveUrl);
+        if (popup) {
+          this.paypalPopup = popup;
+          this.startPayPalPopupPolling();
+          return;
+        }
+
+        // Si el popup fue bloqueado, NO redirigimos la página principal.
+        const toast = await this.toastCtrl.create({
+          message: 'Tu navegador bloqueó la ventana emergente. Permite popups e intenta de nuevo.',
+          duration: 4200,
+          position: 'top',
+          color: 'warning',
+        });
+        await toast.present();
+
+        this.paymentStep = 'selection';
+        this.selectedPaymentMethod = null;
+        this.processingPayment = false;
+        return;
+      }
+
+      // Native: abrir en in-app browser. El usuario regresará manualmente.
+      await Browser.open({ url: res.approveUrl });
+
+      // En nativo, el control vuelve aquí inmediatamente; dejamos de mostrar "procesando".
+      this.processingPayment = false;
+    } catch {
+      const toast = await this.toastCtrl.create({
+        message: 'No se pudo iniciar el pago con PayPal.',
+        duration: 3500,
+        position: 'top',
+        color: 'danger',
+      });
+      await toast.present();
+      this.paymentStep = 'selection';
+      this.selectedPaymentMethod = null;
+      this.processingPayment = false;
+    }
+  }
+
+  private openPayPalPopup(url: string): Window | null {
+    const width = 520;
+    const height = 720;
+    const left = Math.max(0, Math.floor((window.screen.width - width) / 2));
+    const top = Math.max(0, Math.floor((window.screen.height - height) / 2));
+    const features = `popup=yes,width=${width},height=${height},left=${left},top=${top}`;
+    try {
+      const w = window.open('', 'paypal_checkout', features);
+      if (!w) return null;
+      w.location.href = url;
+      return w;
+    } catch {
+      return null;
+    }
+  }
+
+  private startPayPalPopupPolling(): void {
+    this.stopPayPalPopupPolling();
+    this.paypalPopupPoll = window.setInterval(() => {
+      if (!this.paypalPopup || this.paypalPopup.closed) {
+        this.stopPayPalPopupPolling();
+        // Si el usuario cerró el popup sin volver, lo tratamos como cancel.
+        this.paymentStep = 'selection';
+        this.selectedPaymentMethod = null;
+        this.processingPayment = false;
+        void this.toastCtrl
+          .create({
+            message: 'Pago cancelado. Puedes intentarlo de nuevo.',
+            duration: 3200,
+            position: 'top',
+            color: 'warning',
+          })
+          .then(t => t.present());
+      }
+    }, 800);
+  }
+
+  private stopPayPalPopupPolling(): void {
+    if (this.paypalPopupPoll) {
+      window.clearInterval(this.paypalPopupPoll);
+      this.paypalPopupPoll = undefined;
     }
   }
 
