@@ -5,11 +5,11 @@
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
+    "start": "node tools/set-env.js && ng serve",
+    "build": "node tools/set-env.js && ng build",
     "cap:android": "npm run build && npx cap sync android",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test",
+    "watch": "node tools/set-env.js && ng build --watch --configuration development",
+    "test": "node tools/set-env.js && ng test",
     "lint": "ng lint",
     "seed:admin": "node tools/seed-admin.cjs"
   },
