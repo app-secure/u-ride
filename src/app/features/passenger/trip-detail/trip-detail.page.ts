@@ -455,16 +455,6 @@ export class TripDetailPage {
       const origin: L.LatLngExpression = [this.trip.originLat!, this.trip.originLng!];
       const dest: L.LatLngExpression = [this.trip.destinationLat!, this.trip.destinationLng!];
 
-      // Primero dibujamos una línea recta temporal mientras cargamos la ruta real
-      if (this.routeLine === undefined) {
-        this.routeLine = L.polyline([origin as any, dest as any], {
-          color: 'var(--ion-color-medium)',
-          weight: 4,
-          opacity: 0.5,
-          dashArray: '5, 10'
-        }).addTo(this.map);
-      }
-
       try {
         // OSRM espera coordenadas en formato: lng,lat
         const url = `https://router.project-osrm.org/route/v1/driving/${this.trip.originLng},${this.trip.originLat};${this.trip.destinationLng},${this.trip.destinationLat}?overview=full&geometries=geojson`;
@@ -477,14 +467,21 @@ export class TripDetailPage {
             // OSRM devuelve [lng, lat], Leaflet usa [lat, lng]
             const latLngs: L.LatLngExpression[] = coordinates.map((c: [number, number]) => [c[1], c[0]]);
 
-            // Actualizamos la línea con la ruta real e inteligente
-            this.routeLine.setLatLngs(latLngs);
-            this.routeLine.setStyle({
-              color: '#ef4444',
-              weight: 6,
-              opacity: 0.9,
-              dashArray: ''
-            });
+            if (this.routeLine) {
+              this.routeLine.setLatLngs(latLngs);
+              this.routeLine.setStyle({
+                color: '#ef4444',
+                weight: 6,
+                opacity: 0.9,
+                dashArray: ''
+              });
+            } else {
+              this.routeLine = L.polyline(latLngs, {
+                color: '#ef4444',
+                weight: 6,
+                opacity: 0.9,
+              }).addTo(this.map);
+            }
 
             // Ajustar el zoom para que se vea toda la ruta
             this.map.fitBounds(this.routeLine.getBounds(), { padding: [24, 24] });
@@ -495,14 +492,22 @@ export class TripDetailPage {
         console.error('Error al obtener la ruta inteligente de OSRM:', error);
       }
 
-      // Fallback a línea recta si la API falla
-      this.routeLine.setLatLngs([origin as any, dest as any]);
-      this.routeLine.setStyle({
-        color: 'var(--ion-color-primary)',
-        weight: 6,
-        opacity: 0.9,
-        dashArray: ''
-      });
+      // Fallback a línea recta si la API falla (sin el parpadeo previo)
+      if (this.routeLine) {
+        this.routeLine.setLatLngs([origin as any, dest as any]);
+        this.routeLine.setStyle({
+          color: 'var(--ion-color-primary)',
+          weight: 6,
+          opacity: 0.9,
+          dashArray: ''
+        });
+      } else {
+        this.routeLine = L.polyline([origin as any, dest as any], {
+          color: 'var(--ion-color-primary)',
+          weight: 6,
+          opacity: 0.9,
+        }).addTo(this.map);
+      }
       return;
     }
 

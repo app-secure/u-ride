@@ -342,8 +342,10 @@ export class PublishTripPage {
     }
 
     const now = new Date();
-    now.setSeconds(0, 0);
-    return this.formatTime(now);
+    // La hora mínima permitida es la hora actual + 15 minutos
+    const minTime = new Date(now.getTime() + 15 * 60000);
+    minTime.setSeconds(0, 0);
+    return this.formatTime(minTime);
   }
 
   onVehiclePlateInput(event: Event): void {
@@ -371,9 +373,11 @@ export class PublishTripPage {
     const now = new Date();
     now.setSeconds(0, 0);
 
-    if (selectedDateTime < now) {
-      const currentTime = this.formatTime(now);
-      this.publishForm.controls.time.setValue(currentTime, { emitEvent: false });
+    const minAllowedTime = new Date(now.getTime() + 15 * 60000);
+
+    if (selectedDateTime < minAllowedTime) {
+      const minTimeStr = this.formatTime(minAllowedTime);
+      this.publishForm.controls.time.setValue(minTimeStr, { emitEvent: false });
     }
   }
 
@@ -427,9 +431,9 @@ export class PublishTripPage {
       const diffMs = selected.getTime() - now.getTime();
       const diffMinutes = Math.floor(diffMs / 60000);
 
-      // Si la diferencia es mayor o igual a 15 minutos
-      if (diffMinutes >= 15) {
-        return { differenceTooLarge: true };
+      // Si la diferencia es menor a 15 minutos, es un error
+      if (diffMinutes < 15) {
+        return { departureTooSoon: true };
       }
 
       return null;
