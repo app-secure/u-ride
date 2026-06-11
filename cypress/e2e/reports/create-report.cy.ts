@@ -11,6 +11,20 @@ describe('Reportes - Crear Reporte', () => {
 
   beforeEach(() => {
     cy.loginAsPassenger();
+    
+    // Interceptar la petición de creación de reporte para no depender del backend
+    cy.intercept('POST', '**/api/reports', {
+      statusCode: 201,
+      body: {
+        id: 999,
+        reportedUid: reportedUserId,
+        reporterUid: 'PqNxoaGLuLNM0bdFLsmKac6UiHx1',
+        reason: 'Reporte de prueba',
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      }
+    }).as('createReport');
+
     cy.visit(`/app/report/${reportedUserId}`);
     cy.get('ion-content', { timeout: 15000 }).should('exist');
   });
@@ -65,6 +79,11 @@ describe('Reportes - Crear Reporte', () => {
 
     cy.get(ReportSelectors.submitBtn).should('not.have.attr', 'disabled');
     cy.get(ReportSelectors.submitBtn).click({ force: true });
+
+    // Verificar que se haya hecho la llamada
+    cy.wait('@createReport').its('request.body').should('deep.include', {
+      reportedUid: reportedUserId
+    });
 
     // Esperar toast de confirmación
     cy.get(AuthSelectors.toast, { timeout: 15000 })

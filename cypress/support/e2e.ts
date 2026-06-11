@@ -11,6 +11,7 @@ beforeEach(() => {
   });
 });
 
+
 // Ignorar errores no controlados de la app (CORS, Firebase, Ionic routing)
 // para que los tests E2E no fallen por errores del framework.
 Cypress.on('uncaught:exception', (err) => {

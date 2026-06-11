@@ -46,6 +46,10 @@ describe('Admin - Aplicar Sanciones', () => {
         .should('exist')
         .click({ force: true });
 
+      // Esperar a que aparezca la alerta de confirmación y hacer clic en Confirmar
+      cy.get('ion-alert').should('exist');
+      cy.get('ion-alert button').contains('Confirmar').click({ force: true });
+
       cy.get(AuthSelectors.toast, { timeout: 10000 })
         .should('exist');
     });
@@ -64,6 +68,10 @@ describe('Admin - Aplicar Sanciones', () => {
 
       cy.wrap(unsuspendBtn.first())
         .click({ force: true });
+
+      // Esperar a que aparezca la alerta de confirmación y hacer clic en Confirmar
+      cy.get('ion-alert').should('exist');
+      cy.get('ion-alert button').contains('Confirmar').click({ force: true });
 
       cy.get(AuthSelectors.toast, { timeout: 10000 })
         .should('exist');
