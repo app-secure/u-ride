@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { Auth, sendEmailVerification } from '@angular/fire/auth';
+import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { UsersService } from '../../../core/services/users.service';
-
 import { RoleStateService } from '../../../core/services/role-state.service';
 
 @Component({
@@ -25,9 +25,27 @@ export class VerifyEmailPage {
   private readonly toastCtrl = inject(ToastController);
 
   loading = false;
+  private emailSentOnLoad = false;
 
   get email(): string {
     return this.auth.currentUser?.email ?? '';
+  }
+
+  /**
+   * Envía el correo de verificación automáticamente al cargar la página.
+   */
+  async ionViewWillEnter(): Promise<void> {
+    if (this.emailSentOnLoad) return;
+    const user = this.auth.currentUser;
+    if (user && !user.emailVerified) {
+      try {
+        await sendEmailVerification(user);
+        this.emailSentOnLoad = true;
+      } catch (e: any) {
+        // Silenciar error si ya se envió recientemente (Firebase rate limit)
+        console.warn('[VerifyEmailPage] auto-send failed:', e?.code ?? e);
+      }
+    }
   }
 
   async resend(): Promise<void> {
@@ -71,17 +89,14 @@ export class VerifyEmailPage {
       }
 
       try {
-        await this.users.ensureUserDoc(refreshed);
-        await this.users.syncEmailVerified(refreshed.uid, true);
+        // Sincronizar con el backend vía API REST
+        await firstValueFrom(this.users.syncUser(refreshed));
         this.roleState.setRole(null);
         await this.router.navigateByUrl('/app/role');
       } catch (e: any) {
         const raw = String(e?.message ?? e);
         const toast = await this.toastCtrl.create({
-          message:
-            raw.toLowerCase().includes('permission') || raw.toLowerCase().includes('insufficient')
-              ? 'Tu correo está verificado, pero Firestore bloquea el perfil (rules/permisos). Revisa las reglas en Firebase Console.'
-              : 'Tu correo está verificado, pero no se pudo actualizar tu perfil. Intenta de nuevo.',
+          message: 'Tu correo está verificado, pero no se pudo sincronizar tu perfil. Intenta de nuevo.',
           duration: 3200,
           position: 'top',
           color: 'warning',

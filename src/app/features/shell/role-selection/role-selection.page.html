@@ -1,40 +1,50 @@
-<ion-header class="ion-no-border" [translucent]="true">
+<ion-header class="ion-no-border uride-header" [translucent]="true">
   <ion-toolbar>
+
+    <div class="brand">
+      <img src="assets/logo-uride.svg" />
+      <span>U-Ride</span>
+    </div>
+
     <ion-buttons slot="end">
-      <ion-button color="danger" (click)="logout()">
-        <ion-icon name="log-out-outline" slot="start"></ion-icon>
-        Salir
+      <ion-button class="logout-btn" (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
+
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="uride-content">
+
   <div class="role-selection-container fade-in-up">
-    
+
     <div class="header-section">
-      <img src="assets/logo-uride.png" alt="U-Ride Logo" class="logo" />
-      <h1>¿Cómo quieres iniciar?</h1>
-      <p>Selecciona tu rol para esta sesión</p>
+      <h1>Elige tu experiencia</h1>
+      <p>¿Cómo quieres usar U-Ride hoy?</p>
     </div>
 
     <div class="roles-grid">
+
       <button class="role-card passenger" (click)="goToPassenger()">
         <div class="icon-box">
           <ion-icon name="person"></ion-icon>
         </div>
-        <h2>Pasajero</h2>
-        <p>Busca y únete a viajes disponibles</p>
+        <h2>Viajar</h2>
+        <p>Encuentra viajes seguros cerca de ti</p>
+        <span class="hint">Recomendado</span>
       </button>
 
       <button class="role-card driver" (click)="goToDriver()">
         <div class="icon-box">
-          <ion-icon name="car-sport"></ion-icon>
+          <ion-icon name="car-outline"></ion-icon>
         </div>
-        <h2>Conductor</h2>
-        <p>Publica viajes y gestiona pasajeros</p>
+        <h2>Conducir</h2>
+        <p>Publica viajes y gana dinero</p>
       </button>
+
     </div>
 
   </div>
+
 </ion-content>

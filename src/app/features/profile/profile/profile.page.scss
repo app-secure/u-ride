@@ -1,6 +1,10 @@
 /* Reset global defaults from Ionic to fit analytical dashboard style */
 .uride-content {
   --background: #f8fafc;
+  
+  @media (prefers-color-scheme: dark) {
+    --background: #0f172a;
+  }
 }
 
 .profile-dashboard-grid {
@@ -24,6 +28,12 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   border: 1px solid #f1f5f9;
   padding: 32px;
+  
+  @media (prefers-color-scheme: dark) {
+    background: #1f2937;
+    border-color: #374151;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
 }
 
 .mt-card {
@@ -43,6 +53,10 @@
   font-weight: 700;
   color: #1e293b;
   margin: 0;
+  
+  @media (prefers-color-scheme: dark) {
+    color: #f9fafb;
+  }
 }
 
 .card-title-sm {
@@ -72,14 +86,40 @@
 }
 
 .edit-btn {
-  color: #000000; 
+  color: #0f172a;
+  
+  @media (prefers-color-scheme: dark) {
+    color: #f3f4f6;
+  }
 }
-.edit-btn:hover { background: #eef2ff; }
+
+.edit-btn ion-icon {
+  color: inherit;
+}
+
+.edit-btn:hover { 
+  background: #f1f5f9;
+  
+  @media (prefers-color-scheme: dark) {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
 
 .cancel-btn {
   color: #475569;
+  
+  @media (prefers-color-scheme: dark) {
+    color: #d1d5db;
+  }
 }
-.cancel-btn:hover { background: #f1f5f9; }
+
+.cancel-btn:hover { 
+  background: #f1f5f9;
+  
+  @media (prefers-color-scheme: dark) {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
 
 .header-actions-edit {
   display: flex;
@@ -88,22 +128,33 @@
 }
 
 .solid-action-btn.save-btn {
-  background: #000000;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
   color: white;
   border: none;
   border-radius: 8px;
   padding: 8px 20px;
   font-size: 15px;
   font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
-  transition: transform 0.1s;
+  transition: all 0.2s;
+  
+  @media (prefers-color-scheme: dark) {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
 }
-.solid-action-btn.save-btn:active { transform: scale(0.97); }
-.solid-action-btn.save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.solid-action-btn.save-btn:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  transform: translateY(-2px);
+  
+  @media (prefers-color-scheme: dark) {
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  }
+}
+
+.solid-action-btn.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 /* Identity Row */
 .user-identity-row {
@@ -145,6 +196,10 @@
   border-radius: 50%;
   position: relative;
   background: #e2e8f0;
+  
+  @media (prefers-color-scheme: dark) {
+    background: #374151;
+  }
 }
 
 .profile-avatar {
@@ -163,6 +218,10 @@
   justify-content: center;
   font-size: 32px;
   color: #94a3b8;
+  
+  @media (prefers-color-scheme: dark) {
+    color: #9ca3af;
+  }
 }
 
 .photo-upload-btn {
@@ -181,19 +240,42 @@
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   transition: all 0.2s;
+  
+  @media (prefers-color-scheme: dark) {
+    background: #374151;
+    color: #f3f4f6;
+    border-color: #4b5563;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
 }
-.photo-upload-btn:hover { background: #f8fafc; }
+
+.photo-upload-btn:hover { 
+  background: #f8fafc;
+  
+  @media (prefers-color-scheme: dark) {
+    background: #4b5563;
+  }
+}
 
 .user-titles .name-text {
   font-size: 22px;
   font-weight: 700;
   color: #0f172a;
   margin: 0 0 4px 0;
+  
+  @media (prefers-color-scheme: dark) {
+    color: #f9fafb;
+  }
 }
+
 .user-titles .subtitle-text {
   font-size: 15px;
   color: #64748b;
   display: block;
+  
+  @media (prefers-color-scheme: dark) {
+    color: #d1d5db;
+  }
 }
 
 .verified-tag {
@@ -207,6 +289,11 @@
   border-radius: 9999px;
   font-size: 13px;
   font-weight: 600;
+  
+  @media (prefers-color-scheme: dark) {
+    background: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+  }
 
   ion-icon {
     font-size: 16px;
@@ -217,6 +304,10 @@
   height: 1px;
   background: #e2e8f0;
   margin: 32px 0;
+  
+  @media (prefers-color-scheme: dark) {
+    background: #4b5563;
+  }
 }
 
 /* Read Only Mode Data Layout */
@@ -232,12 +323,20 @@
   font-weight: 600;
   color: #64748b;
   margin-bottom: 6px;
+  
+  @media (prefers-color-scheme: dark) {
+    color: #9ca3af;
+  }
 }
 
 .data-row .data-value {
   font-size: 16px;
   color: #0f172a;
   font-weight: 500;
+  
+  @media (prefers-color-scheme: dark) {
+    color: #f3f4f6;
+  }
 }
 
 .data-value.with-icon {
@@ -248,6 +347,10 @@
 .data-value.with-icon ion-icon {
   color: #94a3b8;
   font-size: 20px;
+  
+  @media (prefers-color-scheme: dark) {
+    color: #9ca3af;
+  }
 }
 
 /* Edit Form tweaks */
@@ -267,6 +370,10 @@
   text-align: center;
   padding: 24px;
   margin-bottom: 24px;
+  
+  @media (prefers-color-scheme: dark) {
+    background: rgba(16, 185, 129, 0.15);
+  }
 }
 
 .hero-star {
@@ -280,6 +387,10 @@
   color: #0f172a;
   margin-left: 8px;
   vertical-align: middle;
+  
+  @media (prefers-color-scheme: dark) {
+    color: #f9fafb;
+  }
 }
 
 .score-label {
@@ -287,6 +398,10 @@
   color: #64748b;
   font-size: 14px;
   font-weight: 500;
+  
+  @media (prefers-color-scheme: dark) {
+    color: #d1d5db;
+  }
 }
 
 .stat-list {
@@ -296,6 +411,10 @@
   background: #f8fafc;
   padding: 20px;
   border-radius: 12px;
+  
+  @media (prefers-color-scheme: dark) {
+    background: #2d3748;
+  }
 }
 
 .stat-list-item {
@@ -307,11 +426,20 @@
   color: #64748b;
   font-size: 14px;
   font-weight: 500;
+  
+  @media (prefers-color-scheme: dark) {
+    color: #d1d5db;
+  }
 }
+
 .stat-val {
   color: #0f172a;
   font-weight: 700;
   font-size: 15px;
+  
+  @media (prefers-color-scheme: dark) {
+    color: #f3f4f6;
+  }
 }
 
 /* Badges */
@@ -323,6 +451,10 @@
   align-items: center;
   gap: 16px;
   margin-bottom: 12px;
+  
+  @media (prefers-color-scheme: dark) {
+    background: #2d3748;
+  }
 }
 
 .badge-row:last-child {
@@ -381,37 +513,4 @@
   }
 }
 
-/* Dark mode handling */
-@media (prefers-color-scheme: dark) {
-  .uride-content {
-    --background: #0f172a;
-  }
-  .modern-card {
-    background: #1e293b;
-    border-color: #334155;
-  }
-  .card-title, .card-title-sm, .score-num, .user-titles .name-text, .data-row .data-value, .stat-val, .badge-text strong {
-    color: #f8fafc;
-  }
-  .rating-hero-box {
-    background: rgba(79, 70, 229, 0.15);
-  }
-  .stat-list, .badge-row {
-    background: #0f172a;
-  }
-  .section-divider {
-    background: #334155;
-  }
-  .avatar-box {
-    background: #334155;
-  }
-  .photo-upload-btn {
-    background: #334155;
-    color: white;
-    border-color: #475569;
-  }
-  .verified-tag {
-    background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
-  }
-}
+/* Dark Mode Handled in Individual Classes with @media queries */

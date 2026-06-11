@@ -1,114 +1,176 @@
-<ion-header class="ion-no-border elegant-header" [translucent]="true">
-  <ion-toolbar>
-    <div class="header-content">
-      <div class="header-left">
-        <img src="assets/logo-uride.png" class="logo-img" alt="U-Ride Logo" />
-        <span class="system-name">U-Ride</span>
+<ion-content class="ion-padding admin-page-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="admin-page fade-in-up">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Gestión de Reportes</h2>
+        <p class="page-subtitle">Modera el comportamiento de la comunidad estudiantil</p>
       </div>
-
-      <div class="header-right" *ngIf="user$ | async as user">
-        <div class="admin-profile">
-          <ion-icon name="person-circle" class="admin-avatar"></ion-icon>
-          <span class="admin-name">{{ user.displayName || 'Administrador' }}</span>
-        </div>
-        <button class="logout-btn" (click)="logout()">
-          <ion-icon name="log-out-outline"></ion-icon>
-          <span>Salir</span>
-        </button>
-      </div>
-    </div>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true" class="ion-padding uride-content">
-  <div class="admin-dashboard fade-in-up">
-
-    <div class="admin-navbar modern-card">
-      <ion-buttons>
-        <ion-button fill="clear" routerLink="/app/admin/reports" routerLinkActive="active">Reportes</ion-button>
-        <ion-button fill="clear" routerLink="/app/admin/routes" routerLinkActive="active">Rutas</ion-button>
-        <ion-button fill="clear" routerLink="/app/admin/rules" routerLinkActive="active">Reglas</ion-button>
-        <ion-button fill="clear" routerLink="/app/admin/users" routerLinkActive="active">Usuarios</ion-button>
-      </ion-buttons>
-    </div>
-
-    <div class="dashboard-header">
-      <div class="header-text">
-        <h2 class="title">Gestión de Reportes</h2>
-        <p class="subtitle">Monitorea y modera el comportamiento de la comunidad</p>
-      </div>
-      <div class="header-stats">
-        <div class="stat-badge">
-          <ion-icon name="alert-circle"></ion-icon>
-          <span>Pendientes de revisión</span>
-        </div>
+      <div class="open-count" *ngIf="openReports$ | async as open">
+        <ion-icon name="alert-circle"></ion-icon>
+        <span>{{ open.length }} pendiente{{ open.length !== 1 ? 's' : '' }}</span>
       </div>
     </div>
 
-    <ng-container *ngIf="reports$ | async as reports; else loading">
-      <div class="empty-state" *ngIf="reports.length === 0">
-        <div class="empty-icon-box">
-          <ion-icon name="shield-checkmark"></ion-icon>
-        </div>
-        <h3>Todo en orden</h3>
-        <p>No hay reportes abiertos en este momento.</p>
+    <!-- ===== SECTION: OPEN REPORTS ===== -->
+    <section class="section">
+      <div class="section-title">
+        <ion-icon name="flag-outline" class="section-icon danger"></ion-icon>
+        <h3>Pendientes de revisión</h3>
       </div>
 
-      <div class="reports-grid" *ngIf="reports.length > 0">
-        <div class="modern-card report-card" *ngFor="let r of reports; let i = index"
-          [style.animation-delay]="i * 0.1 + 's'">
-          <div class="card-header">
-            <div class="status-badge open">
-              <span class="dot"></span>
-              Abierto
-            </div>
-            <span class="date">{{ r.createdAt | date:'short' }}</span>
+      <ng-container *ngIf="openReports$ | async as open; else loading">
+
+        <div class="empty-state" *ngIf="open.length === 0">
+          <div class="empty-icon-box">
+            <ion-icon name="shield-checkmark"></ion-icon>
           </div>
+          <h4>Todo en orden</h4>
+          <p>No hay reportes abiertos en este momento.</p>
+        </div>
 
-          <div class="card-body">
-            <div class="user-row">
-              <div class="user-info">
-                <span class="label">Reportado</span>
-                <span class="value">{{ r.reportedUid }}</span>
+        <div class="reports-grid" *ngIf="open.length > 0">
+          <div class="report-card open-card" *ngFor="let r of open; let i = index"
+            [style.animation-delay]="i * 0.08 + 's'">
+
+            <!-- Card Header -->
+            <div class="card-top">
+              <span class="status-pill open">
+                <span class="dot"></span>
+                Abierto
+              </span>
+              <span class="date-text">{{ r.createdAt | date:'dd MMM, HH:mm' }}</span>
+            </div>
+
+            <!-- Users Row -->
+            <div class="users-row">
+              <div class="user-chip-card">
+                <div class="user-avatar reporter">
+                  <img *ngIf="r.reporterPhoto" [src]="r.reporterPhoto" alt="Reportante" />
+                  <ion-icon *ngIf="!r.reporterPhoto" name="person"></ion-icon>
+                </div>
+                <div>
+                  <span class="role-tag reporter">Reportante</span>
+                  <span class="user-name">{{ r.reporterName }}</span>
+                </div>
               </div>
-              <ion-icon name="arrow-forward" class="arrow-icon"></ion-icon>
-              <div class="user-info">
-                <span class="label">Reportante</span>
-                <span class="value">{{ r.reporterUid }}</span>
+
+              <div class="arrow-icon">
+                <ion-icon name="arrow-forward"></ion-icon>
+              </div>
+
+              <div class="user-chip-card">
+                <div class="user-avatar">
+                  <img *ngIf="r.reportedPhoto" [src]="r.reportedPhoto" alt="Reportado" />
+                  <ion-icon *ngIf="!r.reportedPhoto" name="person"></ion-icon>
+                </div>
+                <div>
+                  <span class="role-tag reported">Reportado</span>
+                  <span class="user-name">{{ r.reportedName }}</span>
+                </div>
               </div>
             </div>
 
-            <div class="reason-box">
-              <h4 class="reason-title">Motivo del reporte</h4>
+            <!-- Reason -->
+            <div class="reason-block">
               <p class="reason-text">{{ r.reason }}</p>
-
-              <a *ngIf="r.evidenceUrl" [href]="r.evidenceUrl" target="_blank" class="evidence-link">
-                <ion-icon name="image-outline"></ion-icon>
-                Ver evidencia adjunta
-              </a>
             </div>
-          </div>
 
-          <div class="card-actions">
-            <button class="action-btn warn-btn" (click)="markWarned(r)" [disabled]="busy">
-              <ion-icon name="warning"></ion-icon>
-              Advertir
+            <!-- Evidence -->
+            <button class="evidence-btn" *ngIf="r.evidenceUrl" (click)="openEvidenceModal(r)">
+              <ion-icon name="image-outline"></ion-icon>
+              Ver evidencia adjunta
             </button>
-            <button class="action-btn suspend-btn" (click)="suspend7d(r)" [disabled]="busy">
-              <ion-icon name="ban"></ion-icon>
-              Suspender 7 días
-            </button>
+
+            <!-- Actions -->
+            <div class="card-actions">
+              <button class="action-btn dismiss-btn" (click)="dismissReport(r)" [disabled]="busy">
+                <ion-icon name="close-circle-outline"></ion-icon>
+                Desestimar
+              </button>
+              <button class="action-btn sanction-btn" (click)="openSanctionMenu(r)" [disabled]="busy">
+                <ion-icon name="hammer-outline"></ion-icon>
+                Sancionar...
+              </button>
+            </div>
+
           </div>
         </div>
-      </div>
-    </ng-container>
+      </ng-container>
+    </section>
 
-    <ng-template #loading>
-      <div class="loading-state">
-        <ion-spinner name="crescent"></ion-spinner>
-        <p>Cargando reportes...</p>
+    <!-- ===== SECTION: RESOLVED REPORTS ===== -->
+    <section class="section">
+      <div class="section-title">
+        <ion-icon name="checkmark-circle-outline" class="section-icon success"></ion-icon>
+        <h3>Reportes revisados</h3>
       </div>
-    </ng-template>
+
+      <ng-container *ngIf="resolvedReports$ | async as resolved">
+        <div class="empty-state compact" *ngIf="resolved.length === 0">
+          <p>Aún no hay reportes revisados.</p>
+        </div>
+
+        <div class="reports-grid" *ngIf="resolved.length > 0">
+          <div class="report-card resolved-card" *ngFor="let r of resolved; let i = index"
+            [style.animation-delay]="i * 0.05 + 's'">
+
+            <div class="card-top">
+              <span class="status-pill" [ngClass]="getActionColor(r.action)">
+                {{ getActionLabel(r.action) }}
+              </span>
+              <span class="date-text">{{ r.createdAt | date:'dd MMM, HH:mm' }}</span>
+            </div>
+
+            <div class="users-row compact">
+              <span class="user-name muted">{{ r.reporterName }}</span>
+              <ion-icon name="arrow-forward" class="sm-arrow"></ion-icon>
+              <span class="user-name">{{ r.reportedName }}</span>
+            </div>
+
+            <p class="reason-text compact">{{ r.reason }}</p>
+
+            <button class="evidence-btn sm" *ngIf="r.evidenceUrl" (click)="openEvidenceModal(r)">
+              <ion-icon name="image-outline"></ion-icon>
+              Ver evidencia
+            </button>
+
+          </div>
+        </div>
+      </ng-container>
+    </section>
 
   </div>
 </ion-content>
+
+<!-- EVIDENCE MODAL -->
+<div class="evidence-overlay" *ngIf="showEvidenceModal" (click)="closeEvidenceModal()">
+  <div class="evidence-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Evidencia adjunta</h4>
+      <button class="close-btn" (click)="closeEvidenceModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <img [src]="selectedReport?.evidenceUrl" alt="Evidencia" class="evidence-img" />
+    </div>
+    <div class="modal-info" *ngIf="selectedReport">
+      <p><strong>Motivo:</strong> {{ selectedReport.reason }}</p>
+      <p><strong>Reportante:</strong> {{ selectedReport.reporterName }}</p>
+      <p><strong>Reportado:</strong> {{ selectedReport.reportedName }}</p>
+    </div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading-state">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando reportes...</p>
+  </div>
+</ng-template>

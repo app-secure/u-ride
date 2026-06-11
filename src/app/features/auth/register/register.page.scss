@@ -78,6 +78,28 @@
   margin-top: 24px;
 }
 
+.uride-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-errors {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 18px;
+}
+
+.error-message {
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ion-color-danger);
+  margin: 0;
+  white-space: normal;
+}
+
 .form-section {
   margin-bottom: 0px;
 }

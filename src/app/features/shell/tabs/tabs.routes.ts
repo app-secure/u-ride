@@ -29,35 +29,60 @@ export const TABS_ROUTES: Routes = [
     loadComponent: () => import('../../driver/ride-requests/ride-requests.page').then(m => m.RideRequestsPage),
   },
   {
+    path: 'notifications',
+    loadComponent: () => import('../../notifications/notifications.page').then(m => m.NotificationsPage),
+  },
+  {
     path: 'profile',
     loadComponent: () => import('../../profile/profile/profile.page').then(m => m.ProfilePage),
+  },
+  {
+    path: 'profile/vehicles',
+    loadComponent: () => import('../../profile/vehicles/vehicles.page').then(m => m.VehiclesPage),
   },
   {
     path: 'report/:reportedUid',
     loadComponent: () => import('../../reports/create-report/create-report.page').then(m => m.CreateReportPage),
   },
   {
+    path: 'driver-profile/:driverUid',
+    loadComponent: () => import('../../profile/driver-public-profile/driver-public-profile.page').then(m => m.DriverPublicProfilePage),
+  },
+  {
     path: 'rate/:tripId/:toUid',
     loadComponent: () => import('../../ratings/rate/rate.page').then(m => m.RatePage),
   },
   {
-    path: 'admin/reports',
-    canActivate: [AdminGuard],
-    loadComponent: () => import('../../admin/reports/reports.page').then(m => m.ReportsPage),
+    path: 'appeals/create',
+    loadComponent: () => import('../../appeals/create-appeal/create-appeal.page').then(m => m.CreateAppealPage),
   },
+  // ─── ADMIN (nested under AdminShellPage so navbar is persistent) ───
   {
-    path: 'admin/routes',
+    path: 'admin',
     canActivate: [AdminGuard],
-    loadComponent: () => import('../../admin/routes/routes.page').then(m => m.AdminRoutesPage),
-  },
-  {
-    path: 'admin/rules',
-    canActivate: [AdminGuard],
-    loadComponent: () => import('../../admin/rules/rules.page').then(m => m.AdminRulesPage),
-  },
-  {
-    path: 'admin/users',
-    canActivate: [AdminGuard],
-    loadComponent: () => import('../../admin/users/users.page').then(m => m.AdminUsersPage),
+    loadComponent: () => import('../../admin/shell/admin-shell.page').then(m => m.AdminShellPage),
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'reports' },
+      {
+        path: 'reports',
+        loadComponent: () => import('../../admin/reports/reports.page').then(m => m.ReportsPage),
+      },
+      {
+        path: 'routes',
+        loadComponent: () => import('../../admin/routes/routes.page').then(m => m.AdminRoutesPage),
+      },
+      {
+        path: 'rules',
+        loadComponent: () => import('../../admin/rules/rules.page').then(m => m.AdminRulesPage),
+      },
+      {
+        path: 'users',
+        loadComponent: () => import('../../admin/users/users.page').then(m => m.AdminUsersPage),
+      },
+      {
+        path: 'appeals',
+        loadComponent: () => import('../../admin/appeals/appeals.page').then(m => m.AppealsPage),
+      },
+    ],
   },
 ];

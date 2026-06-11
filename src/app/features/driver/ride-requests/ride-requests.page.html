@@ -31,7 +31,16 @@
             </ion-avatar>
             <div class="details">
               <h4>{{ req.passengerName }}</h4>
-              <span class="req-status" [ngClass]="req.status">{{ requestStatusLabel(req.status) }}</span>
+              <div class="status-row">
+                <span class="req-status" [ngClass]="req.status">{{ requestStatusLabel(req.status) }}</span>
+                <span
+                  class="payment-badge"
+                  [ngClass]="req.paymentStatus"
+                  *ngIf="req.status === 'accepted' && req.paymentStatus"
+                >
+                  {{ paymentStatusLabel(req.paymentStatus) }}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -53,7 +62,7 @@
                 Calificar
               </ion-button>
               <div class="status-badge-done rated" *ngIf="ratedMap[req.passengerUid] || req.driverRated">
-                Calificado 
+                Calificado
               </div>
 
               <!-- Reportar -->
@@ -61,13 +70,13 @@
                 *ngIf="!(reportedMap[req.passengerUid] || req.driverReported)"
                 color="danger"
                 fill="outline"
-                (click)="reportPassengerPrompt(req.passengerUid, req.passengerName)"
+                (click)="reportPassengerPrompt(req.passengerUid)"
                 onKeyDown=""
               >
                 <ion-icon name="warning" slot="start"></ion-icon> Reportar
               </ion-button>
               <div class="status-badge-done reported" *ngIf="reportedMap[req.passengerUid] || req.driverReported">
-                Reportado 
+                Reportado
               </div>
             </ng-container>
           </div>

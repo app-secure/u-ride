@@ -1,107 +1,154 @@
-<ion-content [fullscreen]="true" class="uride-content">
-  <div class="driver-trips-dashboard fade-in-up">
-    <div class="header-section">
-      <div class="title-row">
-        <div>
-          <h2 class="title">Mis Viajes Publicados</h2>
-          <p class="subtitle">Gestiona tus viajes y solicitudes de pasajeros</p>
-        </div>
-        <ion-button routerLink="/app/publish" color="primary" class="publish-btn">
-          <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-          Publicar Viaje
-        </ion-button>
+<ion-content [fullscreen]="true" class="uride-content ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="trips-page fade-in-up">
+
+    <!-- ====== PAGE HEADER ====== -->
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Mis Viajes</h2>
+        <p class="page-subtitle">Gestiona tus viajes publicados</p>
       </div>
-      
-      <ion-segment [(ngModel)]="segment" mode="ios" class="custom-segment">
-        <ion-segment-button value="active">
-          <ion-label>Viajes Activos</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="completed">
-          <ion-label>Historial</ion-label>
-        </ion-segment-button>
-      </ion-segment>
+      <div class="header-actions">
+        <button class="icon-action-btn" routerLink="/app/profile/vehicles" title="Mis vehículos">
+          <ion-icon name="car-sport-outline"></ion-icon>
+        </button>
+        <button class="publish-btn" (click)="onPublishClick($event)">
+          <ion-icon name="add-circle-outline"></ion-icon>
+          Publicar Viaje
+        </button>
+      </div>
     </div>
 
-    <ng-container *ngIf="filteredTrips$ | async as trips; else loading">
-      
-      <div class="empty-state modern-card" *ngIf="trips.length === 0">
-        <div class="empty-icon-box">
-          <ion-icon name="car-outline"></ion-icon>
-        </div>
-        <h3>No hay viajes</h3>
-        <p>No tienes viajes {{ segment === 'active' ? 'activos' : 'en el historial' }}.</p>
+    <!-- ====== SUSPENSION BANNER ====== -->
+    <div class="suspension-banner" *ngIf="isSuspended">
+      <ion-icon name="warning-outline"></ion-icon>
+      <div class="suspension-content">
+        <strong>Cuenta suspendida</strong>
+        <p>Tu cuenta está suspendida hasta el {{ suspendedUntilDate | date:'longDate':'':'es-EC' }}. Algunas funciones están deshabilitadas.</p>
+        <button class="appeal-btn" (click)="openAppealAlert()" [disabled]="hasPendingAppeal">
+          {{ hasPendingAppeal ? 'Apelación enviada' : 'Apelar Suspensión' }}
+        </button>
       </div>
+    </div>
 
-      <div class="modern-card trip-card" *ngFor="let trip of trips">
-        <div class="trip-card-inner">
-          <div class="trip-header">
-            <span class="status-badge" [ngClass]="trip.status">
-              {{ trip.status === 'open' ? 'Activo' : (trip.status === 'completed' ? 'Completado' : 'Cancelado') }}
+    <!-- ====== NAVBAR TAB ====== -->
+    <div class="trips-navbar-bar">
+      <nav class="trips-navbar">
+        <button class="nav-item" [class.active]="segment === 'active'" (click)="segment = 'active'">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>Viajes Activos</span>
+          <span class="nav-count" *ngIf="segment === 'active' && filteredTrips.length > 0">{{ filteredTrips.length }}</span>
+        </button>
+        <button class="nav-item" [class.active]="segment === 'completed'" (click)="segment = 'completed'">
+          <ion-icon name="checkmark-done-outline"></ion-icon>
+          <span>Historial</span>
+          <span class="nav-count secondary" *ngIf="segment === 'completed' && filteredTrips.length > 0">{{ filteredTrips.length }}</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-state" *ngIf="loading && trips.length === 0">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando tus viajes...</p>
+    </div>
+
+    <!-- Empty -->
+    <div class="empty-state" *ngIf="!loading && filteredTrips.length === 0">
+      <div class="empty-icon-box" [class.secondary]="segment === 'completed'">
+        <ion-icon [name]="segment === 'active' ? 'car-outline' : 'checkmark-circle-outline'"></ion-icon>
+      </div>
+      <h4>No hay viajes</h4>
+      <p>No tienes viajes {{ segment === 'active' ? 'activos en este momento' : 'en el historial' }}.</p>
+      <button class="publish-btn-empty" (click)="onPublishClick($event)" *ngIf="segment === 'active'">
+        <ion-icon name="add-outline"></ion-icon>
+        Publicar un viaje
+      </button>
+    </div>
+
+    <!-- Trips Grid -->
+    <div class="trips-grid" *ngIf="trips.length > 0">
+      <div class="trip-card" *ngFor="let trip of trips; let i = index" [style.animation-delay]="i * 0.06 + 's'"
+        role="button" tabindex="0" (click)="goToTripMap(trip)" (keydown.enter)="goToTripMap(trip)">
+
+        <!-- Card Top: status + date -->
+        <div class="card-top">
+          <div class="badges-group">
+            <span class="status-pill trip-status" [ngClass]="trip.status">
+              {{ trip.status === 'open' ? 'Activo' :
+                 trip.status === 'inprogress' ? 'En curso' :
+                 trip.status === 'completed' ? 'Completado' :
+                 trip.status === 'closed' ? 'Cupos llenos' : 
+                 trip.status === 'expired' ? 'Expirado' : 'Cancelado' }}
             </span>
-            <span class="date-text">{{ trip.departureAt | date:'dd MMM yyyy, HH:mm' }}</span>
           </div>
+          <span class="date-text">{{ trip.departureAt | date:'dd MMM yyyy, HH:mm' }}</span>
+        </div>
 
-          <div class="trip-route">
-            <div class="route-item">
-              <ion-icon name="location" class="icon-origin"></ion-icon>
-              <div class="route-info">
-                <span class="route-label">Origen</span>
-                <span class="route-value">{{ trip.originZone }}</span>
-              </div>
-            </div>
-            
-            <div class="route-item">
-              <ion-icon name="location" class="icon-destination"></ion-icon>
-              <div class="route-info">
-                <span class="route-label">Destino</span>
-                <span class="route-value">{{ trip.destinationZone }}</span>
-              </div>
+        <!-- Route Block -->
+        <div class="route-block">
+          <div class="route-item">
+            <ion-icon name="location" class="icon-origin"></ion-icon>
+            <div class="route-info">
+              <span class="route-label">Origen</span>
+              <span class="route-value">{{ placeMainLabel(trip.originZone) || 'No especificado' }}</span>
             </div>
           </div>
-
-          <div class="trip-stats">
-            <div class="stat">
-              <ion-icon name="people"></ion-icon>
-              <span>{{ trip.seatsTotal - trip.seatsAvailable }} / {{ trip.seatsTotal }} Pasajeros</span>
+          <div class="route-item">
+            <ion-icon name="location" class="icon-dest"></ion-icon>
+            <div class="route-info">
+              <span class="route-label">Destino</span>
+              <span class="route-value">{{ placeMainLabel(trip.destinationZone) || 'No especificado' }}</span>
             </div>
-          </div>
-
-          <div class="trip-actions" *ngIf="segment === 'active'">
-            <ion-button fill="solid" style="--background: #000000;" expand="block" (click)="goToTripMap(trip)">
-              <ion-icon name="map" slot="start"></ion-icon>
-              Detalle de mi viaje
-            </ion-button>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-              <ion-button fill="outline" color="primary" expand="block" (click)="editTrip(trip)">
-                <ion-icon name="create-outline" slot="start"></ion-icon>
-                Editar
-              </ion-button>
-
-              <ion-button fill="outline" color="danger" expand="block" (click)="deleteTrip(trip)">
-                <ion-icon name="trash-outline" slot="start"></ion-icon>
-                Eliminar
-              </ion-button>
-            </div>
-          </div>
-
-          <div class="trip-actions" *ngIf="segment === 'completed'">
-            <!-- Botón para ver pasajeros del viaje completado y reportarlos -->
-            <ion-button fill="outline" color="warning" expand="block" (click)="reportPassengers(trip)" *ngIf="trip.status === 'completed'">
-              <ion-icon name="people" slot="start"></ion-icon>
-              Ver Lista de Pasajeros
-            </ion-button>
           </div>
         </div>
-      </div>
 
-    </ng-container>
+        <!-- Meta Row -->
+        <div class="meta-row">
+          <div class="meta-item">
+            <ion-icon name="people-outline"></ion-icon>
+            <span>{{ trip.seatsTotal - trip.seatsAvailable }} / {{ trip.seatsTotal }} pasajeros</span>
+          </div>
+          <div class="meta-item" *ngIf="trip.price != null">
+            <ion-icon name="cash-outline"></ion-icon>
+            <span>${{ trip.price | number:'1.2-2' }}</span>
+          </div>
+        </div>
 
-    <ng-template #loading>
-      <div class="loading-state">
-        <ion-spinner name="crescent"></ion-spinner>
-        <p>Cargando tus viajes...</p>
+        <!-- Active trip actions: primary action only -->
+        <div class="card-actions" *ngIf="segment === 'active'">
+          <ng-container *ngIf="trip.status === 'open' || trip.status === 'closed'">
+            <button class="action-btn outline-btn" (click)="$event.stopPropagation(); startTrip(trip)">
+              <ion-icon name="play-outline"></ion-icon>
+              Iniciar Viaje
+            </button>
+          </ng-container>
+          <ng-container *ngIf="trip.status === 'inprogress'">
+            <button class="action-btn outline-warning-btn" (click)="$event.stopPropagation(); finishTrip(trip)">
+              <ion-icon name="checkmark-done-outline"></ion-icon>
+              Finalizar Viaje
+            </button>
+          </ng-container>
+        </div>
+
+        <!-- Completed trip actions -->
+        <div class="card-actions" *ngIf="segment === 'completed' && trip.status === 'completed'">
+          <button class="action-btn outline-btn" (click)="$event.stopPropagation(); reportPassengers(trip)">
+            <ion-icon name="people-outline"></ion-icon>
+            Ver Lista de Pasajeros
+          </button>
+        </div>
+
       </div>
-    </ng-template>
+    </div>
+
+    <ion-infinite-scroll threshold="120px" [disabled]="loading || !hasMore" (ionInfinite)="loadMore($event)">
+      <ion-infinite-scroll-content loadingSpinner="crescent" loadingText="Cargando más viajes...">
+      </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+
   </div>
 </ion-content>

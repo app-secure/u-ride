@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 
@@ -15,7 +15,7 @@ import { RoleStateService } from '../../../core/services/role-state.service';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, ReactiveFormsModule],
+  imports: [CommonModule, IonicModule, ReactiveFormsModule, RouterLink],
 })
 export class LoginPage {
   private readonly fb = inject(FormBuilder);
@@ -111,7 +111,7 @@ export class LoginPage {
       msg = `Usa tu correo institucional @${this.domain}.`;
     }
     if (raw.includes('PROFILE_WRITE_FAILED')) {
-      msg = 'Sesión iniciada, pero Firestore bloquea el perfil (rules/permisos). Revisa las reglas en Firebase Console.';
+      msg = 'Sesión iniciada, pero no se pudo sincronizar el perfil con el servidor. Verifica la conexión.';
     }
     if (raw.includes('auth/invalid-credential')) {
       msg = 'Credenciales inválidas.';

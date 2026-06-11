@@ -1,0 +1,100 @@
+<ion-content class="vehicles-content" [fullscreen]="true">
+  <div class="vehicles-dashboard fade-in-up">
+
+    <!-- Encabezado -->
+    <div class="header-section">
+      <button type="button" class="btn-back-top" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        Volver
+      </button>
+
+      <div class="title-row">
+        <div>
+          <h2 class="title">Mis Vehículos</h2>
+          <p class="subtitle">Administra los vehículos con los que ofreces viajes</p>
+        </div>
+
+        <ion-button class="add-btn" (click)="openModal()">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          Agregar
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Cargando -->
+    <div *ngIf="isLoading" class="loading-state">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Cargando vehículos...</p>
+    </div>
+
+    <!-- Sin vehículos -->
+    <div *ngIf="!isLoading && vehicles.length === 0" class="empty-state modern-card">
+      <div class="empty-icon-box">
+        <ion-icon name="car-sport-outline"></ion-icon>
+      </div>
+      <h3>Sin vehículos registrados</h3>
+      <p>Añade tu primer vehículo para poder publicar viajes y ofrecer tu servicio a los pasajeros.</p>
+      <ion-button class="empty-add-btn" (click)="openModal()">
+        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+        Agregar mi primer vehículo
+      </ion-button>
+    </div>
+
+    <!-- Lista de vehículos -->
+    <div *ngIf="!isLoading && vehicles.length > 0" class="vehicles-list">
+
+      <div *ngFor="let vehicle of vehicles; let i = index" class="vehicle-card modern-card"
+        [style.animation-delay]="(i * 0.06) + 's'">
+        <!-- Cabecera de tarjeta -->
+        <div class="card-header">
+          <div class="vehicle-icon-wrapper">
+            <ion-icon name="car-sport-outline"></ion-icon>
+          </div>
+          <div class="card-info">
+            <h3 class="vehicle-name">{{ vehicle.brand }} {{ vehicle.modelOrBusNumber }}</h3>
+            <span class="plate-badge">{{ vehicle.plate }}</span>
+          </div>
+        </div>
+
+        <!-- Detalles -->
+        <div class="card-details">
+          <div class="detail-item">
+            <ion-icon name="color-palette-outline" class="detail-icon"></ion-icon>
+            <div class="detail-text">
+              <span class="detail-label">Color</span>
+              <span class="detail-value">{{ vehicle.color }}</span>
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <ion-icon name="people-outline" class="detail-icon"></ion-icon>
+            <div class="detail-text">
+              <span class="detail-label">Capacidad</span>
+              <span class="detail-value">{{ vehicle.seats }} asientos</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="card-actions">
+          <ion-button fill="outline" class="btn-edit" (click)="openModal(vehicle)">
+            <ion-icon name="create-outline" slot="start"></ion-icon>
+            Editar
+          </ion-button>
+          <ion-button fill="outline" color="danger" class="btn-delete" (click)="confirmDelete(vehicle)">
+            <ion-icon name="trash-outline" slot="start"></ion-icon>
+            Eliminar
+          </ion-button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Nota informativa -->
+    <div *ngIf="!isLoading && vehicles.length > 0" class="info-note">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <span>Puedes usar cualquier vehículo registrado al publicar un viaje.</span>
+    </div>
+
+  </div>
+</ion-content>

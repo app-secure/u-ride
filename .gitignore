@@ -22,6 +22,12 @@ yarn.lock
 /.sourcemaps
 /coverage/
 
+# Archivos de entorno
+src/environments/environment.ts
+src/environments/environment.prod.ts
+.env
+.env.*
+
 # Capacitor
 /platforms/
 /plugins/

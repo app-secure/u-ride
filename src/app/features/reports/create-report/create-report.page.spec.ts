@@ -22,6 +22,7 @@ describe('CreateReportPage', () => {
           useValue: {
             snapshot: {
               paramMap: convertToParamMap({ reportedUid: 'reportedUid' }),
+              queryParamMap: convertToParamMap({ tripId: 'tripId' }),
             },
           },
         },

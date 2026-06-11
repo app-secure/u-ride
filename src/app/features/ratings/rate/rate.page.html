@@ -1,15 +1,15 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/app/trips" text=""></ion-back-button>
-    </ion-buttons>
-    <ion-title>{{ titleLabel }}</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding indrive-style">
+<ion-content class="ion-padding indrive-style uride-content">
   <div class="rate-container fade-in-up">
     
+    <div class="header-section">
+      <button type="button" class="btn-back-top" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        Volver
+      </button>
+      <h2 class="title">{{ titleLabel }}</h2>
+      <p class="subtitle">Deja un comentario sobre tu experiencia</p>
+    </div>
+
     <!-- Driver Header -->
     <div class="profile-header-box" *ngIf="toProfile">
       <div class="avatar-wrapper">

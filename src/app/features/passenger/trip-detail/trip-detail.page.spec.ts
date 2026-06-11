@@ -7,6 +7,7 @@ import { of } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UsersService } from '../../../core/services/users.service';
 import { TripsService } from '../../../core/services/trips.service';
+import { TripRequestsService } from '../../../core/services/trip-requests.service';
 import { RoleStateService } from '../../../core/services/role-state.service';
 import { ReviewsService } from '../../../core/services/reviews.service';
 import { ReportsService } from '../../../core/services/reports.service';
@@ -32,25 +33,26 @@ describe('TripDetailPage', () => {
         {
           provide: AuthService,
           useValue: {
-            user$: of(null),
+            user$: of({ uid: 'uid' }),
           },
         },
         {
           provide: UsersService,
           useValue: {
-            profile$: jasmine.createSpy('profile$').and.returnValue(of(undefined)),
+            profile$: jasmine.createSpy('profile$').and.returnValue(of({ uid: 'uid', displayName: 'Test' } as any)),
+            getProfile: jasmine.createSpy('getProfile').and.returnValue(of(undefined)),
           },
         },
         {
           provide: TripsService,
           useValue: {
-            trip$: jasmine.createSpy('trip$').and.returnValue(of(undefined)),
-            passengerRequest$: jasmine.createSpy('passengerRequest$').and.returnValue(of(undefined)),
-            driverLiveLocation$: jasmine.createSpy('driverLiveLocation$').and.returnValue(of(undefined)),
-            requestToJoin: jasmine.createSpy('requestToJoin').and.resolveTo(),
-            completeTrip: jasmine.createSpy('completeTrip').and.resolveTo(),
-            setDriverLiveActive: jasmine.createSpy('setDriverLiveActive').and.resolveTo(),
-            setDriverLiveLocation: jasmine.createSpy('setDriverLiveLocation').and.resolveTo(),
+            getById: jasmine.createSpy('getById').and.returnValue(of(undefined)),
+          },
+        },
+        {
+          provide: TripRequestsService,
+          useValue: {
+            getMyRequests: jasmine.createSpy('getMyRequests').and.returnValue(of([])),
           },
         },
         {
@@ -62,13 +64,13 @@ describe('TripDetailPage', () => {
         {
           provide: ReviewsService,
           useValue: {
-            hasReviewed: jasmine.createSpy('hasReviewed').and.resolveTo(false),
+            getByTrip: jasmine.createSpy('getByTrip').and.returnValue(of([])),
           },
         },
         {
           provide: ReportsService,
           useValue: {
-            hasReported: jasmine.createSpy('hasReported').and.resolveTo(false),
+            createReport: jasmine.createSpy('createReport').and.returnValue(of(undefined)),
           },
         },
       ],

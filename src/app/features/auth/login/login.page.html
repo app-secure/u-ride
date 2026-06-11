@@ -1,6 +1,7 @@
 <ion-header class="login-header">
   <ion-toolbar color="primary">
     <ion-title>
+
       <div class="login-header-title">U-Ride</div>
       <div class="login-header-subtitle">Login</div>
     </ion-title>
@@ -10,7 +11,7 @@
 <ion-content class="ion-padding uride-content">
   <div class="center-container">
     <div class="hero-section fade-in-up" style="animation-delay: 0.1s">
-      <img src="assets/logo-uride.png" class="hero-logo" alt="U-Ride Logo" />
+      <img src="assets/logo-uride.svg" class="hero-logo" alt="U-Ride Logo" />
       <p class="hero-subtitle">
         Accede con tu correo institucional
         <br *ngIf="domain" />
@@ -42,6 +43,10 @@
             </ion-item>
             <span class="error-message fade-in-up"
               *ngIf="form.get('password')?.invalid && form.get('password')?.touched">Contraseña obligatoria</span>
+          </div>
+
+          <div class="forgot-password-link">
+            <a routerLink="/auth/forgot-password">¿Olvidaste tu contraseña?</a>
           </div>
         </div>
 

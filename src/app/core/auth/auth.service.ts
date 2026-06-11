@@ -7,6 +7,7 @@ import {
   authState,
   User,
   UserCredential,
+  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithRedirect,
   getRedirectResult,
@@ -14,6 +15,7 @@ import {
   updateProfile,
   OAuthProvider,
   signInWithPopup,
+  sendPasswordResetEmail,
 } from '@angular/fire/auth';
 import { Observable, firstValueFrom } from 'rxjs';
 
@@ -41,19 +43,30 @@ export class AuthService {
     const normalized = payload.email.trim().toLowerCase();
     this.assertInstitutionEmail(normalized);
 
-    const cred = await signInWithEmailAndPassword(this.auth, normalized, payload.password);
+    const cred = await createUserWithEmailAndPassword(this.auth, normalized, payload.password);
     
     if (cred.user) {
+      const displayName = `${payload.firstName.trim()} ${payload.lastName.trim()}`;
+
+      // Establecer displayName en Firebase Auth para que persista en el token
       try {
-        await this.users.ensureUserDoc(cred.user);
-        await this.users.updateProfile(cred.user.uid, {
-          displayName: `${payload.firstName.trim()} ${payload.lastName.trim()}`,
-          career: payload.career.trim(),
-          zone: payload.zone.trim(),
-          phone: payload.phone.trim(),
-        });
+        await updateProfile(cred.user, { displayName });
       } catch (e) {
-        console.warn('[AuthService.register] ensureUserDoc failed:', e);
+        console.warn('[AuthService.register] updateProfile on Firebase failed:', e);
+      }
+
+      try {
+        // Sincronizar usuario con el backend vía API REST
+        await firstValueFrom(
+          this.users.syncUserWithDetails(cred.user, {
+            displayName,
+            career: payload.career.trim(),
+            zone: payload.zone.trim(),
+            phone: payload.phone.trim(),
+          }),
+        );
+      } catch (e) {
+        console.warn('[AuthService.register] syncUser failed:', e);
       }
     }
   }
@@ -64,14 +77,13 @@ export class AuthService {
 
     const cred = await signInWithEmailAndPassword(this.auth, normalized, password);
     try {
-      await this.users.ensureUserDoc(cred.user);
-    } catch (e) {
-      console.warn('[AuthService.login] ensureUserDoc failed:', e);
-      throw new Error('PROFILE_WRITE_FAILED');
-    }
+      // Sincronizar usuario con el backend vía API REST
+      await firstValueFrom(this.users.syncUser(cred.user));
 
-    if (cred.user.emailVerified) {
-      await this.users.syncEmailVerified(cred.user.uid, true);
+      this.printSwaggerToken();
+    } catch (e) {
+      console.warn('[AuthService.login] syncUser failed:', e);
+      throw new Error('PROFILE_WRITE_FAILED');
     }
   }
 
@@ -81,7 +93,7 @@ export class AuthService {
       try {
         const result = await FirebaseAuthentication.signInWithMicrosoft();
         if (result.user) {
-          await this.users.ensureUserDoc(result.user as any);
+          await firstValueFrom(this.users.syncUser(result.user as any));
           return 'done';
         }
         throw new Error('NATIVE_LOGIN_FAILED');
@@ -140,14 +152,10 @@ export class AuthService {
     }
 
     try {
-      await this.users.ensureUserDoc(cred.user);
-      if (cred.user.displayName) {
-        await this.users.updateProfile(cred.user.uid, {
-          displayName: cred.user.displayName,
-        });
-      }
+      // Sincronizar usuario con el backend vía API REST
+      await firstValueFrom(this.users.syncUser(cred.user));
     } catch (e) {
-      console.warn('[AuthService.loginWithMicrosoft] ensureUserDoc failed:', e);
+      console.warn('[AuthService.loginWithMicrosoft] syncUser failed:', e);
       throw new Error('PROFILE_WRITE_FAILED');
     }
   }
@@ -155,6 +163,11 @@ export class AuthService {
   async logout(): Promise<void> {
     await signOut(this.auth);
     await this.router.navigateByUrl('/auth/login');
+  }
+
+  async resetPassword(email: string): Promise<void> {
+    const normalized = email.trim().toLowerCase();
+    await sendPasswordResetEmail(this.auth, normalized);
   }
 
   async refreshCurrentUser(): Promise<User | null> {
@@ -180,5 +193,33 @@ export class AuthService {
 
   async getUser(): Promise<User | null> {
     return this.auth.currentUser ?? await firstValueFrom(this.user$);
+  }
+
+  async printSwaggerToken(): Promise<void> {
+    try {
+      let token: string | undefined;
+
+      if (Capacitor.isNativePlatform()) {
+        // Si estás en emulador o dispositivo físico
+        const result = await FirebaseAuthentication.getIdToken({ forceRefresh: true });
+        token = result.token;
+      } else {
+        // Si estás probando en la Web con 'ionic serve'
+        const currentElement = this.auth.currentUser;
+        if (currentElement) {
+          token = await currentElement.getIdToken(true);
+        }
+      }
+
+      if (token) {
+        console.log("================= SWAGGER TOKEN =================");
+        console.log(token);
+        console.log("=================================================");
+      } else {
+        console.warn('[AuthService] No se pudo obtener el token porque no hay usuario activo.');
+      }
+    } catch (error) {
+      console.error('[AuthService] Error al generar token para Swagger:', error);
+    }
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { Auth, authState } from '@angular/fire/auth';
-import { switchMap, map, of, take } from 'rxjs';
+import { switchMap, map, of, take, catchError } from 'rxjs';
 
 import { UsersService } from '../services/users.service';
 
@@ -15,7 +15,10 @@ export class AdminGuard implements CanActivate {
     return authState(this.auth).pipe(
       switchMap(user => {
         if (!user) return of(undefined);
-        return this.users.profile$(user.uid);
+        // Llamada HTTP one-shot al perfil del usuario
+        return this.users.getProfile(user.uid).pipe(
+          catchError(() => of(undefined)),
+        );
       }),
       take(1),
       map(profile => {

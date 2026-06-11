@@ -1,0 +1,65 @@
+<ion-content [fullscreen]="true" class="uride-content">
+  <div class="publish-dashboard fade-in-up">
+    <div class="header-section">
+      <button type="button" class="btn-back-top" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        Volver
+      </button>
+      <h2 class="title">Apelar Suspensión</h2>
+      <p class="subtitle">Explícanos por qué consideras que tu cuenta debe ser desbloqueada</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="publish-form modern-card">
+      <div class="form-section">
+        <h3 class="section-title">Motivo de la Apelación</h3>
+
+        <div class="input-group">
+          <label>Describe los hechos detalladamente</label>
+          <div class="custom-textarea-box" [class.has-error]="form.controls.reason.invalid && form.controls.reason.touched">
+            <ion-icon name="document-text-outline" class="icon-gray"></ion-icon>
+            <textarea formControlName="reason" rows="6" maxlength="700" placeholder="Ej: Hubo un malentendido con el reporte anterior, aquí explico lo que realmente sucedió..."></textarea>
+            <span class="character-count">{{ form.controls.reason.value.length }}/700</span>
+          </div>
+          <div class="error-msg" *ngIf="form.controls.reason.invalid && form.controls.reason.touched">
+            La descripción es requerida (mín. 10 caracteres, máx. 700).
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">Evidencia Opcional</h3>
+        <!-- Vista previa de evidencia -->
+        <div class="evidence-preview-container" *ngIf="evidencePreview">
+          <img [src]="evidencePreview" alt="Evidencia seleccionada" />
+          <ion-button fill="clear" color="danger" (click)="clearEvidence()" class="clear-btn">
+            <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+
+        <!-- Botones de cámara y galería centrados -->
+        <div class="evidence-actions" *ngIf="!evidencePreview">
+          <button type="button" class="evidence-btn" (click)="takePhoto()">
+            <ion-icon name="camera-outline"></ion-icon>
+            <span>Cámara</span>
+          </button>
+          <button type="button" class="evidence-btn" (click)="selectFromGallery()">
+            <ion-icon name="image-outline"></ion-icon>
+            <span>Galería</span>
+          </button>
+        </div>
+
+        <div class="loading-container" *ngIf="uploading">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Subiendo evidencia...</p>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <ion-button class="btn-publish" type="submit" expand="block" [disabled]="saving || uploading">
+          <ion-spinner *ngIf="saving" name="dots" slot="start"></ion-spinner>
+          Enviar Apelación
+        </ion-button>
+      </div>
+    </form>
+  </div>
+</ion-content>

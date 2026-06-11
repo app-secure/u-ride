@@ -19,6 +19,10 @@ export const routes: Routes = [
         path: 'verify-email',
         loadComponent: () => import('./features/auth/verify-email/verify-email.page').then(m => m.VerifyEmailPage),
       },
+      {
+        path: 'forgot-password',
+        loadComponent: () => import('./features/auth/forgot-password/forgot-password.page').then(m => m.ForgotPasswordPage),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'login' },
     ],
   },
@@ -38,5 +42,5 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: '**', redirectTo: 'auth/login' },
+  { path: '**', redirectTo: 'auth/login' }
 ];

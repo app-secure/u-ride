@@ -1,10 +1,10 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
-import { Observable, of } from 'rxjs';
+import { Observable, of, firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import type { Trip } from '../../../core/models/trip.model';
@@ -30,6 +30,7 @@ export class RatePage {
   private readonly users = inject(UsersService);
   private readonly reviews = inject(ReviewsService);
   private readonly toastCtrl = inject(ToastController);
+  private readonly location = inject(Location);
 
   readonly tripId = this.route.snapshot.paramMap.get('tripId') ?? '';
   readonly toUid = this.route.snapshot.paramMap.get('toUid') ?? '';
@@ -54,8 +55,7 @@ export class RatePage {
       this.computeBlockedReason();
     });
 
-    this.trips
-      .trip$(this.tripId)
+    this.trips.getById(this.tripId)
       .pipe(takeUntilDestroyed())
       .subscribe(trip => {
         this.trip = trip ?? null;
@@ -158,23 +158,14 @@ export class RatePage {
     try {
       const fromUid = this.currentUid;
       if (!fromUid) throw new Error('NO_AUTH');
-      await this.reviews.submitTripReview({
+      await firstValueFrom(this.reviews.createReview({
         tripId: this.tripId,
-        fromUid,
         toUid: this.toUid,
         stars: this.form.controls.stars.value,
         comment: this.form.controls.comment.value,
-      });
+      }));
 
-      // Si el conductor está calificando a un pasajero, persistimos el estado en la solicitud.
-      const isDriver = fromUid === this.trip?.driverUid;
-      if (isDriver) {
-        try {
-          await this.trips.markPassengerRated(this.tripId, this.toUid);
-        } catch {
-          // Best-effort: no bloquear la navegación si falla el flag.
-        }
-      }
+      // El backend gestiona los flags de rated/reported internamente
 
       const toast = await this.toastCtrl.create({
         message: '¡Gracias! Tu calificación fue enviada.',
@@ -185,7 +176,7 @@ export class RatePage {
       await toast.present();
 
       // Redirigir según el rol
-      if (isDriver) {
+      if (fromUid === this.trip?.driverUid) {
         await this.router.navigate(['/app/requests', this.tripId]);
       } else {
         await this.router.navigate(['/app/trips', this.tripId]);
@@ -201,5 +192,9 @@ export class RatePage {
     } finally {
       this.submitting = false;
     }
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

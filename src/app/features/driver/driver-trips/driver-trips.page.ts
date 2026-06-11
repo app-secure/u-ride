@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { Router, RouterLink } from '@angular/router';
-import { Observable, combineLatest, of, switchMap, BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 
-import { AuthService } from '../../../core/auth/auth.service';
 import { TripsService } from '../../../core/services/trips.service';
+import { AuthService } from '../../../core/auth/auth.service';
+import { UsersService } from '../../../core/services/users.service';
 import type { Trip } from '../../../core/models/trip.model';
+import type { UserProfile } from '../../../core/models/user-profile.model';
+import { AppealService } from '../../../core/services/appeal.service';
 
 @Component({
   selector: 'app-driver-trips',
@@ -18,40 +20,162 @@ import type { Trip } from '../../../core/models/trip.model';
   imports: [CommonModule, IonicModule, FormsModule, RouterLink],
 })
 export class DriverTripsPage {
-  private readonly auth = inject(AuthService);
   private readonly tripsSvc = inject(TripsService);
+  private readonly auth = inject(AuthService);
+  private readonly usersSvc = inject(UsersService);
   private readonly router = inject(Router);
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
+  private readonly appealSvc = inject(AppealService);
 
-  private readonly segmentSubject = new BehaviorSubject<'active' | 'completed'>('active');
-  
+  userProfile: UserProfile | null = null;
+
+  get isSuspended(): boolean {
+    if (!this.userProfile?.suspendedUntil) return false;
+    return new Date(this.userProfile.suspendedUntil) > new Date();
+  }
+
+  get suspendedUntilDate(): Date | null {
+    return this.userProfile?.suspendedUntil ? new Date(this.userProfile.suspendedUntil) : null;
+  }
+
+  hasPendingAppeal = false;
+
+  private _segment: 'active' | 'completed' = 'active';
+  private readonly pageSize = 10;
+  private nextIndex = 0;
+
+  allTrips: Trip[] = [];
+  filteredTrips: Trip[] = [];
+  trips: Trip[] = [];
+  loading = true;
+  hasMore = false;
+
   get segment(): 'active' | 'completed' {
-    return this.segmentSubject.value;
+    return this._segment;
   }
-  
+
   set segment(val: 'active' | 'completed') {
-    this.segmentSubject.next(val);
+    this._segment = val;
+    this.applyFilterAndReset();
   }
 
-  readonly myTrips$: Observable<Trip[]> = this.auth.user$.pipe(
-    switchMap(user => {
-      if (!user) return of([]);
-      // Filtramos en cliente para mayor control sin índices compuestos
-      return this.tripsSvc.trips$({ onlyOpen: false }).pipe(
-        map((trips: Trip[]) => trips.filter(t => t.driverUid === user.uid))
-      );
-    })
-  );
+  constructor() {
+    this.usersSvc.myProfile$.subscribe(profile => {
+      this.userProfile = profile;
+    });
+  }
 
-  readonly filteredTrips$: Observable<Trip[]> = combineLatest([
-    this.myTrips$,
-    this.segmentSubject.asObservable()
-  ]).pipe(
-    map(([trips, segment]) => trips.filter(t => 
-      segment === 'active' ? t.status === 'open' : (t.status === 'completed' || t.status === 'cancelled')
-    ))
-  );
+  openAppealAlert(): void {
+    this.router.navigate(['/app/appeals/create']);
+  }
+
+  ionViewWillEnter(): void {
+    this.usersSvc.refreshMyProfile();
+    this.checkPendingAppeal();
+    this.loadTrips();
+  }
+
+  private async checkPendingAppeal(): Promise<void> {
+    try {
+      const appeals = await firstValueFrom(this.appealSvc.getMyAppeals());
+      this.hasPendingAppeal = appeals.some(a => a.status === 'pending');
+    } catch (e) {
+      console.error('Error checking pending appeals', e);
+    }
+  }
+
+  doRefresh(event: any): void {
+    this.loadTrips().finally(() => event.target.complete());
+  }
+
+  loadMore(event: any): void {
+    this.loadNextChunk(event);
+  }
+
+  private async loadTrips(): Promise<void> {
+    this.loading = true;
+    try {
+      this.allTrips = await firstValueFrom(this.tripsSvc.getMyTrips());
+      this.applyFilterAndReset();
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async onPublishClick(event: Event): Promise<void> {
+    event.preventDefault();
+    if (this.isSuspended) {
+      const toast = await this.toastCtrl.create({
+        message: 'Acción denegada. No puedes publicar ni solicitar viajes mientras tu cuenta esté suspendida.',
+        duration: 4000,
+        color: 'danger',
+        position: 'bottom',
+        icon: 'warning-outline'
+      });
+      await toast.present();
+    } else {
+      this.router.navigate(['/app/publish']);
+    }
+  }
+
+  private applyFilterAndReset(): void {
+    this.filteredTrips = (this.allTrips ?? []).filter(t =>
+      this.segment === 'active'
+        ? (t.status === 'open' || t.status === 'closed' || t.status === 'inprogress')
+        : (t.status === 'completed' || t.status === 'cancelled' || t.status === 'expired')
+    );
+
+    if (this.segment === 'active') {
+      this.filteredTrips.sort((a, b) => new Date(a.departureAt).getTime() - new Date(b.departureAt).getTime());
+    }
+
+    this.trips = [];
+    this.nextIndex = 0;
+    this.hasMore = this.filteredTrips.length > 0;
+    this.loadNextChunk();
+  }
+
+  private loadNextChunk(event?: any): void {
+    if (!this.hasMore) {
+      event?.target?.complete?.();
+      return;
+    }
+
+    const next = this.filteredTrips.slice(this.nextIndex, this.nextIndex + this.pageSize);
+    this.trips = [...this.trips, ...next];
+    this.nextIndex += next.length;
+    this.hasMore = this.nextIndex < this.filteredTrips.length;
+    event?.target?.complete?.();
+  }
+
+  async startTrip(trip: Trip): Promise<void> {
+    if (this.isSuspended) {
+      await this.presentToast('Acción denegada. Tu cuenta está suspendida y no puedes iniciar viajes.', 'danger');
+      return;
+    }
+    
+    const alert = await this.alertCtrl.create({
+      header: 'Iniciar Viaje',
+      message: '¿Estás listo para iniciar el viaje? Ya no recibirás más solicitudes de pasajeros.',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { 
+          text: 'Iniciar', 
+          handler: async () => {
+            try {
+              await firstValueFrom(this.tripsSvc.updateTripStatus(trip.id, 'inprogress'));
+              await this.loadTrips();
+              await this.presentToast('Viaje iniciado con éxito.', 'success');
+            } catch (e: any) {
+              await this.presentToast('Error al iniciar el viaje.', 'danger');
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
 
   async cancelTrip(trip: Trip): Promise<void> {
     const alert = await this.alertCtrl.create({
@@ -64,7 +188,8 @@ export class DriverTripsPage {
           role: 'destructive',
           handler: async () => {
             try {
-              await this.tripsSvc.updateTripStatus(trip.id, 'cancelled');
+              await firstValueFrom(this.tripsSvc.updateTripStatus(trip.id, 'cancelled'));
+              await this.loadTrips();
               await this.presentToast('Viaje cancelado correctamente.', 'success');
             } catch (e: any) {
               await this.presentToast('Error al cancelar el viaje.', 'danger');
@@ -86,9 +211,9 @@ export class DriverTripsPage {
           text: 'Sí, finalizar', 
           handler: async () => {
             try {
-              await this.tripsSvc.updateTripStatus(trip.id, 'completed');
+              await firstValueFrom(this.tripsSvc.updateTripStatus(trip.id, 'completed'));
+              await this.loadTrips();
               await this.presentToast('Viaje finalizado. Ahora puedes calificar/reportar pasajeros.', 'success');
-              // Optionally redirect to report page directly, or let them click it from the completed list.
             } catch (e: any) {
               await this.presentToast('Error al finalizar el viaje.', 'danger');
             }
@@ -98,6 +223,8 @@ export class DriverTripsPage {
     });
     await alert.present();
   }
+
+
 
   goToTripMap(trip: Trip): void {
     this.router.navigate(['/app/trips', trip.id]);
@@ -122,7 +249,8 @@ export class DriverTripsPage {
           role: 'destructive',
           handler: async () => {
             try {
-              await this.tripsSvc.deleteTrip(trip.id);
+              await firstValueFrom(this.tripsSvc.deleteTrip(trip.id));
+              await this.loadTrips();
               await this.presentToast('Viaje eliminado.', 'success');
             } catch {
               await this.presentToast('Error al eliminar el viaje.', 'danger');
@@ -135,14 +263,10 @@ export class DriverTripsPage {
   }
 
   reportPassengers(trip: Trip): void {
-    // Navigate to a report page passing the tripId. For now, we can use an alert or a modal.
-    // The requirement says: "le salga otra vez la lista de pasajeros y le muestre de cada lista un boton que diga reportar"
-    // So we navigate to requests page but in "report mode"?
-    // Let's create a route or just pass state. The requests page already has all passengers.
     this.router.navigate(['/app/requests', trip.id]);
   }
 
-  private async presentToast(message: string, color: 'success' | 'danger'): Promise<void> {
+  private async presentToast(message: string, color: 'success' | 'danger' | 'warning' | 'medium'): Promise<void> {
     const toast = await this.toastCtrl.create({
       message,
       duration: 2000,
@@ -150,5 +274,12 @@ export class DriverTripsPage {
       position: 'top'
     });
     await toast.present();
+  }
+
+  placeMainLabel(full: string | null | undefined): string {
+    const s = String(full ?? '').trim();
+    if (!s) return '';
+    const first = s.split(',')[0]?.trim();
+    return first || s;
   }
 }

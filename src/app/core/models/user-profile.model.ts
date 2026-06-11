@@ -15,6 +15,7 @@ export interface UserProfile {
 
   ratingSum?: number;
   ratingCount?: number;
+  averageRating?: number;
   tripsCount?: number; // Total
   driverTripsCount?: number;
   passengerTripsCount?: number;
@@ -22,6 +23,9 @@ export interface UserProfile {
   suspendedUntil?: string | null;
 
   disabled?: boolean;
+
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type UserProfileUpdate = Partial<Omit<UserProfile, 'uid' | 'email'>>;

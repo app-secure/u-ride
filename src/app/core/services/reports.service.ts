@@ -1,96 +1,111 @@
-import { EnvironmentInjector, Injectable, inject, runInInjectionContext } from '@angular/core';
-import { Firestore, addDoc, collection, collectionData, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from '@angular/fire/firestore';
-import { map, Observable } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-import type { Report, ReportAction, ReportStatus } from '../models/report.model';
-import { TimeService } from './time.service';
+import { environment } from '../../../environments/environment';
+import type { Report } from '../models/report.model';
+import type { PagedResult } from '../models/paged-result.model';
+
+/** DTO para crear un reporte. Coincide con CreateReportDto del backend. */
+export interface CreateReportDto {
+  reportedUid: string;
+  tripId?: string;
+  reason: string;
+  evidenceUrl?: string;
+}
+
+/** DTO para resolver un reporte. Coincide con ResolveReportRequest del backend. */
+export interface ResolveReportDto {
+  action: string;
+  adminNotes?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ReportsService {
-  private readonly firestore = inject(Firestore);
-  private readonly injector = inject(EnvironmentInjector);
+  private readonly http = inject(HttpClient);
+  private readonly base = `${environment.apiUrl}/reports`;
 
-  private reportDocId(reporterUid: string, reportedUid: string, tripId?: string): string {
-    const safeReporter = String(reporterUid || '').trim();
-    const safeReported = String(reportedUid || '').trim();
-    const safeTrip = String(tripId || '').trim();
-    // Los ids de trips (Firestore auto-id) no contienen '/', así que es seguro concatenar.
-    return safeTrip ? `${safeReporter}_${safeReported}_${safeTrip}` : `${safeReporter}_${safeReported}`;
+  /**
+   * Crea un reporte contra otro usuario.
+   * El reporterUid se extrae del token en el backend.
+   * POST /api/reports
+   */
+  createReport(dto: CreateReportDto): Observable<Report> {
+    return this.http.post<Report>(this.base, dto).pipe(
+      map(r => this.fixEvidenceUrl(r))
+    );
   }
 
-  reports$(status: ReportStatus = 'open'): Observable<Report[]> {
-    return runInInjectionContext(this.injector, () => {
-      const ref = collection(this.firestore, 'reports');
-      const q = query(ref, where('status', '==', status));
-      return (collectionData(q, { idField: 'id' }) as Observable<Report[]>).pipe(
-        map(reports => [...reports].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
-      );
-    });
+  /**
+   * Verifica si el usuario autenticado ya reportó un viaje específico.
+   * Si se provee reportedUid, verifica específicamente contra ese usuario reportado.
+   * GET /api/reports/has-reported?tripId={guid}&reportedUid={uid}
+   */
+  hasReportedForTrip(tripId: string, reportedUid?: string): Observable<boolean> {
+    const params: any = { tripId };
+    if (reportedUid) params['reportedUid'] = reportedUid;
+    return this.http.get<boolean>(`${this.base}/has-reported`, { params });
   }
 
-  async createReport(input: Omit<Report, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Promise<void> {
-    return runInInjectionContext(this.injector, async () => {
-      const now = TimeService.nowIso();
-      // Si está asociado a un viaje, prevenimos duplicados por (reporterUid, reportedUid, tripId)
-      if (input.tripId) {
-        const reportId = this.reportDocId(input.reporterUid, input.reportedUid, input.tripId);
-        const ref = doc(this.firestore, `reports/${reportId}`);
+  /**
+   * Sube una evidencia directamente a Cloudinary.
+   */
+  uploadEvidence(file: File | Blob): Observable<{ evidenceUrl: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'uride_reports');
 
-        try {
-          // Importante: NO hacemos lecturas previas porque tus rules bloquean read en /reports.
-          // Si el doc ya existe, setDoc cuenta como update y el backend lo rechazará.
-          await setDoc(ref, {
-            ...input,
-            status: 'open',
-            createdAt: now,
-            updatedAt: now,
-          } as any);
-          return;
-        } catch (e: any) {
-          const code = String(e?.code || '').toLowerCase();
-          const msg = String(e?.message || '').toLowerCase();
-          if (code.includes('permission') || msg.includes('insufficient permissions') || msg.includes('permission-denied')) {
-            throw new Error('Ya reportaste a este usuario para este viaje.');
-          }
-          throw e;
-        }
-      }
+    const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dyfjz9q5h/image/upload';
 
-      // Sin tripId: mantener comportamiento previo (puede haber múltiples reportes en el tiempo).
-      const ref = collection(this.firestore, 'reports');
-      await addDoc(ref, {
-        ...input,
-        status: 'open',
-        createdAt: now,
-        updatedAt: now,
-      } as any);
-    });
+    return this.http.post<any>(cloudinaryUrl, formData).pipe(
+      map(res => ({ evidenceUrl: res.secure_url }))
+    );
   }
 
-  async hasReported(reporterUid: string, reportedUid: string, tripId?: string): Promise<boolean> {
-    return runInInjectionContext(this.injector, async () => {
-      // Tus rules bloquean read en /reports para usuarios no-admin, así que esta función
-      // no es confiable desde el cliente "driver". Se deja para contextos con permisos (admin).
-      const directId = this.reportDocId(reporterUid, reportedUid, tripId);
-      const directRef = doc(this.firestore, `reports/${directId}`);
-      const directSnap = await getDoc(directRef);
-      if (directSnap.exists()) return true;
-
-      const ref = collection(this.firestore, 'reports');
-      let q = query(ref, where('reporterUid', '==', reporterUid), where('reportedUid', '==', reportedUid));
-      if (tripId) q = query(q, where('tripId', '==', tripId));
-      const snap = await getDocs(q);
-      return !snap.empty;
-    });
+  /**
+   * Helper to prepend the backend host to relative evidence URLs
+   */
+  private fixEvidenceUrl(r: Report): Report {
+    if (r.evidenceUrl && r.evidenceUrl.startsWith('/')) {
+      const backendBaseUrl = environment.apiUrl.replace(/\/api$/, '');
+      return { ...r, evidenceUrl: backendBaseUrl + r.evidenceUrl };
+    }
+    return r;
   }
 
-  async resolveReport(reportId: string, patch: { status: ReportStatus; action: ReportAction; adminNotes?: string }): Promise<void> {
-    return runInInjectionContext(this.injector, async () => {
-      const ref = doc(this.firestore, `reports/${reportId}`);
-      await updateDoc(ref, {
-        ...patch,
-        updatedAt: TimeService.nowIso(),
-      } as any);
-    });
+  /**
+   * [Admin] Obtiene todos los reportes paginados.
+   * GET /api/reports?page=...&pageSize=...
+   */
+  getAll(page: number = 1, pageSize: number = 10): Observable<PagedResult<Report>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('pageSize', pageSize.toString());
+    return this.http.get<PagedResult<Report>>(this.base, { params }).pipe(
+      map(result => {
+        result.items = result.items.map(r => this.fixEvidenceUrl(r));
+        return result;
+      })
+    );
+  }
+
+  /**
+   * Alias observable para compatibilidad con componentes que usaban reports$(status).
+   * Ahora retorna la lista paginada de reportes (la API filtra por estado internamente si aplica).
+   */
+  reports$(_status: string = 'open'): Observable<PagedResult<Report>> {
+    return this.getAll(1, 50);
+  }
+
+  /**
+   * [Admin] Resuelve un reporte.
+   * PATCH /api/reports/{id}/resolve
+   */
+  resolveReport(id: string, action: string, adminNotes?: string): Observable<Report> {
+    const body: ResolveReportDto = { action, adminNotes };
+    return this.http.patch<Report>(`${this.base}/${id}/resolve`, body).pipe(
+      map(r => this.fixEvidenceUrl(r))
+    );
   }
 }

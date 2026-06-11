@@ -1,32 +1,56 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()" aria-label="Cerrar" fill="clear">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
     <ion-title>{{ title }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="cancel()" aria-label="Cerrar">
-        <ion-icon name="close"></ion-icon>
+      <ion-button (click)="confirm()" fill="solid" color="dark" [disabled]="!picked" class="confirm-btn">
+        Confirmar
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="picker-content">
+
+  <!-- Barra de búsqueda -->
   <div class="search-row">
-    <ion-searchbar
-      placeholder="Buscar dirección"
-      [value]="queryValue"
-      (ionInput)="onQueryInput($event)"
-      inputmode="search"
-      debounce="0"
-    ></ion-searchbar>
+    <div class="search-box">
+      <ion-icon [name]="kind === 'origin' ? 'location-outline' : 'location'" [class]="kind === 'origin' ? 'icon-origin' : 'icon-dest'"></ion-icon>
+      <ion-searchbar
+        [placeholder]="kind === 'origin' ? 'Buscar dirección de origen...' : 'Buscar dirección de destino...'"
+        [value]="queryValue"
+        (ionInput)="onQueryInput($event)"
+        inputmode="search"
+        debounce="0"
+        mode="ios"
+        class="inner-searchbar"
+      ></ion-searchbar>
+    </div>
   </div>
 
+  <!-- Etiqueta de ubicación seleccionada -->
   <div class="picked-text" *ngIf="picked">
-    {{ picked.label }}
+    <ion-icon name="checkmark-circle" color="success"></ion-icon>
+    <span>{{ picked.label }}</span>
+  </div>
+  <div class="hint-text" *ngIf="!picked">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <span>Busca una dirección o toca el mapa para fijar el punto</span>
   </div>
 
-  <div #mapEl class="picker-map" aria-label="Mapa para seleccionar ubicación"></div>
+  <!-- Mapa -->
+  <div class="map-wrapper">
+    <div #mapEl class="picker-map" aria-label="Mapa para seleccionar ubicación"></div>
 
-  <div class="actions">
-    <ion-button expand="block" (click)="confirm()">Confirmar ubicación</ion-button>
+    <!-- Botón flotante: regresar a vista de Ambato -->
+    <button type="button" class="btn-reset-view" (click)="resetToAmbatoView()" title="Ver Ambato completo">
+      <ion-icon name="map-outline"></ion-icon>
+      <span>Ver Ambato</span>
+    </button>
   </div>
+
 </ion-content>

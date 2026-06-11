@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <!-- Degradado para la ruta (Letra U) -->
+    <linearGradient id="gradU" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E2E8F0" />
+    </linearGradient>
+    
+    <!-- Degradado para el punto de origen (Azul Tech) -->
+    <linearGradient id="gradDot" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+    
+    <!-- Degradado para el Pin de destino (Rojo/Coral moderno) -->
+    <linearGradient id="gradPin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FB7185" />
+      <stop offset="100%" stop-color="#E11D48" />
+    </linearGradient>
+    
+    <!-- Filtro de sombra sutil para dar profundidad sobre fondos oscuros -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- La Ruta (Forma de letra U) -->
+  <path d="M 50 80 L 50 140 C 50 175 130 175 130 140 L 130 115"
+        fill="none" stroke="url(#gradU)" stroke-width="20" stroke-linecap="round" filter="url(#shadow)" />
+
+  <!-- Punto de Origen (Inicio del viaje) -->
+  <circle cx="50" cy="50" r="11" fill="url(#gradDot)" filter="url(#shadow)" />
+
+  <!-- Pin de Destino (Fin del viaje) -->
+  <!-- Usamos fill-rule="evenodd" para hacer un "hueco" transparente perfecto en el centro del pin -->
+  <path d="M 130 25 C 110 25 94 41 94 61 C 94 85 130 123 130 123 C 130 123 166 85 166 61 C 166 41 150 25 130 25 Z M 130 47 A 14 14 0 1 0 130 75 A 14 14 0 1 0 130 47 Z"
+        fill="url(#gradPin)" fill-rule="evenodd" filter="url(#shadow)" />
+</svg>

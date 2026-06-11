@@ -119,7 +119,12 @@
               <div class="uride-input-group">
                 <label class="uride-label">Teléfono</label>
                 <ion-item class="uride-input-item">
-                  <ion-input inputmode="tel" formControlName="phone" placeholder="+593 99..."></ion-input>
+                  <ion-input
+                    inputmode="numeric"
+                    maxlength="10"
+                    formControlName="phone"
+                    placeholder="0999999999"
+                  ></ion-input>
                 </ion-item>
               </div>
 
@@ -164,6 +169,18 @@
             <span class="stat-val">{{ profile.passengerTripsCount || 0 }}</span>
           </div>
         </div>
+      </div>
+
+      <!-- Vehículos Card -->
+      <div class="modern-card stat-card" style="margin-top: 24px; text-align: center;">
+        <h3 class="card-title-sm">Mis Vehículos</h3>
+        <p style="font-size: 14px; color: var(--ion-color-medium); margin-bottom: 16px;">
+          Gestiona los vehículos que usas para ofrecer viajes.
+        </p>
+        <ion-button expand="block" shape="round" color="primary" routerLink="/app/profile/vehicles">
+          <ion-icon name="car-outline" slot="start"></ion-icon>
+          Ver Mis Vehículos
+        </ion-button>
       </div>
 
     </div>

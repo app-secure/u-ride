@@ -1,16 +1,19 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators, type ValidationErrors, type ValidatorFn } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { of, switchMap } from 'rxjs';
+import { of, switchMap, firstValueFrom } from 'rxjs';
 import { startWith } from 'rxjs/operators';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { UsersService } from '../../../core/services/users.service';
 import { TripsService } from '../../../core/services/trips.service';
+import { VehiclesService } from '../../../core/services/vehicles.service';
 import type { Trip, TripRuleSet } from '../../../core/models/trip.model';
+import type { Vehicle } from '../../../core/models/vehicle.model';
+import type { UserProfile } from '../../../core/models/user-profile.model';
 import { LocationPickerModalComponent, type LocationPickerResult } from './location-picker-modal.component';
 
 @Component({
@@ -18,13 +21,14 @@ import { LocationPickerModalComponent, type LocationPickerResult } from './locat
   templateUrl: './publish-trip.page.html',
   styleUrls: ['./publish-trip.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, ReactiveFormsModule],
+  imports: [CommonModule, IonicModule, ReactiveFormsModule, RouterLink],
 })
 export class PublishTripPage {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly users = inject(UsersService);
   private readonly trips = inject(TripsService);
+  private readonly vehiclesService = inject(VehiclesService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toastCtrl = inject(ToastController);
@@ -33,12 +37,23 @@ export class PublishTripPage {
 
   driverUid: string | null = null;
   driverName = '';
+  myVehicles: Vehicle[] = [];
+  userProfile: UserProfile | null = null;
+
+  get isSuspended(): boolean {
+    if (!this.userProfile?.suspendedUntil) return false;
+    return new Date(this.userProfile.suspendedUntil) > new Date();
+  }
+
+  /** Asientos totales del vehículo seleccionado (capacidad real del vehículo). */
+  selectedVehicleSeats: number | null = null;
 
   readonly editTripId = this.route.snapshot.paramMap.get('tripId');
   tripToEdit: Trip | null = null;
 
   readonly routeOptions$ = this.trips.tripRoutes$();
   readonly ruleOptions$ = this.trips.tripRules$();
+  readonly paymentMethods = ['Efectivo', 'Tarjeta', 'Transferencia', 'Cualquiera'];
 
   readonly publishForm = this.fb.nonNullable.group({
     routeName: ['', [Validators.required]],
@@ -54,8 +69,8 @@ export class PublishTripPage {
     price: ['', Validators.required],
     paymentMethod: ['', Validators.required],
     ruleTexts: [[] as string[]],
-    notes: [''],
-    vehiclePlate: ['', [Validators.required]],
+    notes: ['', [Validators.maxLength(400)]],
+    vehiclePlate: ['', [Validators.required, Validators.pattern(/^[A-Z]{3}-\d{4}$/)]],
     vehicleModel: ['', [Validators.required]],
     vehicleBrand: ['', [Validators.required]],
     vehicleColor: ['', [Validators.required]],
@@ -68,20 +83,33 @@ export class PublishTripPage {
   }
 
   constructor() {
-    this.auth.user$
-      .pipe(
-        switchMap(user => (user ? this.users.profile$(user.uid) : of(undefined))),
-        takeUntilDestroyed(),
-      )
-      .subscribe(profile => {
+    this.publishForm.addValidators(this.departureDateTimeValidator());
+
+    // Aplicar validador de cupos al control seatsTotal (referencia a método de instancia).
+    this.publishForm.controls.seatsTotal.addValidators(this.seatsNotExceedVehicleValidator());
+
+    this.users.myProfile$
+      .pipe(takeUntilDestroyed())
+      .subscribe(async profile => {
         if (!profile) return;
+        this.userProfile = profile;
         this.driverUid = profile.uid;
         this.driverName = profile.displayName || 'Conductor/a';
+        try {
+          this.myVehicles = await firstValueFrom(this.vehiclesService.getVehicles());
+
+          // Si ya se cargó el viaje a editar antes que los vehículos,
+          // resolvemos selectedVehicleSeats ahora que tenemos la lista.
+          if (this.editTripId && this.tripToEdit) {
+            this.resolveSelectedVehicleSeats(this.tripToEdit.vehicle?.plate);
+          }
+        } catch (e) {
+          console.error('Error al cargar vehículos', e);
+        }
       });
 
     if (this.editTripId) {
-      this.trips
-        .trip$(this.editTripId)
+      this.trips.getById(this.editTripId)
         .pipe(takeUntilDestroyed())
         .subscribe(trip => {
           this.tripToEdit = trip ?? null;
@@ -106,11 +134,15 @@ export class PublishTripPage {
             paymentMethod: trip.paymentMethod ?? '',
             ruleTexts: Array.isArray(trip.ruleTexts) ? trip.ruleTexts : [],
             notes: trip.notes ?? '',
-            vehiclePlate: trip.vehicleInfo?.plate ?? '',
-            vehicleModel: trip.vehicleInfo?.model ?? '',
-            vehicleBrand: trip.vehicleInfo?.brand ?? '',
-            vehicleColor: trip.vehicleInfo?.color ?? '',
+            vehiclePlate: trip.vehicle?.plate ?? '',
+            vehicleModel: trip.vehicle?.model ?? '',
+            vehicleBrand: trip.vehicle?.brand ?? '',
+            vehicleColor: trip.vehicle?.color ?? '',
           });
+
+          // Intentamos resolver los asientos desde la lista de vehículos
+          // (puede que ya estén cargados o no, el método lo maneja).
+          this.resolveSelectedVehicleSeats(trip.vehicle?.plate);
         });
     }
 
@@ -134,6 +166,56 @@ export class PublishTripPage {
         }
         paymentCtrl.updateValueAndValidity({ emitEvent: false });
       });
+  }
+
+  onVehicleSelected(event: any): void {
+    const selectedVehicle = event.detail.value as Vehicle;
+    if (selectedVehicle) {
+      // Guardamos la capacidad real del vehículo por separado (para mostrar en tarjeta y validar cupos).
+      this.selectedVehicleSeats = selectedVehicle.seats;
+
+      const seatsCtrl = this.publishForm.controls.seatsTotal;
+      const maxSeats = Math.max(1, selectedVehicle.seats - 1);
+      const currentSeats = Number(seatsCtrl.value ?? 0);
+      const shouldSetDefault = seatsCtrl.pristine || currentSeats <= 0 || currentSeats > maxSeats;
+      if (shouldSetDefault) {
+        seatsCtrl.setValue(maxSeats);
+      }
+
+      // Solo actualizamos los datos del vehículo; NO tocamos seatsTotal (cupos disponibles).
+      this.publishForm.patchValue({
+        vehicleBrand: selectedVehicle.brand,
+        vehicleModel: selectedVehicle.modelOrBusNumber,
+        vehiclePlate: selectedVehicle.plate,
+        vehicleColor: selectedVehicle.color,
+      });
+
+      // Re-validamos seatsTotal ahora que tenemos el límite del vehículo.
+      this.publishForm.controls.seatsTotal.updateValueAndValidity();
+    }
+  }
+
+  async ionViewWillEnter(): Promise<void> {
+    this.users.refreshMyProfile();
+    try {
+      this.myVehicles = await firstValueFrom(this.vehiclesService.getVehicles());
+    } catch (e) {
+      console.error('Error al actualizar vehículos', e);
+    }
+  }
+
+  /**
+   * Busca el vehículo coincidente por placa en la lista cargada y asigna
+   * `selectedVehicleSeats`. Se usa al editar un viaje existente para que la
+   * tarjeta del vehículo y el validador de cupos funcionen correctamente.
+   */
+  resolveSelectedVehicleSeats(plate: string | null | undefined): void {
+    if (!plate || this.myVehicles.length === 0) return;
+    const match = this.myVehicles.find(v => v.plate === plate);
+    if (match) {
+      this.selectedVehicleSeats = match.seats;
+      this.publishForm.controls.seatsTotal.updateValueAndValidity();
+    }
   }
 
   private async searchPlacesEc(query: string): Promise<Array<{ label: string; lat: number; lng: number }>> {
@@ -169,17 +251,50 @@ export class PublishTripPage {
 
   async openLocationPicker(kind: 'origin' | 'destination'): Promise<void> {
     const title = kind === 'origin' ? 'Seleccionar origen' : 'Seleccionar destino';
-    const currentLabel = kind === 'origin' ? this.publishForm.controls.originZone.value : this.publishForm.controls.destinationZone.value;
-    const currentLat = kind === 'origin' ? this.publishForm.controls.originLat.value : this.publishForm.controls.destinationLat.value;
-    const currentLng = kind === 'origin' ? this.publishForm.controls.originLng.value : this.publishForm.controls.destinationLng.value;
+    const controls = this.publishForm.controls;
+    const currentLabel = kind === 'origin' ? controls.originZone.value : controls.destinationZone.value;
+    const currentLat = kind === 'origin' ? controls.originLat.value : controls.destinationLat.value;
+    const currentLng = kind === 'origin' ? controls.originLng.value : controls.destinationLng.value;
+
+    // Coordenadas del punto OPUESTO (para mostrar como referencia en el modal)
+    const otherLat = kind === 'origin' ? controls.destinationLat.value : controls.originLat.value;
+    const otherLng = kind === 'origin' ? controls.destinationLng.value : controls.originLng.value;
+    const otherLabel = kind === 'origin' ? controls.destinationZone.value : controls.originZone.value;
+
+    // Si el punto a elegir no tiene coordenadas aún, geocodificar el nombre
+    // de la ruta para centrar el mapa en esa zona automáticamente.
+    let routeCenterLat: number | null = null;
+    let routeCenterLng: number | null = null;
+
+    if (currentLat == null || currentLng == null) {
+      const routeName = controls.routeName.value?.trim();
+      if (routeName) {
+        try {
+          const hits = await this.searchPlacesEc(routeName);
+          if (hits[0]) {
+            routeCenterLat = hits[0].lat;
+            routeCenterLng = hits[0].lng;
+          }
+        } catch {
+          // silenciar: si falla, el mapa abre en el centro por defecto
+        }
+      }
+    }
 
     const modal = await this.modalCtrl.create({
       component: LocationPickerModalComponent,
+      cssClass: 'location-picker-modal',
       componentProps: {
         title,
+        kind,
         initialQuery: currentLabel,
         initialLat: currentLat,
         initialLng: currentLng,
+        otherLat,
+        otherLng,
+        otherLabel: otherLabel || (kind === 'origin' ? 'Destino' : 'Origen'),
+        routeCenterLat,
+        routeCenterLng,
       },
     });
 
@@ -217,10 +332,170 @@ export class PublishTripPage {
     this.publishForm.controls.ruleTexts.setValue(Array.from(next));
   }
 
+  todayDate(): string {
+    return this.formatDate(new Date());
+  }
+
+  minTimeForSelectedDate(): string | null {
+    if (this.publishForm.controls.date.value !== this.todayDate()) {
+      return null;
+    }
+
+    const now = new Date();
+    now.setSeconds(0, 0);
+    return this.formatTime(now);
+  }
+
+  onVehiclePlateInput(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) return;
+
+    const formatted = this.formatVehiclePlate(input.value);
+    input.value = formatted;
+    this.publishForm.controls.vehiclePlate.setValue(formatted);
+  }
+
+  onTimeChange(): void {
+    const selectedDate = this.publishForm.controls.date.value;
+    const selectedTime = this.publishForm.controls.time.value;
+
+    if (!selectedDate || !selectedTime) {
+      return;
+    }
+
+    if (selectedDate !== this.todayDate()) {
+      return;
+    }
+
+    const selectedDateTime = new Date(`${selectedDate}T${selectedTime}:00`);
+    const now = new Date();
+    now.setSeconds(0, 0);
+
+    if (selectedDateTime < now) {
+      const currentTime = this.formatTime(now);
+      this.publishForm.controls.time.setValue(currentTime, { emitEvent: false });
+    }
+  }
+
+  blockInvalidNumber(event: KeyboardEvent, allowDecimal = false): void {
+    const blockedKeys = ['e', 'E', '+', '-'];
+    if (blockedKeys.includes(event.key)) {
+      event.preventDefault();
+      return;
+    }
+
+    if (!allowDecimal && event.key === '.') {
+      event.preventDefault();
+    }
+  }
+
+  sanitizeNumberInput(event: Event, allowDecimal = false): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) return;
+
+    let value = input.value;
+
+    if (allowDecimal) {
+      value = value.replace(/[^0-9.]/g, '');
+      const parts = value.split('.');
+      value = parts[0] + (parts.length > 1 ? `.${parts.slice(1).join('')}` : '');
+    } else {
+      value = value.replace(/\D/g, '');
+    }
+
+    if (input.value !== value) {
+      input.value = value;
+    }
+  }
+
+  private departureDateTimeValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const date = String(control.get('date')?.value ?? '').trim();
+      const time = String(control.get('time')?.value ?? '').trim();
+      if (!date || !time) return null;
+
+      const selected = new Date(`${date}T${time}:00`);
+      if (Number.isNaN(selected.getTime())) return null;
+
+      const now = new Date();
+      now.setSeconds(0, 0);
+
+      if (selected < now) {
+        return { departureInPast: true };
+      }
+
+      const diffMs = selected.getTime() - now.getTime();
+      const diffMinutes = Math.floor(diffMs / 60000);
+
+      // Si la diferencia es mayor o igual a 15 minutos
+      if (diffMinutes >= 15) {
+        return { differenceTooLarge: true };
+      }
+
+      return null;
+    };
+  }
+
+  /**
+   * Validador de instancia para seatsTotal: los cupos deben ser
+   * estrictamente MENORES a la capacidad real del vehículo seleccionado
+   * (se reserva al menos 1 asiento para el conductor).
+   */
+  seatsNotExceedVehicleValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (this.selectedVehicleSeats === null) return null;
+      const value = Number(control.value);
+      if (!Number.isFinite(value)) return null;
+      return value >= this.selectedVehicleSeats
+        ? { exceedsVehicleSeats: { max: this.selectedVehicleSeats - 1, actual: value } }
+        : null;
+    };
+  }
+
+  private formatVehiclePlate(value: string): string {
+    const letters = (value.match(/[A-Z]/gi) ?? []).join('').toUpperCase().slice(0, 3);
+    const numbers = (value.match(/\d/g) ?? []).join('').slice(0, 4);
+
+    if (!letters) {
+      return '';
+    }
+
+    if (letters.length < 3) {
+      return letters;
+    }
+
+    return numbers.length > 0 ? `${letters}-${numbers}` : letters;
+  }
+
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private formatTime(date: Date): string {
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+
   async onSubmit(): Promise<void> {
     if (!this.driverUid) return;
     if (this.publishForm.invalid) {
       this.publishForm.markAllAsTouched();
+      return;
+    }
+
+    if (this.isSuspended) {
+      const toast = await this.toastCtrl.create({
+        message: 'Acción denegada. No puedes publicar ni editar viajes mientras tu cuenta esté suspendida.',
+        duration: 4000,
+        color: 'danger',
+        position: 'bottom',
+        icon: 'warning-outline'
+      });
+      await toast.present();
       return;
     }
 
@@ -274,7 +549,7 @@ export class PublishTripPage {
           }
         }
       }
-      
+
       const departureAt = `${v.date}T${v.time}:00`;
 
       const rules: TripRuleSet = { punctuality: true, respect: true, noSensitiveData: true };
@@ -298,7 +573,7 @@ export class PublishTripPage {
           return;
         }
 
-        await this.trips.updateTrip(this.editTripId, {
+        await firstValueFrom(this.trips.updateTrip(this.editTripId, {
           routeName: v.routeName.trim(),
           originZone: v.originZone.trim(),
           destinationZone: v.destinationZone.trim(),
@@ -313,18 +588,16 @@ export class PublishTripPage {
           paymentMethod: String(v.paymentMethod ?? '').trim(),
           ruleTexts,
           notes: v.notes?.trim() || undefined,
-          vehicleInfo: {
+          vehicle: {
             plate: v.vehiclePlate.trim(),
             model: v.vehicleModel.trim(),
             brand: v.vehicleBrand.trim(),
             color: v.vehicleColor.trim(),
           },
           rules,
-        });
+        }));
       } else {
-        await this.trips.publishTrip({
-          driverUid: this.driverUid,
-          driverName: this.driverName,
+        await firstValueFrom(this.trips.publishTrip({
           routeName: v.routeName.trim(),
           originZone: v.originZone.trim(),
           destinationZone: v.destinationZone.trim(),
@@ -338,15 +611,14 @@ export class PublishTripPage {
           paymentMethod: String(v.paymentMethod ?? '').trim(),
           ruleTexts,
           notes: v.notes?.trim() || undefined,
-          vehicleInfo: {
+          vehicle: {
             plate: v.vehiclePlate.trim(),
             model: v.vehicleModel.trim(),
             brand: v.vehicleBrand.trim(),
             color: v.vehicleColor.trim(),
           },
           rules,
-          status: 'open',
-        });
+        }));
       }
 
       const toast = await this.toastCtrl.create({
@@ -356,7 +628,7 @@ export class PublishTripPage {
         color: 'success',
       });
       await toast.present();
-      
+
       if (!this.editTripId) {
         this.publishForm.reset({
           routeName: '',

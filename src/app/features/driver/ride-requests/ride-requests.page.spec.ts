@@ -4,6 +4,10 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { IonicModule } from '@ionic/angular';
 import { of } from 'rxjs';
 
+import { AuthService } from '../../../core/auth/auth.service';
+import { ReportsService } from '../../../core/services/reports.service';
+import { ReviewsService } from '../../../core/services/reviews.service';
+import { TripRequestsService } from '../../../core/services/trip-requests.service';
 import { TripsService } from '../../../core/services/trips.service';
 import { RideRequestsPage } from './ride-requests.page';
 
@@ -25,11 +29,35 @@ describe('RideRequestsPage', () => {
           },
         },
         {
+          provide: AuthService,
+          useValue: {
+            user$: of({ uid: 'uid' }),
+          },
+        },
+        {
           provide: TripsService,
           useValue: {
-            requests$: jasmine.createSpy('requests$').and.returnValue(of([])),
-            trip$: jasmine.createSpy('trip$').and.returnValue(of(undefined)),
-            setRequestStatus: jasmine.createSpy('setRequestStatus').and.resolveTo(),
+            getById: jasmine.createSpy('getById').and.returnValue(of(undefined)),
+          },
+        },
+        {
+          provide: TripRequestsService,
+          useValue: {
+            getByTrip: jasmine.createSpy('getByTrip').and.returnValue(of([])),
+            acceptRequest: jasmine.createSpy('acceptRequest').and.returnValue(of(undefined)),
+            rejectRequest: jasmine.createSpy('rejectRequest').and.returnValue(of(undefined)),
+          },
+        },
+        {
+          provide: ReviewsService,
+          useValue: {
+            getByTrip: jasmine.createSpy('getByTrip').and.returnValue(of([])),
+          },
+        },
+        {
+          provide: ReportsService,
+          useValue: {
+            createReport: jasmine.createSpy('createReport').and.returnValue(of(undefined)),
           },
         },
       ],

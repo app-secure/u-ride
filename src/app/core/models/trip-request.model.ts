@@ -1,4 +1,4 @@
-export type TripRequestStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled';
+export type TripRequestStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'cancelled_by_passenger';
 
 export interface TripRequest {
   id: string;

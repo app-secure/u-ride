@@ -1,6 +1,13 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, inject, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
+import { Subscription, firstValueFrom } from 'rxjs';
+
+import { DriverTripRequestsWatcherService } from './core/services/driver-trip-requests-watcher.service';
+import { TripRequestStatusWatcherService } from './core/services/trip-request-status-watcher.service';
+import { NotificationsWatcherService } from './core/services/notifications-watcher.service';
+import { AuthService } from './core/auth/auth.service';
+import { UsersService } from './core/services/users.service';
 
 @Component({
   selector: 'app-root',
@@ -12,9 +19,32 @@ import { IonicModule } from '@ionic/angular';
 export class AppComponent implements OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly removeListeners?: () => void;
+  private readonly tripReqWatcher = inject(TripRequestStatusWatcherService);
+  private readonly driverReqWatcher = inject(DriverTripRequestsWatcherService);
+  private readonly notificationsWatcher = inject(NotificationsWatcherService);
+  private readonly auth = inject(AuthService);
+  private readonly users = inject(UsersService);
+  private syncSub?: Subscription;
 
   constructor() {
     if (!isPlatformBrowser(this.platformId)) return;
+
+    this.tripReqWatcher.start();
+    this.driverReqWatcher.start();
+    this.notificationsWatcher.start();
+
+    // Asegura que usuarios con sesión previa (sin haber pasado por login) queden sincronizados en SQL.
+    // Esto es requisito para persistir notificaciones (FK Notification -> User).
+    this.syncSub = this.auth.user$.subscribe(user => {
+      if (!user) return;
+      void (async () => {
+        try {
+          await firstValueFrom(this.users.syncUser(user));
+        } catch {
+          // best-effort: si falla, la app puede seguir operando, pero no habrá notificaciones persistentes.
+        }
+      })();
+    });
 
     const tryFocus = (ev: Event) => {
       const path = typeof (ev as any).composedPath === 'function' ? ((ev as any).composedPath() as unknown[]) : [];
@@ -59,5 +89,7 @@ export class AppComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.removeListeners?.();
+    this.syncSub?.unsubscribe();
+    this.syncSub = undefined;
   }
 }

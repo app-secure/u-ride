@@ -1,5 +1,7 @@
+/* =========================
+   IONIC CORE IMPORTS
+========================= */
 @import "@ionic/angular/css/core.css";
-
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
@@ -15,16 +17,57 @@
 
 @import "leaflet/dist/leaflet.css";
 
+/* =========================
+   GLOBAL BASE STYLE
+========================= */
+:root {
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --transition-fast: 0.2s ease;
+}
+
+/* =========================
+   BUTTONS (MODERN)
+========================= */
 ion-button {
-  --border-radius: 8px;
+  --border-radius: var(--radius-sm);
   font-weight: 600;
-  letter-spacing: 0.5px;
   text-transform: none;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  letter-spacing: 0.3px;
   --box-shadow: none;
 }
 
+/* =========================
+   CARDS
+========================= */
+ion-card {
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  border: 1px solid var(--ion-item-border-color);
+  background: var(--ion-card-background);
+}
+
+/* =========================
+   ITEMS (INPUT / LISTS)
+========================= */
+ion-item {
+  --border-radius: var(--radius-sm);
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  margin-bottom: 12px;
+
+  --background: var(--ion-item-background);
+  --border-color: var(--ion-item-border-color);
+  --border-style: solid;
+  --border-width: 1px;
+
+  box-shadow: none;
+  transition: var(--transition-fast);
+}
+
+/* VALID / INVALID STATES */
 ion-item.ion-valid {
   --highlight-color-valid: var(--ion-color-success);
 }
@@ -33,132 +76,112 @@ ion-item.ion-invalid {
   --highlight-color-invalid: var(--ion-color-danger);
 }
 
-ion-item {
-  --border-radius: 8px;
+/* =========================
+   INPUT STYLE U-RIDE CLEAN
+========================= */
+.uride-input-item {
+  --border-radius: var(--radius-md);
   --padding-start: 16px;
   --inner-padding-end: 16px;
-  margin-bottom: 12px;
-  --background: var(--ion-item-background);
-  --border-color: var(--ion-item-border-color) !important;
-  --border-style: solid;
-  --border-width: 1px;
-  box-shadow: none;
+
+  --background: #f9fafb;
+  --border-color: #d1d5db;
+
+  --inner-border-width: 0;
+  --highlight-color-focused: transparent;
+
+  transition: var(--transition-fast);
 }
 
-@media (prefers-color-scheme: dark) {
-  ion-item {
-    border: 1px solid #1f2937;
-  }
+/* FOCUS EFFECT */
+.uride-input-item:focus-within {
+  --border-color: #000;
+  --border-width: 2px;
 }
 
-ion-card {
-  border-radius: 12px;
-  box-shadow: none;
-  border: 1px solid var(--ion-item-border-color);
-  background: var(--ion-card-background);
+/* ERROR STATE */
+.uride-input-item.ion-invalid.ion-touched {
+  --border-color: var(--ion-color-danger);
 }
 
-@media (prefers-color-scheme: dark) {
-  ion-card {
-    border: 1px solid #1f2937;
-  }
+/* INPUT TEXT */
+.uride-input-item ion-input {
+  font-size: 15px;
+  font-weight: 500;
 }
 
+/* AUTOFILL FIX */
+.uride-input-item ion-input::part(native):-webkit-autofill,
+.uride-input-item ion-input::part(native):-webkit-autofill:hover,
+.uride-input-item ion-input::part(native):-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 100px #f9fafb inset !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+/* =========================
+   LABELS
+========================= */
+.uride-label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #111827;
+}
+
+/* =========================
+   TEXT HELPERS
+========================= */
 .text-gradient {
   color: var(--ion-color-tertiary);
   font-weight: 700;
-}
-
-.uride-input-group {
-  margin-bottom: 20px;
-  text-align: left;
-}
-
-.uride-label {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 8px;
-  margin-left: 4px;
-  letter-spacing: -0.2px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .uride-label {
-    color: #f3f4f6;
-  }
-}
-
-.uride-input-item {
-  --border-radius: 12px;
-  --padding-start: 16px;
-  --inner-padding-end: 16px;
-  --background: #f9fafb;
-  --border-color: #d1d5db !important;
-  --border-style: solid;
-  --border-width: 1px;
-  --inner-border-width: 0 !important;
-  --highlight-color-focused: transparent !important;
-  margin-bottom: 0;
-  box-shadow: none;
-  transition: all 0.2s ease;
-}
-
-.uride-input-item.item-has-focus,
-.uride-input-item.ion-focused,
-.uride-input-item:focus-within {
-  --border-color: #3b82f6 !important;
-  --border-width: 2px !important;
-}
-
-.uride-input-item.ion-invalid.ion-touched {
-  --border-color: var(--ion-color-danger) !important;
-  --border-width: 1px;
-}
-
-.uride-input-item ion-icon[slot="start"] {
-  color: var(--ion-color-warning) !important;
-  margin-right: 12px;
-  opacity: 1;
-}
-
-.uride-input-item ion-input {
-  font-size: 15px !important;
-  font-weight: 500;
-  --placeholder-color: #9ca3af;
-  --placeholder-font-weight: 400;
-  outline: none !important;
-
-  /* Elimina el asqueroso fondo azul de autocompletado de Chrome/Edge */
-  &::part(native):-webkit-autofill,
-  &::part(native):-webkit-autofill:hover, 
-  &::part(native):-webkit-autofill:focus, 
-  &::part(native):-webkit-autofill:active{
-    -webkit-box-shadow: 0 0 0 100px #f9fafb inset !important;
-    -webkit-text-fill-color: #111827 !important;
-    transition: background-color 5000s ease-in-out 0s;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .uride-input-item {
-    --background: #111827;
-    --border-color: #374151 !important;
-  }
 }
 
 .error-message {
   color: var(--ion-color-danger);
   font-size: 13px;
   margin-top: 4px;
-  margin-left: 8px;
-  display: block;
 }
 
-/* Custom Popover for Selectors */
+/* =========================
+   POPUP / POPOVER
+========================= */
 .wide-popover {
   --width: 400px;
   --min-width: 320px;
   --max-width: 90vw;
+}
+
+/* =========================
+   DARK MODE CLEAN
+========================= */
+@media (prefers-color-scheme: dark) {
+
+  ion-item {
+    --background: #111827;
+    --border-color: #374151;
+  }
+
+  ion-card {
+    background: #1a1f2e;
+    border-color: #2c3544;
+  }
+
+  .uride-input-item {
+    --background: #111827;
+    --border-color: #374151;
+  }
+
+  .uride-label {
+    color: #f3f4f6;
+  }
+}
+
+/* =========================
+   PAYMENT MODAL
+========================= */
+.payment-modal {
+  --height: 90vh;
+  --max-height: 95vh;
+  --border-radius: 28px 28px 0 0;
+  align-items: flex-end;
 }

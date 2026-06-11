@@ -1,13 +1,14 @@
 <ion-content [fullscreen]="true" class="uride-content">
   <div class="publish-dashboard fade-in-up">
-    
+
     <div class="header-section">
       <button type="button" class="btn-back-top" (click)="goBack()">
         <ion-icon name="arrow-back-outline"></ion-icon>
         Volver a Mis Viajes
       </button>
       <h2 class="title">{{ editTripId ? 'Editar Viaje' : 'Publicar Nuevo Viaje' }}</h2>
-      <p class="subtitle">{{ editTripId ? 'Actualiza los detalles de tu viaje' : 'Completa los detalles para compartir tu ruta' }}</p>
+      <p class="subtitle">{{ editTripId ? 'Actualiza los detalles de tu viaje' : 'Completa los detalles para compartir
+        tu ruta' }}</p>
     </div>
 
     <form [formGroup]="publishForm" (ngSubmit)="onSubmit()" class="publish-form modern-card">
@@ -18,131 +19,197 @@
 
         <div class="input-group">
           <label>Selecciona la ruta</label>
-          <div class="custom-input-box">
+          <div class="custom-input-box"
+            [class.has-error]="publishForm.controls.routeName.invalid && publishForm.controls.routeName.touched">
             <ion-icon name="git-branch-outline" class="icon-gray"></ion-icon>
-            <select formControlName="routeName">
-              <option value="" disabled>Seleccionar ruta</option>
-              <option *ngFor="let r of (routeOptions$ | async)" [value]="r">{{ r }}</option>
-            </select>
+            <ion-select formControlName="routeName" placeholder="Seleccionar ruta" interface="popover"
+              [interfaceOptions]="{ cssClass: 'wide-popover' }" toggleIcon="chevron-down-outline"
+              expandedIcon="chevron-up-outline">
+              <ion-select-option value="" disabled>Seleccionar ruta</ion-select-option>
+              <ion-select-option *ngFor="let r of (routeOptions$ | async)" [value]="r">{{ r }}</ion-select-option>
+            </ion-select>
+          </div>
+          <div class="error-msg"
+            *ngIf="publishForm.controls.routeName.invalid && publishForm.controls.routeName.touched">
+            La ruta es requerida.
           </div>
         </div>
       </div>
-      
+
       <!-- Información de Ruta -->
       <div class="form-section">
         <h3 class="section-title">Información de Ruta</h3>
-        
+
         <div class="row-inputs">
           <div class="input-group">
             <div class="label-row">
               <label>Origen</label>
             </div>
-            <div class="custom-input-box">
+            <div class="custom-input-box"
+              [class.has-error]="publishForm.controls.originZone.invalid && publishForm.controls.originZone.touched">
               <ion-icon name="location-outline" class="icon-origin"></ion-icon>
-              <button
-                type="button"
-                class="location-select-btn"
-                [class.is-placeholder]="!publishForm.controls.originZone.value"
-                (click)="openLocationPicker('origin')"
-              >
-                {{ publishForm.controls.originZone.value ? mainLabel(publishForm.controls.originZone.value) : 'Seleccionar ubicación' }}
+              <button type="button" class="location-select-btn"
+                [class.is-placeholder]="!publishForm.controls.originZone.value" (click)="openLocationPicker('origin')">
+                {{ publishForm.controls.originZone.value ? mainLabel(publishForm.controls.originZone.value) :
+                'Seleccionar ubicación' }}
               </button>
+              <ion-icon name="chevron-forward-outline" class="icon-gray"
+                style="font-size: 16px; margin-left: 4px;"></ion-icon>
             </div>
-            <span class="hint">Busca una dirección y puntea la parada exacta en el mapa</span>
+            <div class="error-msg"
+              *ngIf="publishForm.controls.originZone.invalid && publishForm.controls.originZone.touched">
+              El punto de origen es requerido.
+            </div>
+            <span class="hint">Busca una dirección y toca el mapa para fijar el punto exacto</span>
           </div>
 
           <div class="input-group">
-            <label>Destino</label>
-            <div class="custom-input-box">
-              <ion-icon name="location" class="icon-dest"></ion-icon>
-              <button
-                type="button"
-                class="location-select-btn"
-                [class.is-placeholder]="!publishForm.controls.destinationZone.value"
-                (click)="openLocationPicker('destination')"
-              >
-                {{ publishForm.controls.destinationZone.value ? mainLabel(publishForm.controls.destinationZone.value) : 'Seleccionar ubicación' }}
-              </button>
+            <div class="label-row">
+              <label>Destino</label>
             </div>
+            <div class="custom-input-box"
+              [class.has-error]="publishForm.controls.destinationZone.invalid && publishForm.controls.destinationZone.touched">
+              <ion-icon name="location" class="icon-dest"></ion-icon>
+              <button type="button" class="location-select-btn"
+                [class.is-placeholder]="!publishForm.controls.destinationZone.value"
+                (click)="openLocationPicker('destination')">
+                {{ publishForm.controls.destinationZone.value ? mainLabel(publishForm.controls.destinationZone.value) :
+                'Seleccionar ubicación' }}
+              </button>
+              <ion-icon name="chevron-forward-outline" class="icon-gray"
+                style="font-size: 16px; margin-left: 4px;"></ion-icon>
+            </div>
+            <div class="error-msg"
+              *ngIf="publishForm.controls.destinationZone.invalid && publishForm.controls.destinationZone.touched">
+              El punto de destino es requerido.
+            </div>
+            <span class="hint">Busca una dirección y toca el mapa para fijar el punto exacto</span>
           </div>
         </div>
+
       </div>
 
       <!-- Fecha y Hora -->
       <div class="form-section">
         <h3 class="section-title">Fecha y Hora</h3>
-        
+
         <div class="row-inputs">
           <div class="input-group">
             <label>Fecha</label>
-            <div class="custom-input-box">
+            <div class="custom-input-box"
+              [class.has-error]="publishForm.controls.date.invalid && publishForm.controls.date.touched">
               <ion-icon name="calendar-outline" class="icon-gray"></ion-icon>
-              <input type="date" formControlName="date" />
+              <input type="date" formControlName="date" [min]="todayDate()" (change)="onTimeChange()" />
+            </div>
+            <div class="error-msg" *ngIf="publishForm.controls.date.invalid && publishForm.controls.date.touched">
+              La fecha es requerida.
             </div>
           </div>
 
           <div class="input-group">
             <label>Hora de Salida</label>
-            <div class="custom-input-box">
+            <div class="custom-input-box"
+              [class.has-error]="publishForm.controls.time.invalid && publishForm.controls.time.touched">
               <ion-icon name="time-outline" class="icon-gray"></ion-icon>
-              <input type="time" formControlName="time" />
+              <input type="time" formControlName="time" [min]="minTimeForSelectedDate()" (change)="onTimeChange()" />
+            </div>
+            <div class="error-msg" *ngIf="publishForm.controls.time.invalid && publishForm.controls.time.touched">
+              La hora de salida es requerida.
             </div>
           </div>
+        </div>
+
+        <div class="error-msg"
+          *ngIf="publishForm.errors?.['departureInPast'] && (publishForm.controls.date.touched && publishForm.controls.time.touched)">
+          La fecha y hora de salida no puede estar en el pasado.
+        </div>
+        <div class="error-msg"
+          *ngIf="publishForm.errors?.['differenceTooLarge'] && (publishForm.controls.date.touched && publishForm.controls.time.touched)">
+          La hora de salida no puede exceder los 15 minutos desde la hora actual.
         </div>
       </div>
 
       <!-- Información del Vehículo -->
       <div class="form-section">
         <h3 class="section-title">Información del Vehículo</h3>
-        
-        <div class="row-inputs">
-          <div class="input-group">
-            <label>Marca</label>
-            <div class="custom-input-box">
-              <ion-icon name="car-outline" class="icon-gray"></ion-icon>
-              <input type="text" formControlName="vehicleBrand" placeholder="Ej: Chevrolet" />
+
+        <div *ngIf="myVehicles.length === 0" class="no-vehicle-state modern-card">
+          <div class="icon-box">
+            <ion-icon name="car-sport-outline"></ion-icon>
+          </div>
+          <h4>No tienes vehículos registrados</h4>
+          <p>Para publicar un viaje necesitas registrar al menos un vehículo en tu perfil.</p>
+          <ion-button type="button" routerLink="/app/profile/vehicles" expand="block" class="add-vehicle-btn">
+            <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+            Ir a Mis Vehículos
+          </ion-button>
+        </div>
+
+        <ng-container *ngIf="myVehicles.length > 0">
+          <div class="input-group" style="margin-bottom: 16px;">
+            <label>Selecciona un vehículo</label>
+            <div class="custom-input-box"
+              [class.has-error]="publishForm.controls.vehicleBrand.invalid && publishForm.controls.vehicleBrand.touched">
+              <ion-icon name="car-sport" class="icon-gray"></ion-icon>
+              <ion-select interface="popover" placeholder="Seleccionar..." (ionChange)="onVehicleSelected($event)"
+                style="width: 100%;">
+                <ion-select-option *ngFor="let v of myVehicles" [value]="v">{{ v.brand }} {{ v.modelOrBusNumber
+                  }}</ion-select-option>
+              </ion-select>
+            </div>
+            <div class="error-msg"
+              *ngIf="publishForm.controls.vehicleBrand.invalid && publishForm.controls.vehicleBrand.touched">
+              Debes seleccionar un vehículo.
             </div>
           </div>
 
-          <div class="input-group">
-            <label>Modelo / Número de Bus</label>
-            <div class="custom-input-box">
-              <ion-icon name="car-sport-outline" class="icon-gray"></ion-icon>
-              <input type="text" formControlName="vehicleModel" placeholder="Ej: Furgoneta, Bus #42..." />
+          <div class="vehicle-card-preview" *ngIf="publishForm.controls.vehicleBrand.value">
+            <div class="v-header">
+              <div class="v-icon"><ion-icon name="car-sport-outline"></ion-icon></div>
+              <div class="v-title">
+                <h4>{{ publishForm.controls.vehicleBrand.value }} {{ publishForm.controls.vehicleModel.value }}</h4>
+                <span class="v-plate">{{ publishForm.controls.vehiclePlate.value }}</span>
+              </div>
+            </div>
+            <div class="v-details">
+              <div class="v-detail">
+                <ion-icon name="color-palette-outline"></ion-icon>
+                <span>Color: {{ publishForm.controls.vehicleColor.value }}</span>
+              </div>
+              <div class="v-detail">
+                <ion-icon name="people-outline"></ion-icon>
+                <span>Asientos del vehículo: {{ selectedVehicleSeats }}</span>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div class="row-inputs">
-          <div class="input-group">
-            <label>Placa</label>
-            <div class="custom-input-box">
-              <ion-icon name="barcode-outline" class="icon-gray"></ion-icon>
-              <input type="text" formControlName="vehiclePlate" placeholder="Ej: ABC-1234" />
-            </div>
-          </div>
-
-          <div class="input-group">
-            <label>Color</label>
-            <div class="custom-input-box">
-              <ion-icon name="color-palette-outline" class="icon-gray"></ion-icon>
-              <input type="text" formControlName="vehicleColor" placeholder="Ej: Blanco" />
-            </div>
-          </div>
-        </div>
+        </ng-container>
       </div>
 
       <!-- Capacidad -->
       <div class="form-section">
         <h3 class="section-title">Capacidad</h3>
-        
+
         <div class="input-group">
           <label>Cupos Disponibles</label>
-          <div class="custom-input-box">
+          <div class="custom-input-box"
+            [class.has-error]="publishForm.controls.seatsTotal.invalid && publishForm.controls.seatsTotal.touched">
             <ion-icon name="people-outline" class="icon-gray"></ion-icon>
-            <input type="number" formControlName="seatsTotal" min="1" max="40" placeholder="Ej: 3" />
+            <input type="number" formControlName="seatsTotal" min="1" max="40" inputmode="numeric" placeholder="Ej: 3"
+              (keydown)="blockInvalidNumber($event)" (input)="sanitizeNumberInput($event)" />
           </div>
-          <span class="hint">No excedas la capacidad legal de tu vehículo</span>
+          <div class="error-msg"
+            *ngIf="publishForm.controls.seatsTotal.invalid && publishForm.controls.seatsTotal.touched">
+            <span *ngIf="publishForm.controls.seatsTotal.errors?.['required']">Debe ingresar el número de cupos.</span>
+            <span
+              *ngIf="publishForm.controls.seatsTotal.errors?.['min'] || publishForm.controls.seatsTotal.errors?.['max']">Debe
+              ser entre 1 y 40.</span>
+            <span *ngIf="publishForm.controls.seatsTotal.errors?.['exceedsVehicleSeats']">Los cupos deben ser menores a
+              los {{ selectedVehicleSeats }} asientos del vehículo (máximo {{ selectedVehicleSeats! - 1 }}).</span>
+          </div>
+          <span class="hint" *ngIf="selectedVehicleSeats !== null">Máximo {{ selectedVehicleSeats! - 1 }} cupos (el
+            vehículo tiene {{ selectedVehicleSeats }} asientos en total)</span>
+          <span class="hint" *ngIf="selectedVehicleSeats === null">Selecciona primero un vehículo para ver el límite de
+            cupos</span>
         </div>
       </div>
 
@@ -151,22 +218,34 @@
         <h3 class="section-title">Aporte por Pasajero</h3>
         <div class="input-group">
           <label>Costo sugerido o fijo (Ej: 0.50)</label>
-          <div class="custom-input-box">
+          <div class="custom-input-box"
+            [class.has-error]="publishForm.controls.price.invalid && publishForm.controls.price.touched">
             <ion-icon name="cash-outline" class="icon-gray"></ion-icon>
             <span class="currency-prefix">$</span>
-            <input type="number" formControlName="price" placeholder="0.50" step="0.10" min="0" />
+            <input type="number" formControlName="price" placeholder="0.50" step="0.10" min="0" inputmode="decimal"
+              (keydown)="blockInvalidNumber($event, true)" (input)="sanitizeNumberInput($event, true)" />
+          </div>
+          <div class="error-msg" *ngIf="publishForm.controls.price.invalid && publishForm.controls.price.touched">
+            El aporte por pasajero es requerido.
           </div>
         </div>
       </div>
 
       <!-- Método de pago -->
       <div class="form-section">
-        <h3 class="section-title">Método de Pago</h3>
+        <h3 class="section-title">Método de Pago Preferido</h3>
         <div class="input-group">
-          <label>Indica cómo se realizará el pago</label>
-          <div class="custom-input-box">
+          <label>Indica cuál es el método de pago preferido para este viaje</label>
+          <div class="custom-input-box"
+            [class.has-error]="publishForm.controls.paymentMethod.invalid && publishForm.controls.paymentMethod.touched">
             <ion-icon name="card-outline" class="icon-gray"></ion-icon>
-            <input type="text" formControlName="paymentMethod" placeholder="Ej: Efectivo, Transferencia..." />
+            <ion-select formControlName="paymentMethod" interface="popover" placeholder="Seleccionar método">
+              <ion-select-option *ngFor="let method of paymentMethods" [value]="method">{{ method }}</ion-select-option>
+            </ion-select>
+          </div>
+          <div class="error-msg"
+            *ngIf="publishForm.controls.paymentMethod.invalid && publishForm.controls.paymentMethod.touched">
+            El método de pago es requerido.
           </div>
           <span class="hint" *ngIf="!hasPrice">Ingresa primero el costo para habilitar el método de pago</span>
         </div>
@@ -183,11 +262,8 @@
                 <ion-icon name="checkmark-circle-outline"></ion-icon>
                 <span>{{ r }}</span>
               </div>
-              <ion-checkbox
-                mode="ios"
-                [checked]="isRuleSelected(r)"
-                (ionChange)="toggleRule(r, $event.detail.checked)"
-              ></ion-checkbox>
+              <ion-checkbox mode="ios" [checked]="isRuleSelected(r)"
+                (ionChange)="toggleRule(r, $event.detail.checked)"></ion-checkbox>
             </div>
           </div>
         </ng-container>
@@ -196,12 +272,17 @@
       <!-- Notas Adicionales -->
       <div class="form-section">
         <h3 class="section-title">Notas Adicionales</h3>
-        
+
         <div class="input-group">
           <label>Reglas o Preferencias</label>
-          <div class="custom-textarea-box">
+          <div class="custom-textarea-box"
+            [class.has-error]="publishForm.controls.notes.invalid && publishForm.controls.notes.touched">
             <ion-icon name="document-text-outline" class="icon-gray"></ion-icon>
-            <textarea formControlName="notes" placeholder="Ej: Salida puntual, no fumar, etc." rows="3"></textarea>
+            <textarea formControlName="notes" placeholder="Ej: Salida puntual, no fumar, etc." rows="3"
+              maxlength="400"></textarea>
+          </div>
+          <div class="char-count" *ngIf="publishForm.controls.notes.value">
+            {{ publishForm.controls.notes.value.length }} / 400
           </div>
         </div>
       </div>
@@ -215,7 +296,7 @@
           <span *ngIf="!isSubmitting">{{ editTripId ? 'Guardar cambios' : 'Publicar Viaje' }}</span>
         </ion-button>
       </div>
-      
+
     </form>
   </div>
 </ion-content>

@@ -1,46 +1,70 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/app/trips"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Reportar</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="uride-content">
+  <div class="publish-dashboard fade-in-up">
+    <div class="header-section">
+      <button type="button" class="btn-back-top" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        Volver
+      </button>
+      <h2 class="title">Reportar Usuario</h2>
+      <ng-container *ngIf="reportedUser$ | async as reportedUser; else loadingUser">
+        <p class="subtitle">Usuario a reportar: {{ reportedUser.displayName || reportedUid }}</p>
+      </ng-container>
+      <ng-template #loadingUser>
+        <p class="subtitle">Usuario a reportar: Cargando...</p>
+      </ng-template>
+    </div>
 
-<ion-content [fullscreen]="true" class="ion-padding">
-  <div style="max-width: 680px; margin: 0 auto;">
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Motivo del reporte</ion-card-title>
-        <ion-card-subtitle>Usuario reportado: {{ reportedUid }}</ion-card-subtitle>
-      </ion-card-header>
-      <ion-card-content>
-        <form [formGroup]="form" (ngSubmit)="submit()">
-          <ion-item>
-            <ion-textarea
-              label="Describe lo ocurrido"
-              labelPlacement="stacked"
-              formControlName="reason"
-              autoGrow="true"
-              placeholder="Ej: lenguaje ofensivo, incumplimiento de reglas, etc."
-            ></ion-textarea>
-          </ion-item>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="publish-form modern-card">
+      <div class="form-section">
+        <h3 class="section-title">Motivo del reporte</h3>
 
-          <ion-item>
-            <ion-input
-              label="Evidencia (URL opcional)"
-              labelPlacement="stacked"
-              formControlName="evidenceUrl"
-              placeholder="https://..."
-            ></ion-input>
-          </ion-item>
+        <div class="input-group">
+          <label>Describe lo ocurrido</label>
+          <div class="custom-textarea-box" [class.has-error]="form.controls.reason.invalid && form.controls.reason.touched">
+            <ion-icon name="document-text-outline" class="icon-gray"></ion-icon>
+            <textarea formControlName="reason" rows="6" maxlength="700" placeholder="Ej: lenguaje ofensivo, incumplimiento de reglas, etc."></textarea>
+            <span class="character-count">{{ form.controls.reason.value.length }}/700</span>
+          </div>
+          <div class="error-msg" *ngIf="form.controls.reason.invalid && form.controls.reason.touched">
+            La descripción es requerida (mín. 5 caracteres, máx. 700).
+          </div>
+        </div>
+      </div>
 
-          <ion-button type="submit" expand="block" [disabled]="saving" style="margin-top: 16px;">
-            <ion-spinner *ngIf="saving" name="dots" slot="start"></ion-spinner>
-            Enviar reporte
+      <div class="form-section">
+        <h3 class="section-title">Evidencia Opcional</h3>
+        <!-- Vista previa de evidencia -->
+        <div class="evidence-preview-container" *ngIf="evidencePreview">
+          <img [src]="evidencePreview" alt="Evidencia seleccionada" />
+          <ion-button fill="clear" color="danger" (click)="clearEvidence()" class="clear-btn">
+            <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
           </ion-button>
-        </form>
-      </ion-card-content>
-    </ion-card>
+        </div>
+
+        <!-- Botones de cámara y galería centrados -->
+        <div class="evidence-actions" *ngIf="!evidencePreview">
+          <button type="button" class="evidence-btn" (click)="takePhoto()">
+            <ion-icon name="camera-outline"></ion-icon>
+            <span>Cámara</span>
+          </button>
+          <button type="button" class="evidence-btn" (click)="selectFromGallery()">
+            <ion-icon name="image-outline"></ion-icon>
+            <span>Galería</span>
+          </button>
+        </div>
+
+        <div class="loading-container" *ngIf="uploading">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Subiendo evidencia...</p>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <ion-button class="btn-publish" type="submit" expand="block" [disabled]="saving || uploading">
+          <ion-spinner *ngIf="saving" name="dots" slot="start"></ion-spinner>
+          Enviar reporte
+        </ion-button>
+      </div>
+    </form>
   </div>
 </ion-content>
