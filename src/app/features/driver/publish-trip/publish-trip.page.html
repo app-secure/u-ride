@@ -124,8 +124,8 @@
           La fecha y hora de salida no puede estar en el pasado.
         </div>
         <div class="error-msg"
-          *ngIf="publishForm.errors?.['differenceTooLarge'] && (publishForm.controls.date.touched && publishForm.controls.time.touched)">
-          La hora de salida no puede exceder los 15 minutos desde la hora actual.
+          *ngIf="publishForm.errors?.['departureTooSoon'] && (publishForm.controls.date.touched && publishForm.controls.time.touched)">
+          La hora de salida debe ser de al menos 15 minutos en el futuro para dar tiempo a los pasajeros a unirse.
         </div>
       </div>
 
