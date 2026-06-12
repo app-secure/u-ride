@@ -262,19 +262,6 @@ export class LocationPickerModalComponent implements AfterViewInit, OnDestroy {
     if (hasMain && hasOther) {
       const mainPos = this.mainMarker!.getLatLng();
       const otherPos = this.otherMarker!.getLatLng();
-      
-      const pts: L.LatLngExpression[] = [mainPos, otherPos];
-
-      if (this.routeLine) {
-        this.routeLine.setLatLngs(pts);
-      } else {
-        this.routeLine = L.polyline(pts, {
-          color: '#6366f1',
-          weight: 4,
-          dashArray: '8 6',
-          opacity: 0.5,
-        }).addTo(this.map);
-      }
 
       try {
         const url = `https://router.project-osrm.org/route/v1/driving/${mainPos.lng},${mainPos.lat};${otherPos.lng},${otherPos.lat}?overview=full&geometries=geojson`;
@@ -286,13 +273,21 @@ export class LocationPickerModalComponent implements AfterViewInit, OnDestroy {
             const coordinates = data.routes[0].geometry.coordinates;
             const latLngs: L.LatLngExpression[] = coordinates.map((c: [number, number]) => [c[1], c[0]]);
 
-            this.routeLine.setLatLngs(latLngs);
-            this.routeLine.setStyle({
-              color: '#ef4444',
-              weight: 5,
-              opacity: 0.9,
-              dashArray: ''
-            });
+            if (this.routeLine) {
+              this.routeLine.setLatLngs(latLngs);
+              this.routeLine.setStyle({
+                color: '#ef4444',
+                weight: 5,
+                opacity: 0.9,
+                dashArray: ''
+              });
+            } else {
+              this.routeLine = L.polyline(latLngs, {
+                color: '#ef4444',
+                weight: 5,
+                opacity: 0.9,
+              }).addTo(this.map);
+            }
             return;
           }
         }
@@ -300,13 +295,11 @@ export class LocationPickerModalComponent implements AfterViewInit, OnDestroy {
         console.error('Error fetching real route from OSRM:', error);
       }
 
-      // Si falla la API de ruta, lo deja como línea punteada
-      this.routeLine.setStyle({
-        color: '#6366f1',
-        weight: 3,
-        dashArray: '8 6',
-        opacity: 0.75,
-      });
+      // Si falla la API de ruta, no mostramos ninguna línea recta
+      if (this.routeLine) {
+        this.routeLine.remove();
+        this.routeLine = undefined;
+      }
 
     } else if (this.routeLine) {
       this.routeLine.remove();
